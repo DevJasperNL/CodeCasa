@@ -1,4 +1,5 @@
 using CodeCasa.Dashboard.Components;
+using CodeCasa.Dashboard.Extensions;
 using MudBlazor.Services;
 using NetDaemon.Runtime;
 
@@ -12,6 +13,8 @@ builder.Services
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+
+builder.Services.AddCodeCasa();
 
 var app = builder.Build();
 
