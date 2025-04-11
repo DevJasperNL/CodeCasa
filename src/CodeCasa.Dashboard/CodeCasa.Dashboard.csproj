@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DevJasper.NetDaemon.Extensions.Observables" Version="1.0.2" />
     <PackageReference Include="MudBlazor" Version="8.5.1" />
     <PackageReference Include="NetDaemon.Runtime" Version="25.10.0" />
     <PackageReference Include="Occurify.Reactive" Version="0.5.2" />

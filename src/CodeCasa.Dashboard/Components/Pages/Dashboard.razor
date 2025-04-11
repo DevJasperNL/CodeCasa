@@ -7,6 +7,7 @@
 @inject LightEntities LightEntities
 
 <MudText Typo="Typo.h3" Align="Align.Center">@_currentTime.ToString("HH:mm:ss")</MudText>
+
 <MudSwitch @bind-Value="_officeLight.IsOn" Color="Color.Primary" />
 
 @code {
@@ -16,7 +17,6 @@
     protected override void OnInitialized()
     {
         var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
-
         TimeZoneInstants.EverySecond().Subscribe(() =>
         {
             _currentTime = DateTime.Now;
