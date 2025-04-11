@@ -5,8 +5,6 @@ VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa", "CodeCasa\CodeCasa.csproj", "{691E3C17-F00B-4990-8293-12E54DF347C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Dashboard", "CodeCasa.Dashboard\CodeCasa.Dashboard.csproj", "{4A925BE1-4066-4494-A6BF-26B3C815DEA2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{691E3C17-F00B-4990-8293-12E54DF347C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{691E3C17-F00B-4990-8293-12E54DF347C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{691E3C17-F00B-4990-8293-12E54DF347C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4A925BE1-4066-4494-A6BF-26B3C815DEA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A925BE1-4066-4494-A6BF-26B3C815DEA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4A925BE1-4066-4494-A6BF-26B3C815DEA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4A925BE1-4066-4494-A6BF-26B3C815DEA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
