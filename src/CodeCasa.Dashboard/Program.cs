@@ -1,4 +1,5 @@
 using CodeCasa.Dashboard.Components;
+using MudBlazor.Services;
 using NetDaemon.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,8 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseNetDaemonRuntime();
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 
