@@ -12,6 +12,12 @@ namespace CodeCasa.Pipeline
         private Action<TState>? _action;
         private IDisposable? _subscription;
 
+        public IPipeline<TState> SetDefault(TState state)
+        {
+            Input = state;
+            return this;
+        }
+
         public IPipeline<TState> RegisterNode<TNode>() where TNode : IPipelineNode<TState>
         {
             var newNode = ActivatorUtilities.CreateInstance<TNode>(serviceProvider);
@@ -28,6 +34,11 @@ namespace CodeCasa.Pipeline
             }
 
             _nodes.Add(newNode);
+
+            if (_nodes.Count == 1)
+            {
+                newNode.Input = Input;
+            }
 
             Output = newNode.Output;
 
@@ -47,24 +58,26 @@ namespace CodeCasa.Pipeline
 
         public IObservable<TState?> OnNewOutput => _newOutputSubject.AsObservable();
 
+        private TState? _input;
+        public bool Enabled
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+
         public TState? Input
         {
-            get
-            {
-                if (!_nodes.Any())
-                {
-                    return default;
-                }
-                return _nodes.First().Input;
-            }
+            get => _input;
             set
             {
+                _input = value;
                 if (!_nodes.Any())
                 {
+                    Output = _input;
                     return;
                 }
 
-                _nodes.First().Input = value;
+                _nodes.First().Input = _input;
             }
         }
 

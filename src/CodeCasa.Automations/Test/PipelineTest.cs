@@ -11,7 +11,8 @@ namespace CodeCasa.Automations.Test
         public PipelineTest(IPipeline<string> messagesPipeline)
         {
             messagesPipeline
-                .RegisterNode<DefaultMessageNode>()
+                .SetDefault("Default message")
+                //.RegisterNode<DefaultMessageNode>()
                 .RegisterNode<OfficeLightsMessageNode>()
                 .RegisterNode<CherryOnTopMessageNode>()
                 .SetOutputHandler(Console.WriteLine);

@@ -8,8 +8,26 @@ namespace CodeCasa.Pipeline
         private readonly Subject<TState?> _newOutputSubject = new();
         private TState? _input;
         private TState? _output;
+        private bool _enabled = true;
 
         public IObservable<TState?> OnNewOutput => _newOutputSubject.AsObservable();
+
+        public bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                if (_enabled == value)
+                {
+                    return;
+                }
+                _enabled = value;
+                if (!_enabled)
+                {
+                    SetOutputInternal(_input);
+                }
+            }
+        }
 
         public TState? Input
         {
@@ -17,6 +35,11 @@ namespace CodeCasa.Pipeline
             set
             {
                 _input = value;
+                if (!Enabled)
+                {
+                    SetOutputInternal(_input);
+                    return;
+                }
                 InputReceived(_input);
             }
         }
@@ -28,7 +51,7 @@ namespace CodeCasa.Pipeline
 
         protected void DisableNode()
         {
-            Output = Input;
+            Enabled = false;
         }
 
         public TState? Output
@@ -36,14 +59,21 @@ namespace CodeCasa.Pipeline
             get => _output;
             protected set
             {
-                if (value == null || EqualityComparer<TState>.Default.Equals(_output, value))
-                {
-                    return;
-                }
+                Enabled = true;
 
-                _output = value;
-                _newOutputSubject.OnNext(value);
+                SetOutputInternal(value);
             }
+        }
+
+        private void SetOutputInternal(TState? output)
+        {
+            if (output == null || EqualityComparer<TState>.Default.Equals(_output, output))
+            {
+                return;
+            }
+
+            _output = output;
+            _newOutputSubject.OnNext(output);
         }
     }
 }
