@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CodeCasa.Automations": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
