@@ -8,6 +8,7 @@ public static class GeneratedExtensions
     public static IServiceCollection AddCodeCasaEntities(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddTransient<Entities>();
+        serviceCollection.AddTransient<CoverEntities>();
         serviceCollection.AddTransient<LightEntities>();
         return serviceCollection;
     }
