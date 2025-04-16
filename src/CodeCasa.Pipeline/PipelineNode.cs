@@ -12,6 +12,52 @@ namespace CodeCasa.Pipeline
 
         public IObservable<TState?> OnNewOutput => _newOutputSubject.AsObservable();
 
+        public TState? Input
+        {
+            get => _input;
+            set
+            {
+                _input = value;
+                if (!Enabled)
+                {
+                    SetOutputInternal(_input);
+                    return;
+                }
+                InputReceived(_input);
+            }
+        }
+
+        /// <summary>
+        /// Called when the input is received.
+        /// </summary>
+        protected virtual void InputReceived(TState? state)
+        {
+            // Ignore input by default.
+        }
+
+        /// <summary>
+        /// Disables the node. If the node is disabled, it will pass its input to the output without processing it.
+        /// </summary>
+        protected void DisableNode()
+        {
+            Enabled = false;
+        }
+
+        /// <summary>
+        /// Sets the output state of the node. This will trigger the processing of the input.
+        /// If the node is disabled, it will be enabled when setting an output value.
+        /// </summary>
+        public TState? Output
+        {
+            get => _output;
+            protected set
+            {
+                Enabled = true;
+
+                SetOutputInternal(value);
+            }
+        }
+
         public bool Enabled
         {
             get => _enabled;
@@ -29,49 +75,8 @@ namespace CodeCasa.Pipeline
             }
         }
 
-        public TState? Input
-        {
-            get => _input;
-            set
-            {
-                _input = value;
-                if (!Enabled)
-                {
-                    SetOutputInternal(_input);
-                    return;
-                }
-                InputReceived(_input);
-            }
-        }
-
-        protected virtual void InputReceived(TState? state)
-        {
-            // Ignore input by default.
-        }
-
-        protected void DisableNode()
-        {
-            Enabled = false;
-        }
-
-        public TState? Output
-        {
-            get => _output;
-            protected set
-            {
-                Enabled = true;
-
-                SetOutputInternal(value);
-            }
-        }
-
         private void SetOutputInternal(TState? output)
         {
-            if (output == null || EqualityComparer<TState>.Default.Equals(_output, output))
-            {
-                return;
-            }
-
             _output = output;
             _newOutputSubject.OnNext(output);
         }
