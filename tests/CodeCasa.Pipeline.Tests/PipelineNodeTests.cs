@@ -1,65 +1,64 @@
 ﻿using Moq;
 
-namespace CodeCasa.Pipeline.Tests
+namespace CodeCasa.Pipeline.Tests;
+
+[TestClass]
+public sealed class PipelineNodeTests
 {
-    [TestClass]
-    public sealed class PipelineNodeTests
+    [TestMethod]
+    public void Input_Ignored()
     {
-        [TestMethod]
-        public void Input_Ignored()
-        {
-            // Arrange
-            string? emittedOutput = null;
+        // Arrange
+        string? emittedOutput = null;
 
-            var pipelineNode = new Mock<PipelineNode<string>>().Object;
-            pipelineNode.OnNewOutput.Subscribe(o => emittedOutput = o);
+        var pipelineNode = new Mock<PipelineNode<string>>().Object;
+        pipelineNode.OnNewOutput.Subscribe(o => emittedOutput = o);
 
-            // Act
-            pipelineNode.Input = "Test";
+        // Act
+        pipelineNode.Input = "Test";
 
-            // Assert
-            Assert.IsNull(emittedOutput);
-            Assert.IsNull(pipelineNode.Output);
-        }
+        // Assert
+        Assert.IsNull(emittedOutput);
+        Assert.IsNull(pipelineNode.Output);
+    }
 
-        [TestMethod]
-        public void Disabled_Input_ExistingInputPassed()
-        {
-            const string testValue = "Test";
-            string? emittedOutput = null;
+    [TestMethod]
+    public void Disabled_Input_ExistingInputPassed()
+    {
+        const string testValue = "Test";
+        string? emittedOutput = null;
 
-            var pipelineNode = new Mock<PipelineNode<string>>().Object;
-            pipelineNode.OnNewOutput.Subscribe(o => emittedOutput = o);
+        var pipelineNode = new Mock<PipelineNode<string>>().Object;
+        pipelineNode.OnNewOutput.Subscribe(o => emittedOutput = o);
 
-            pipelineNode.Input = testValue;
+        pipelineNode.Input = testValue;
 
-            Assert.IsNull(emittedOutput);
-            Assert.IsNull(pipelineNode.Output);
+        Assert.IsNull(emittedOutput);
+        Assert.IsNull(pipelineNode.Output);
 
-            pipelineNode.Enabled = false;
+        pipelineNode.Enabled = false;
             
-            Assert.AreEqual(testValue, emittedOutput);
-            Assert.AreEqual(testValue, pipelineNode.Output);
-        }
+        Assert.AreEqual(testValue, emittedOutput);
+        Assert.AreEqual(testValue, pipelineNode.Output);
+    }
 
-        [TestMethod]
-        public void Disabled_Input_NewInputPassed()
-        {
-            const string testValue = "Test";
-            string? emittedOutput = null;
+    [TestMethod]
+    public void Disabled_Input_NewInputPassed()
+    {
+        const string testValue = "Test";
+        string? emittedOutput = null;
 
-            var pipelineNode = new Mock<PipelineNode<string>>().Object;
-            pipelineNode.OnNewOutput.Subscribe(o => emittedOutput = o);
+        var pipelineNode = new Mock<PipelineNode<string>>().Object;
+        pipelineNode.OnNewOutput.Subscribe(o => emittedOutput = o);
 
-            pipelineNode.Enabled = false;
+        pipelineNode.Enabled = false;
             
-            Assert.IsNull(emittedOutput);
-            Assert.IsNull(pipelineNode.Output);
+        Assert.IsNull(emittedOutput);
+        Assert.IsNull(pipelineNode.Output);
 
-            pipelineNode.Input = testValue;
+        pipelineNode.Input = testValue;
 
-            Assert.AreEqual(testValue, emittedOutput);
-            Assert.AreEqual(testValue, pipelineNode.Output);
-        }
+        Assert.AreEqual(testValue, emittedOutput);
+        Assert.AreEqual(testValue, pipelineNode.Output);
     }
 }

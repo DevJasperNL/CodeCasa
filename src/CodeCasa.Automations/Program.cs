@@ -2,6 +2,7 @@
 using CodeCasa.Automations.Extensions;
 using Microsoft.Extensions.Hosting;
 using NetDaemon.AppModel;
+using NetDaemon.Extensions.Scheduler;
 using NetDaemon.Runtime;
 using Serilog;
 
@@ -18,6 +19,7 @@ try
         .ConfigureServices((_, services) =>
             services
                 .AddAppsFromAssembly(Assembly.GetExecutingAssembly())
+                .AddNetDaemonScheduler()
                 .AddCodeCasa()
         )
         .Build()
