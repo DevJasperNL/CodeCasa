@@ -14,4 +14,17 @@ public partial class LightEntities
     public IEnumerable<LightEntity> EnumerateAll() => _haContext.GetAllEntities().Where(e => e.EntityId.StartsWith("light.")).Select(e => new LightEntity(e));
     ///<summary>Office Lights</summary>
     public LightEntity OfficeLights => new(_haContext, "light.office_lights");
+    ///<summary>Backyard Door Light</summary>
+    public LightEntity BackyardDoorLight => new(_haContext, "light.backyard_door_light");
+    ///<summary>Backyard Entrance Light</summary>
+    public LightEntity BackyardEntranceLight => new(_haContext, "light.backyard_entrance_light");
+    ///<summary>Backyard Fence String Lights</summary>
+    public LightEntity BackyardFenceStringLights => new(_haContext, "light.backyard_fence_string_lights");
+    ///<summary>Backyard Garage Light</summary>
+    public LightEntity BackyardGarageLight => new(_haContext, "light.backyard_garage_light");
+    ///<summary>Backyard Lights</summary>
+    public LightEntity BackyardPergolaStringLights => new(_haContext, "light.backyard_pergola_string_lights");
+    ///<summary>Backyard Porch Kerosene Light</summary>
+    public LightEntity BackyardPorchStringLights => new(_haContext, "light.backyard_porch_string_lights");
+    ///<summary>Backyard String Lights</summary>
 }
