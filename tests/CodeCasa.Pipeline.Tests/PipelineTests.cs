@@ -258,7 +258,7 @@ namespace CodeCasa.Pipeline.Tests
             Assert.AreEqual(firstNodeValue, pipeline.Output);
         }
 
-        public class OutputNode : PipelineNode<string>
+        private class OutputNode : PipelineNode<string>
         {
             public OutputNode(string output)
             {
