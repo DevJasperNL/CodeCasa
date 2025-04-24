@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
     <PackageReference Include="NetDaemon.Extensions.Scheduling" Version="25.14.1" />
     <PackageReference Include="NetDaemon.Runtime" Version="25.14.1" />
-    <PackageReference Include="Occurify.Astro" Version="0.5.2" />
+    <PackageReference Include="Occurify.Astro" Version="0.6.0" />
     <PackageReference Include="Occurify.Reactive" Version="0.6.0" />
     <PackageReference Include="Occurify.TimeZones" Version="0.5.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
