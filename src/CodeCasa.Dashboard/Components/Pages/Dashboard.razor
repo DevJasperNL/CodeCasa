@@ -51,10 +51,10 @@
         }
 
         // We load the NetDaemon runtime here to avoid blocking the initial render so we can display the clock and loading message.
-        await InitializeNetDaemon();
+        await InitializeNetDaemonAsync();
     }
 
-    private async Task InitializeNetDaemon()
+    private async Task InitializeNetDaemonAsync()
     {
         // Wait for NetDaemon to load
         await NetDaemonRuntime.WaitForInitializationAsync();
