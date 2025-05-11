@@ -17,15 +17,11 @@ One of the great advantages of using a general-purpose programming language like
 
 ### Automation Pipelines
 
-Sometimes, multiple factors influence a single entity’s behavior. Instead of handling all logic in one monolithic automation, it's often cleaner to break responsibilities into separate classes. To support this, I introduced the Pipeline<TState> class.
+This automation uses the [`AutomationPipelines`](https://github.com/DevJasperNL/CodeCasa.Libraries) library to handle complex logic in a modular, layered way.
 
-Rather than a basic pipeline, this pipeline implementation allows nodes (`IPipelineNode<TState>`) to be constructed using dependency injection and have their own agency. That way they basically function as individual apps.
+Rather than implementing behavior directly in a single class, logic is split into small, independent pipeline nodes. Each node can contribute to or override the final outcome based on its own conditions. This makes the automation easier to reason about, test, and extend.
 
-The order in which nodes are registered determines their priority. Later nodes can override the output of earlier ones, making layering of logic intuitive and maintainable.
-
-Nodes get notified when their input changes (by initial pipeline state or by a previous node in the pipeline). They can also independently change their output or even disable themselves (pass input through unmodified).
-
-An example implementation can be found in the `BackyardStringLightsPipeline` app:
+Below is the setup used in the `BackyardStringLightsPipeline` app:
 
 ```cs
 backyardPorchStringLightsPipeline
@@ -58,7 +54,3 @@ NetDaemon can auto-generate strongly-typed classes based on the entities in your
 ### 🛠️ NetDaemon Utilities (`CodeCasa.NetDaemon.Utilities`)
 
 A collection of utility classes for working with NetDaemon entities. These utilities are tailored to the use-cases of this project but may be useful for similar implementations in other projects.
-
-### 🧩 Pipeline (`CodeCasa.Pipeline`)
-
-Contains the pipeline implementation used for building modular automation flows. Each pipeline node has its own agency, allowing for clean separation of responsibilities. While currently project-specific, this may be extracted into a standalone library in the future.

@@ -1,5 +1,5 @@
 ﻿using System.Reactive.Concurrency;
-using CodeCasa.Pipeline;
+using AutomationPipelines;
 using Occurify;
 using Occurify.Astro;
 using Occurify.Extensions;
