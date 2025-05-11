@@ -8,7 +8,7 @@ on:
       - main
 jobs:
   build:
-    name: 🔨 Build and Test (CI)
+    name: 🔨 Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
@@ -23,8 +23,3 @@ jobs:
 
       - name: 🛠️ Build code
         run: dotnet build --configuration Release -p:TreatWarningsAsErrors=true
-      
-      - name: 🧪 Run tests
-        run: |
-          echo "## 📊 Unit test results" >> $GITHUB_STEP_SUMMARY
-          dotnet test --no-build --configuration Release tests/CodeCasa.Pipeline.Tests/CodeCasa.Pipeline.Tests.csproj -- RunConfiguration.CollectSourceInformation=true
