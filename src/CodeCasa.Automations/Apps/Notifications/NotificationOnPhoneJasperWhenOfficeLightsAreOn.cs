@@ -8,11 +8,11 @@ using NetDaemon.PhoneNotifications.Config;
 namespace CodeCasa.Automations.Apps.Notifications
 {
     [NetDaemonApp]
-    internal class NotificationWhenOfficeLightsAreOn
+    internal class NotificationOnPhoneJasperWhenOfficeLightsAreOn
     {
-        public NotificationWhenOfficeLightsAreOn(LightEntities lightEntities, Jasper jasper)
+        public NotificationOnPhoneJasperWhenOfficeLightsAreOn(LightEntities lightEntities, Jasper jasper)
         {
-            var notificationId = $"{nameof(NotificationWhenOfficeLightsAreOn)}_Notification"; // Using an ID that is consistent between runs also ensures that old notifications are removed/replaced when the app is reloaded.
+            var notificationId = $"{nameof(NotificationOnPhoneJasperWhenOfficeLightsAreOn)}_Notification"; // Using an ID that is consistent between runs also ensures that old notifications are removed/replaced when the app is reloaded.
             lightEntities.OfficeLights.SubscribeOnOff(
                 () => jasper.Phone.Notify(new AndroidNotificationConfig
                 {

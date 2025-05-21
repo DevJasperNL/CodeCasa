@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
             // Phones
             .AddTransient<PhoneJane>()
             .AddTransient<PhoneJasper>()
+            .AddTransient<PeopleEntities>()
 
             // People
             .AddTransient<Jane>()
