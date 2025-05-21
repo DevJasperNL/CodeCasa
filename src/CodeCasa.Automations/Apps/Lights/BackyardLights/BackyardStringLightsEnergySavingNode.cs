@@ -8,7 +8,7 @@ using Occurify.Reactive.Extensions;
 using Occurify.TimeZones;
 using Reactive.Boolean;
 
-namespace CodeCasa.Automations.Lights.BackyardLights;
+namespace CodeCasa.Automations.Apps.Lights.BackyardLights;
 
 public class BackyardLightsEnergySavingNode<TState> : PipelineNode<TState>
 {
