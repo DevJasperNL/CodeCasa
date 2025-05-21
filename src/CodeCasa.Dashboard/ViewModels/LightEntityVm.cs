@@ -32,7 +32,7 @@ public class LightEntityVm
                 _lightEntity.TurnOff();
             }
             // Note: even though this value will also be updated by the light entity subscription, we update it here to make the UI responsive.
-            // For now this implementation assumes the command is executed. In the future we might want to add a timer with polling to be sure.
+            // For now this implementation assumes the command is executed. In the future we might want to add a timer to be eventually correct.
             _isOn = value;
         }
     }

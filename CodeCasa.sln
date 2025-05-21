@@ -11,6 +11,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Automations", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.Utilities", "src\CodeCasa.NetDaemon.Utilities\CodeCasa.NetDaemon.Utilities.csproj", "{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetDaemon.PhoneNotifications", "NetDaemon.PhoneNotifications\NetDaemon.PhoneNotifications.csproj", "{5AEB474A-CC6F-4444-8956-501D265680FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.CustomEntities", "CodeCasa.CustomEntities\CodeCasa.CustomEntities.csproj", "{F042FD19-1664-499C-8971-15223E4BB4CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Entities", "Entities", "{B8417343-120D-42CE-9802-F9584E63E3AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Shared", "CodeCasa.Shared\CodeCasa.Shared.csproj", "{2497FDAA-46A9-4D2F-8411-98EE08FA2D23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,8 +41,24 @@ Global
 		{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AEB474A-CC6F-4444-8956-501D265680FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AEB474A-CC6F-4444-8956-501D265680FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AEB474A-CC6F-4444-8956-501D265680FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AEB474A-CC6F-4444-8956-501D265680FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F042FD19-1664-499C-8971-15223E4BB4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F042FD19-1664-499C-8971-15223E4BB4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F042FD19-1664-499C-8971-15223E4BB4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F042FD19-1664-499C-8971-15223E4BB4CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2497FDAA-46A9-4D2F-8411-98EE08FA2D23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2497FDAA-46A9-4D2F-8411-98EE08FA2D23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2497FDAA-46A9-4D2F-8411-98EE08FA2D23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2497FDAA-46A9-4D2F-8411-98EE08FA2D23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{338F0D10-B628-451B-86D5-B22393778D7C} = {B8417343-120D-42CE-9802-F9584E63E3AF}
+		{F042FD19-1664-499C-8971-15223E4BB4CF} = {B8417343-120D-42CE-9802-F9584E63E3AF}
 	EndGlobalSection
 EndGlobal
