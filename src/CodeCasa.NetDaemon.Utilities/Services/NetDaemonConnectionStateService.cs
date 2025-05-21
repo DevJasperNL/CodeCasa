@@ -1,4 +1,5 @@
-﻿using NetDaemon.Client;
+﻿using System.Reactive;
+using NetDaemon.Client;
 using NetDaemon.Runtime;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -7,45 +8,30 @@ namespace CodeCasa.NetDaemon.Utilities.Services
 {
     public class NetDaemonConnectionStateService : IDisposable
     {
-        private readonly Lock _lock = new();
         private readonly BehaviorSubject<NetDaemonStates> _netDaemonConnected = new(NetDaemonStates.Initializing);
 
-        private bool _disposed;
         private IDisposable? _connectionSubscription;
 
         public NetDaemonConnectionStateService(
             INetDaemonRuntime netDaemonRuntime,
             IHomeAssistantRunner homeAssistantRunner)
         {
-            _ = Task.Run(async () =>
+            var connectionGate = Observable.FromAsync(async () =>
             {
                 await netDaemonRuntime.WaitForInitializationAsync();
-
-                lock (_lock)
-                {
-                    if (_disposed)
-                    {
-                        return;
-                    }
-
-                    _connectionSubscription = Observable
-                        .Defer(() =>
-                        {
-                            var initial = homeAssistantRunner.CurrentConnection != null;
-                            return homeAssistantRunner.OnDisconnect.Select(_ => false)
-                                .Merge(homeAssistantRunner.OnConnect.Select(_ => true))
-                                .StartWith(initial);
-                        })
-                        .DistinctUntilChanged()
-                        .Subscribe(
-                            onNext: c =>
-                                _netDaemonConnected.OnNext(c
-                                    ? NetDaemonStates.Connected
-                                    : NetDaemonStates.Disconnected),
-                            onError: _ => _netDaemonConnected.OnNext(NetDaemonStates.Disconnected),
-                            onCompleted: () => _netDaemonConnected.OnNext(NetDaemonStates.Disconnected));
-                }
+                return homeAssistantRunner.CurrentConnection != null
+                    ? NetDaemonStates.Connected
+                    : NetDaemonStates.Disconnected;
             });
+
+            var postInitChanges =
+                homeAssistantRunner.OnDisconnect.Select(_ => NetDaemonStates.Disconnected)
+                    .Merge(homeAssistantRunner.OnConnect.Select(_ => NetDaemonStates.Connected))
+                    .SkipUntil(connectionGate);
+
+            var connectionChanges = connectionGate.Concat(postInitChanges);
+
+            _connectionSubscription = connectionChanges.DistinctUntilChanged().Subscribe(_netDaemonConnected);
         }
 
         public NetDaemonStates NetDaemonState => _netDaemonConnected.Value;
@@ -54,20 +40,16 @@ namespace CodeCasa.NetDaemon.Utilities.Services
 
         public void Dispose()
         {
-            if (_disposed)
+            if (_connectionSubscription == null)
             {
                 return;
             }
 
-            lock (_lock)
-            {
-                _connectionSubscription?.Dispose();
+            _connectionSubscription?.Dispose();
+            _connectionSubscription = null;
 
-                _netDaemonConnected.OnCompleted();
-                _netDaemonConnected.Dispose();
-
-                _disposed = true;
-            }
+            _netDaemonConnected.OnCompleted();
+            _netDaemonConnected.Dispose();
         }
     }
 }
