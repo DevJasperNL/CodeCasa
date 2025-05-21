@@ -4,7 +4,7 @@ using NetDaemon.PhoneNotifications;
 
 namespace CodeCasa.CustomEntities.Phones
 {
-    public class PhoneJane(NotifyServices notificationServices, IHaContext haContext) : IosPhoneNotificationEntity(haContext)
+    public class PhoneJane(NotifyServices notificationServices, IHaContext haContext) : PhoneNotificationEntity(haContext)
     {
         protected override void NotificationServiceNotifyImplementation(string message, string? title, object? data)
         {

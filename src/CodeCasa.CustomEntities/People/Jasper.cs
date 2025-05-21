@@ -4,7 +4,7 @@ using CodeCasa.CustomEntities.Phones;
 
 namespace CodeCasa.CustomEntities.People
 {
-    public class Jasper : CompositePersonEntity<AndroidNotificationConfig, AndroidNotificationAction>
+    public class Jasper : CompositePersonEntity
     {
         public Jasper(
             InputSelectEntities inputSelectEntities,

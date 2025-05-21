@@ -19,7 +19,7 @@ namespace CodeCasa.Automations.Apps.Notifications
                     Message = $"Hey {jasper.Name}, the office lights are on!",
                     Actions =
                     [
-                        new(() => lightEntities.OfficeLights.TurnOff(), "Click here to turn them off.")
+                        new (() => lightEntities.OfficeLights.TurnOff(), "Click here to turn them off.")
                     ]
                 }, notificationId), 
                 () => jasper.Phone.RemoveNotification(notificationId));

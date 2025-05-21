@@ -4,7 +4,7 @@ using CodeCasa.CustomEntities.Phones;
 
 namespace CodeCasa.CustomEntities.People
 {
-    public class Jane : CompositePersonEntity<IosNotificationConfig, IosNotificationAction>
+    public class Jane : CompositePersonEntity
     {
         public Jane(
             InputSelectEntities inputSelectEntities,

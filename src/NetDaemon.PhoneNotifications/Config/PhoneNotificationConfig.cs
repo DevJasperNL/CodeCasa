@@ -1,6 +1,6 @@
 ﻿namespace NetDaemon.PhoneNotifications.Config
 {
-    public abstract record PhoneNotificationConfig<TNotificationAction>(string Title, string Message) where TNotificationAction : NotificationAction
+    public abstract record PhoneNotificationConfig(string Title, string Message)
     {
         protected PhoneNotificationConfig(string title) : this(title, string.Empty)
         {
@@ -15,7 +15,7 @@
         public string Message { get; set; } = Message;
         public string? Group { get; set; } // Used for grouping notifications together visually
 
-        public TNotificationAction[]? Actions { get; set; }
+        public NotificationAction[]? Actions { get; set; }
 
         public string? Image { get; set; }
         public string? Video { get; set; }

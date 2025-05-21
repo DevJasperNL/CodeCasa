@@ -6,15 +6,7 @@ using NetDaemon.PhoneNotifications.Config;
 
 namespace NetDaemon.PhoneNotifications
 {
-    public abstract class AndroidPhoneNotificationEntity(IHaContext haContext)
-        : PhoneNotificationEntity<AndroidNotificationConfig, AndroidNotificationAction>(haContext);
-
-    public abstract class IosPhoneNotificationEntity(IHaContext haContext)
-        : PhoneNotificationEntity<IosNotificationConfig, IosNotificationAction>(haContext);
-
-    public abstract class PhoneNotificationEntity<TPhoneNotificationConfig, TPhoneNotificationAction>
-        where TPhoneNotificationConfig : PhoneNotificationConfig<TPhoneNotificationAction>
-        where TPhoneNotificationAction : NotificationAction
+    public abstract class PhoneNotificationEntity
     {
         private const string MobileAppNotificationAction = "mobile_app_notification_action";
         private const string ClearNotification = "clear_notification";
@@ -46,17 +38,17 @@ namespace NetDaemon.PhoneNotifications
                 });
         }
 
-        public PhoneNotification Notify(TPhoneNotificationConfig config)
+        public PhoneNotification Notify(PhoneNotificationConfig config)
         {
             return Notify(config, Guid.NewGuid().ToString());
         }
 
-        public PhoneNotification Notify(TPhoneNotificationConfig config, PhoneNotification notificationToReplace)
+        public PhoneNotification Notify(PhoneNotificationConfig config, PhoneNotification notificationToReplace)
         {
             return Notify(config, notificationToReplace.Id);
         }
 
-        public PhoneNotification Notify(TPhoneNotificationConfig config, string id)
+        public PhoneNotification Notify(PhoneNotificationConfig config, string id)
         {
             lock (_lock)
             {

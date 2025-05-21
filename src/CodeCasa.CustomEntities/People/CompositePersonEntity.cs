@@ -7,16 +7,13 @@ using NetDaemon.PhoneNotifications.Config;
 namespace CodeCasa.CustomEntities.People
 {
     public abstract class CompositePersonEntity
-        <TPhoneNotificationConfig, TPhoneNotificationAction>
-        where TPhoneNotificationConfig : PhoneNotificationConfig<TPhoneNotificationAction>
-        where TPhoneNotificationAction : NotificationAction
     {
         protected CompositePersonEntity(
             string name,
             Genders gender,
             InputSelectEntity stateInputSelectEntity,
             PersonEntity personEntity,
-            PhoneNotificationEntity<TPhoneNotificationConfig, TPhoneNotificationAction> phone)
+            PhoneNotificationEntity phone)
         {
             Name = name;
             Gender = gender;
@@ -29,7 +26,7 @@ namespace CodeCasa.CustomEntities.People
         public Genders Gender { get; }
         public InputSelectEntity StateInputSelectEntity { get; }
         public PersonEntity PersonEntity { get; }
-        public PhoneNotificationEntity<TPhoneNotificationConfig, TPhoneNotificationAction> Phone { get; }
+        public PhoneNotificationEntity Phone { get; }
 
         public PersonStates? State
         {

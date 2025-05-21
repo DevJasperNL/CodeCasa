@@ -1,6 +1,6 @@
 ﻿namespace NetDaemon.PhoneNotifications.Config
 {
-    public record IosNotificationConfig : PhoneNotificationConfig<IosNotificationAction>
+    public record IosNotificationConfig : PhoneNotificationConfig
     {
         public string? Url { get; set; }
         public string? Subtitle { get; set; }

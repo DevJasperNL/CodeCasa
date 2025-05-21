@@ -4,7 +4,7 @@ using NetDaemon.PhoneNotifications.Extensions;
 
 namespace NetDaemon.PhoneNotifications.Config
 {
-    public record AndroidNotificationConfig : PhoneNotificationConfig<AndroidNotificationAction>
+    public record AndroidNotificationConfig : PhoneNotificationConfig
     {
         public string? ClickAction { get; set; } // Used for opening an URL when clicking the notification
         public string? Subject { get; set; }

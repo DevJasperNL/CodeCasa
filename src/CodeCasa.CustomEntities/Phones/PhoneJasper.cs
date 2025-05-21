@@ -4,7 +4,7 @@ using NetDaemon.PhoneNotifications;
 
 namespace CodeCasa.CustomEntities.Phones
 {
-    public class PhoneJasper(NotifyServices notificationServices, IHaContext haContext) : AndroidPhoneNotificationEntity(haContext)
+    public class PhoneJasper(NotifyServices notificationServices, IHaContext haContext) : PhoneNotificationEntity(haContext)
     {
         protected override void NotificationServiceNotifyImplementation(string message, string? title, object? data)
         {
