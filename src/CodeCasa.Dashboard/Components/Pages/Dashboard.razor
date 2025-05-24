@@ -1,11 +1,11 @@
 ﻿@page "/"
 @using System.Reactive.Concurrency
 @using CodeCasa.Dashboard.Components.Demo
-@using CodeCasa.NetDaemon.Utilities.Services
+@using NetDaemon.RuntimeState
 @using Occurify.Reactive.Extensions
 @using Occurify.TimeZones
 
-@inject NetDaemonConnectionStateService NetDaemonConnectionStateService
+@inject NetDaemonRuntimeStateService NetDaemonConnectionStateService
 
 @if (!_netDaemonInitialized)
 {
