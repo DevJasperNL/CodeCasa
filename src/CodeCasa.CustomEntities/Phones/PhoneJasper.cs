@@ -2,13 +2,7 @@
 using NetDaemon.HassModel;
 using NetDaemon.PhoneNotifications;
 
-namespace CodeCasa.CustomEntities.Phones
-{
-    public class PhoneJasper(NotifyServices notificationServices, IHaContext haContext) : PhoneNotificationEntity(haContext)
-    {
-        protected override void NotificationServiceNotifyImplementation(string message, string? title, object? data)
-        {
-            notificationServices.MobileAppPixel7(message, title, data: data);
-        }
-    }
-}
+namespace CodeCasa.CustomEntities.Phones;
+
+public class PhoneJasper(NotifyServices notificationServices, IHaContext haContext)
+    : PhoneNotificationEntity(haContext, notificationServices.MobileAppPixel7);

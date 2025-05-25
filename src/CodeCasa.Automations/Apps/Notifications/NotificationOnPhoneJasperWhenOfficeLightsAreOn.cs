@@ -5,24 +5,23 @@ using NetDaemon.AppModel;
 using NetDaemon.Extensions.Observables;
 using NetDaemon.PhoneNotifications.Config;
 
-namespace CodeCasa.Automations.Apps.Notifications
+namespace CodeCasa.Automations.Apps.Notifications;
+
+[NetDaemonApp]
+internal class NotificationOnPhoneJasperWhenOfficeLightsAreOn
 {
-    [NetDaemonApp]
-    internal class NotificationOnPhoneJasperWhenOfficeLightsAreOn
+    public NotificationOnPhoneJasperWhenOfficeLightsAreOn(LightEntities lightEntities, Jasper jasper)
     {
-        public NotificationOnPhoneJasperWhenOfficeLightsAreOn(LightEntities lightEntities, Jasper jasper)
-        {
-            var notificationId = $"{nameof(NotificationOnPhoneJasperWhenOfficeLightsAreOn)}_Notification"; // Using an ID that is consistent between runs also ensures that old notifications are removed/replaced when the app is reloaded.
-            lightEntities.OfficeLights.SubscribeOnOff(
-                () => jasper.Phone.Notify(new AndroidNotificationConfig
-                {
-                    Message = $"Hey {jasper.Name}, the office lights are on!",
-                    Actions =
-                    [
-                        new (() => lightEntities.OfficeLights.TurnOff(), "Click here to turn them off.")
-                    ]
-                }, notificationId), 
-                () => jasper.Phone.RemoveNotification(notificationId));
-        }
+        var notificationId = $"{nameof(NotificationOnPhoneJasperWhenOfficeLightsAreOn)}_Notification"; // Using an ID that is consistent between runs also ensures that old notifications are removed/replaced when the app is reloaded.
+        lightEntities.OfficeLights.SubscribeOnOff(
+            () => jasper.Phone.Notify(new AndroidNotificationConfig
+            {
+                Message = $"Hey {jasper.Name}, the office lights are on!",
+                Actions =
+                [
+                    new (() => lightEntities.OfficeLights.TurnOff(), "Click here to turn them off.")
+                ]
+            }, notificationId), 
+            () => jasper.Phone.RemoveNotification(notificationId));
     }
 }

@@ -4,90 +4,92 @@ using System.Text.Json.Serialization;
 using System.Reactive.Disposables;
 using NetDaemon.PhoneNotifications.Config;
 
-namespace NetDaemon.PhoneNotifications
+namespace NetDaemon.PhoneNotifications;
+
+public class PhoneNotificationEntity
 {
-    public abstract class PhoneNotificationEntity
+    public delegate void MobileAppNotificationDelegate(string message, string? title = null, object? target = null, object? data = null);
+
+    private readonly MobileAppNotificationDelegate _notify;
+
+    private const string MobileAppNotificationAction = "mobile_app_notification_action";
+    private const string ClearNotification = "clear_notification";
+
+    private readonly Lock _lock = new();
+    private readonly Dictionary<string, Action[]> _actions = new();
+
+    protected PhoneNotificationEntity(IHaContext haContext, MobileAppNotificationDelegate notifyMethod)
     {
-        private const string MobileAppNotificationAction = "mobile_app_notification_action";
-        private const string ClearNotification = "clear_notification";
-
-        private readonly Lock _lock = new();
-        private readonly Dictionary<string, Action[]> _actions = new();
-
-        protected PhoneNotificationEntity(IHaContext haContext)
-        {
-            haContext.Events.Filter<PhoneActionEventData>(MobileAppNotificationAction)
-                .Where(e => e.Data != null)
-                .Subscribe(e =>
-                {
-                    lock (_lock)
-                    {
-                        if (e.Data?.Tag == null || !_actions.TryGetValue(e.Data.Tag, out var actions))
-                        {
-                            return;
-                        }
-
-                        if (e.Data?.Action == null || !int.TryParse(e.Data?.Action, out int actionId) || actionId < 0 ||
-                            actionId >= actions.Length)
-                        {
-                            return;
-                        }
-
-                        actions[actionId].Invoke();
-                    }
-                });
-        }
-
-        public PhoneNotification Notify(PhoneNotificationConfig config)
-        {
-            return Notify(config, Guid.NewGuid().ToString());
-        }
-
-        public PhoneNotification Notify(PhoneNotificationConfig config, PhoneNotification notificationToReplace)
-        {
-            return Notify(config, notificationToReplace.Id);
-        }
-
-        public PhoneNotification Notify(PhoneNotificationConfig config, string id)
-        {
-            lock (_lock)
+        _notify = notifyMethod;
+        haContext.Events.Filter<PhoneActionEventData>(MobileAppNotificationAction)
+            .Where(e => e.Data != null)
+            .Subscribe(e =>
             {
-                if (config.Actions != null)
+                lock (_lock)
                 {
-                    _actions[id] = config.Actions.Select(a => a.Action).ToArray();
+                    if (e.Data?.Tag == null || !_actions.TryGetValue(e.Data.Tag, out var actions))
+                    {
+                        return;
+                    }
+
+                    if (e.Data?.Action == null || !int.TryParse(e.Data?.Action, out int actionId) || actionId < 0 ||
+                        actionId >= actions.Length)
+                    {
+                        return;
+                    }
+
+                    actions[actionId].Invoke();
                 }
-                else
-                {
-                    _actions.Remove(id);
-                }
+            });
+    }
+
+    public PhoneNotification Notify(PhoneNotificationConfig config)
+    {
+        return Notify(config, Guid.NewGuid().ToString());
+    }
+
+    public PhoneNotification Notify(PhoneNotificationConfig config, PhoneNotification notificationToReplace)
+    {
+        return Notify(config, notificationToReplace.Id);
+    }
+
+    public PhoneNotification Notify(PhoneNotificationConfig config, string id)
+    {
+        lock (_lock)
+        {
+            if (config.Actions != null)
+            {
+                _actions[id] = config.Actions.Select(a => a.Action).ToArray();
             }
-
-            var data = config.ToData(id);
-            NotificationServiceNotifyImplementation(config.Message, config.Title, data);
-
-            return new PhoneNotification(id, Disposable.Create(() => RemoveNotification(id)));
-        }
-
-        public void RemoveNotification(PhoneNotification notificationToRemove)
-        {
-            RemoveNotification(notificationToRemove.Id);
-        }
-
-        public void RemoveNotification(string id)
-        {
-            NotificationServiceNotifyImplementation(ClearNotification, null, new { tag = id });
-            lock (_lock)
+            else
             {
                 _actions.Remove(id);
             }
         }
 
-        protected abstract void NotificationServiceNotifyImplementation(string message, string? title, object? data);
+        var data = config.ToData(id);
+        _notify(config.Message, config.Title, data);
 
-        private record PhoneActionEventData
+        return new PhoneNotification(id, Disposable.Create(() => RemoveNotification(id)));
+    }
+
+    public void RemoveNotification(PhoneNotification notificationToRemove)
+    {
+        RemoveNotification(notificationToRemove.Id);
+    }
+
+    public void RemoveNotification(string id)
+    {
+        _notify(ClearNotification, null, new { tag = id });
+        lock (_lock)
         {
-            [JsonPropertyName("tag")] public string? Tag { get; init; }
-            [JsonPropertyName("action")] public string? Action { get; init; }
+            _actions.Remove(id);
         }
+    }
+
+    private record PhoneActionEventData
+    {
+        [JsonPropertyName("tag")] public string? Tag { get; init; }
+        [JsonPropertyName("action")] public string? Action { get; init; }
     }
 }

@@ -1,17 +1,16 @@
-﻿namespace NetDaemon.PhoneNotifications.Config
-{
-    public record NotificationAction(Action Action, string Title)
-    {
-        public string? Uri { get; set; }
+﻿namespace NetDaemon.PhoneNotifications.Config;
 
-        public virtual object ToData(int index)
+public record NotificationAction(Action Action, string Title)
+{
+    public string? Uri { get; set; }
+
+    public virtual object ToData(int index)
+    {
+        return new
         {
-            return new
-            {
-                action = $"{index}",
-                title = Title,
-                uri = Uri
-            };
-        }
+            action = $"{index}",
+            title = Title,
+            uri = Uri
+        };
     }
 }

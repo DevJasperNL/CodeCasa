@@ -1,16 +1,7 @@
-﻿namespace NetDaemon.PhoneNotifications
+﻿namespace NetDaemon.PhoneNotifications;
+
+public class PhoneNotification(string id, IDisposable disposable) : IDisposable
 {
-    public class PhoneNotification : IDisposable
-    {
-        private readonly IDisposable _disposable;
-
-        public PhoneNotification(string id, IDisposable disposable)
-        {
-            _disposable = disposable;
-            Id = id;
-        }
-
-        public string Id { get; }
-        public void Dispose() => _disposable.Dispose();
-    }
+    public string Id { get; } = id;
+    public void Dispose() => disposable.Dispose();
 }

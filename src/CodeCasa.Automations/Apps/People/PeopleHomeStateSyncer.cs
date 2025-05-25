@@ -2,39 +2,38 @@
 using NetDaemon.AppModel;
 using Reactive.Boolean;
 
-namespace CodeCasa.Automations.Apps.People
+namespace CodeCasa.Automations.Apps.People;
+
+/// <summary>
+/// This app synchronizes the state of people in the home with their home presence.
+/// </summary>
+[NetDaemonApp]
+internal class PeopleHomeStateSyncer
 {
-    /// <summary>
-    /// This app synchronizes the state of people in the home with their home presence.
-    /// </summary>
-    [NetDaemonApp]
-    internal class PeopleHomeStateSyncer
+    public PeopleHomeStateSyncer(PeopleEntities people)
     {
-        public PeopleHomeStateSyncer(PeopleEntities people)
+        foreach (var person in people.All)
         {
-            foreach (var person in people.All)
-            {
-                person.CreateHomeObservable()
-                    .SubscribeTrueFalse(
-                        () =>
+            person.CreateHomeObservable()
+                .SubscribeTrueFalse(
+                    () =>
+                    {
+                        if (person.State != PersonStates.Away)
                         {
-                            if (person.State != PersonStates.Away)
-                            {
-                                return;
-                            }
+                            return;
+                        }
 
-                            person.State = PersonStates.Awake;
-                        },
-                        () =>
+                        person.State = PersonStates.Awake;
+                    },
+                    () =>
+                    {
+                        if (person.State == PersonStates.Away)
                         {
-                            if (person.State == PersonStates.Away)
-                            {
-                                return;
-                            }
+                            return;
+                        }
 
-                            person.State = PersonStates.Away;
-                        });
-            }
+                        person.State = PersonStates.Away;
+                    });
         }
     }
 }

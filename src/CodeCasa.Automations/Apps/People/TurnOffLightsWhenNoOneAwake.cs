@@ -4,24 +4,23 @@ using CodeCasa.CustomEntities.People;
 using NetDaemon.AppModel;
 using Reactive.Boolean;
 
-namespace CodeCasa.Automations.Apps.People
+namespace CodeCasa.Automations.Apps.People;
+
+/// <summary>
+/// Will turn off all lights when the last person leaves the house or goes to sleep.
+/// </summary>
+[NetDaemonApp]
+internal class TurnOffLightsWhenNoOneAwake
 {
-    /// <summary>
-    /// Will turn off all lights when the last person leaves the house or goes to sleep.
-    /// </summary>
-    [NetDaemonApp]
-    internal class TurnOffLightsWhenNoOneAwake
+    public TurnOffLightsWhenNoOneAwake(PeopleEntities people, LightEntities lights)
     {
-        public TurnOffLightsWhenNoOneAwake(PeopleEntities people, LightEntities lights)
-        {
-            people.OnLastPersonToAsleepOrAwayObservable()
-                .SubscribeTrue(() =>
+        people.OnLastPersonToAsleepOrAwayObservable()
+            .SubscribeTrue(() =>
+            {
+                foreach (var light in lights.EnumerateAll())
                 {
-                    foreach (var light in lights.EnumerateAll())
-                    {
-                        light.TurnOff();
-                    }
-                });
-        }
+                    light.TurnOff();
+                }
+            });
     }
 }

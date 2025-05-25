@@ -4,79 +4,78 @@ using NetDaemon.Extensions.Observables;
 using NetDaemon.PhoneNotifications;
 using NetDaemon.PhoneNotifications.Config;
 
-namespace CodeCasa.CustomEntities.People
+namespace CodeCasa.CustomEntities.People;
+
+public abstract class CompositePersonEntity
 {
-    public abstract class CompositePersonEntity
+    protected CompositePersonEntity(
+        string name,
+        Genders gender,
+        InputSelectEntity stateInputSelectEntity,
+        PersonEntity personEntity,
+        PhoneNotificationEntity phone)
     {
-        protected CompositePersonEntity(
-            string name,
-            Genders gender,
-            InputSelectEntity stateInputSelectEntity,
-            PersonEntity personEntity,
-            PhoneNotificationEntity phone)
-        {
-            Name = name;
-            Gender = gender;
-            StateInputSelectEntity = stateInputSelectEntity;
-            PersonEntity = personEntity;
-            Phone = phone;
-        }
+        Name = name;
+        Gender = gender;
+        StateInputSelectEntity = stateInputSelectEntity;
+        PersonEntity = personEntity;
+        Phone = phone;
+    }
 
-        public string Name { get; }
-        public Genders Gender { get; }
-        public InputSelectEntity StateInputSelectEntity { get; }
-        public PersonEntity PersonEntity { get; }
-        public PhoneNotificationEntity Phone { get; }
+    public string Name { get; }
+    public Genders Gender { get; }
+    public InputSelectEntity StateInputSelectEntity { get; }
+    public PersonEntity PersonEntity { get; }
+    public PhoneNotificationEntity Phone { get; }
 
-        public PersonStates? State
+    public PersonStates? State
+    {
+        get => StateValueToPersonState(StateInputSelectEntity.State);
+        set
         {
-            get => StateValueToPersonState(StateInputSelectEntity.State);
-            set
+            if (value == null)
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-                StateInputSelectEntity.SelectOption(PersonStateMappings.PeopleStatesToStateValues[value.Value]);
+                throw new ArgumentNullException(nameof(value));
             }
+            StateInputSelectEntity.SelectOption(PersonStateMappings.PeopleStatesToStateValues[value.Value]);
         }
+    }
 
-        public PersonEntityStates? EntityState => StateValueToPersonEntityState(PersonEntity.State);
+    public PersonEntityStates? EntityState => StateValueToPersonEntityState(PersonEntity.State);
 
-        private PersonEntityStates? StateValueToPersonEntityState(string? stateValue)
-        {
-            return stateValue == null ||
-                   !PersonStateMappings.StateValuesToPeopleEntityStates.TryGetValue(stateValue,
-                       out var state)
-                ? null
-                : state;
-        }
+    private PersonEntityStates? StateValueToPersonEntityState(string? stateValue)
+    {
+        return stateValue == null ||
+               !PersonStateMappings.StateValuesToPeopleEntityStates.TryGetValue(stateValue,
+                   out var state)
+            ? null
+            : state;
+    }
 
-        public bool Home => State != PersonStates.Away;
+    public bool Home => State != PersonStates.Away;
 
-        public IObservable<PersonStates> CreateStateObservable() =>
-            StateInputSelectEntity.Stateful()
-                .Select(state => StateValueToPersonState(state.New!.State))
-                .Where(s => s != null)
-                .Select(s => s!.Value);
+    public IObservable<PersonStates> CreateStateObservable() =>
+        StateInputSelectEntity.Stateful()
+            .Select(state => StateValueToPersonState(state.New!.State))
+            .Where(s => s != null)
+            .Select(s => s!.Value);
 
-        public IObservable<StateChange<PersonStates?>> CreateStateChangeObservable() =>
-            StateInputSelectEntity.Stateful()
-                .Select(state => new StateChange<PersonStates?>(StateValueToPersonState(state.Old?.State), StateValueToPersonState(state.New?.State)));
+    public IObservable<StateChange<PersonStates?>> CreateStateChangeObservable() =>
+        StateInputSelectEntity.Stateful()
+            .Select(state => new StateChange<PersonStates?>(StateValueToPersonState(state.Old?.State), StateValueToPersonState(state.New?.State)));
 
-        public IObservable<bool> CreateStateEqualsObservable(PersonStates personState) =>
-            StateInputSelectEntity.ToBooleanObservable(state => StateValueToPersonState(state.State) == personState);
+    public IObservable<bool> CreateStateEqualsObservable(PersonStates personState) =>
+        StateInputSelectEntity.ToBooleanObservable(state => StateValueToPersonState(state.State) == personState);
 
-        public IObservable<bool> CreateHomeObservable() =>
-            PersonEntity.ToBooleanObservable(state => StateValueToPersonEntityState(state.State) == PersonEntityStates.Home);
+    public IObservable<bool> CreateHomeObservable() =>
+        PersonEntity.ToBooleanObservable(state => StateValueToPersonEntityState(state.State) == PersonEntityStates.Home);
 
-        private PersonStates? StateValueToPersonState(string? stateValue)
-        {
-            return stateValue == null ||
-                   !PersonStateMappings.StateValuesToPeopleStates.TryGetValue(stateValue,
-                       out var state)
-                ? null
-                : state;
-        }
+    private PersonStates? StateValueToPersonState(string? stateValue)
+    {
+        return stateValue == null ||
+               !PersonStateMappings.StateValuesToPeopleStates.TryGetValue(stateValue,
+                   out var state)
+            ? null
+            : state;
     }
 }
