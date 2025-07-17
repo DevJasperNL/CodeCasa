@@ -13,7 +13,6 @@ public class LightEntityVm
     public LightEntityVm (LightEntity lightEntity)
     {
         _lightEntity = lightEntity;
-        _isOn = _lightEntity.IsOn();
 
         _lightEntity.ToOnOffObservable().Subscribe(on => _isOn = on);
     }

@@ -17,4 +17,6 @@ public partial class InputSelectEntities
     public InputSelectEntity JaneDoeState => new(_haContext, "input_select.jane_state");
     ///<summary>Jasper State</summary>
     public InputSelectEntity JasperState => new(_haContext, "input_select.jasper_state");
+    ///<summary>Living Room Panel Notifications</summary>
+    public InputSelectEntity LivingRoomPanelNotifications => new(_haContext, "input_select.living_room_panel_notifications");
 }

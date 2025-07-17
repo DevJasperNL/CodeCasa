@@ -6,7 +6,7 @@ using NetDaemon.PhoneNotifications.Config;
 
 namespace NetDaemon.PhoneNotifications;
 
-public class PhoneNotificationEntity
+public class PhoneNotificationEntity : IDisposable
 {
     public delegate void MobileAppNotificationDelegate(string message, string? title = null, object? target = null, object? data = null);
 
@@ -17,11 +17,12 @@ public class PhoneNotificationEntity
 
     private readonly Lock _lock = new();
     private readonly Dictionary<string, Action[]> _actions = new();
+    private readonly IDisposable _eventDisposable;
 
     protected PhoneNotificationEntity(IHaContext haContext, MobileAppNotificationDelegate notifyMethod)
     {
         _notify = notifyMethod;
-        haContext.Events.Filter<PhoneActionEventData>(MobileAppNotificationAction)
+        _eventDisposable = haContext.Events.Filter<PhoneActionEventData>(MobileAppNotificationAction)
             .Where(e => e.Data != null)
             .Subscribe(e =>
             {
@@ -68,7 +69,7 @@ public class PhoneNotificationEntity
         }
 
         var data = config.ToData(id);
-        _notify(config.Message, config.Title, data);
+        _notify(config.Message, config.Title, data: data);
 
         return new PhoneNotification(id, Disposable.Create(() => RemoveNotification(id)));
     }
@@ -80,7 +81,7 @@ public class PhoneNotificationEntity
 
     public void RemoveNotification(string id)
     {
-        _notify(ClearNotification, null, new { tag = id });
+        _notify(ClearNotification, data: new { tag = id });
         lock (_lock)
         {
             _actions.Remove(id);
@@ -91,5 +92,10 @@ public class PhoneNotificationEntity
     {
         [JsonPropertyName("tag")] public string? Tag { get; init; }
         [JsonPropertyName("action")] public string? Action { get; init; }
+    }
+
+    public void Dispose()
+    {
+        _eventDisposable.Dispose();
     }
 }

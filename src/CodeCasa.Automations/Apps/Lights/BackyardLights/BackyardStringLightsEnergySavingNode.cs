@@ -25,7 +25,7 @@ public class BackyardLightsEnergySavingNode<TState> : PipelineNode<TState>
         timeWindow
             .And(anyLivingRoomShutterClosed)
             .And(kitchenRollerShutterClosed)
-            .SubscribeTrueFalse(() => Output = energySavingState, DisableNode);
+            .SubscribeTrueFalse(() => Output = energySavingState, PassInputThrough);
     }
 }
 

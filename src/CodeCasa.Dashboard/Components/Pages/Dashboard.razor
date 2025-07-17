@@ -4,6 +4,7 @@
 @using NetDaemon.RuntimeState
 @using Occurify.Reactive.Extensions
 @using Occurify.TimeZones
+@using CodeCasa.Dashboard.Components.Dashboard
 
 @inject NetDaemonRuntimeStateService NetDaemonConnectionStateService
 
@@ -17,10 +18,12 @@
     <DemoMenu />
 }
 
-<MudText Typo="Typo.h1" Align="Align.Center"><b>@_currentTime.ToString("HH:mm")</b></MudText>
+<Clock/>
 
 @if (_netDaemonInitialized)
 {
+    <Notifications/>
+
     <MudOverlay Visible="!_netDaemonConnected" Absolute="false" LightBackground="true">
         <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center">Disconnected From Home Assistant.</MudAlert>
     </MudOverlay>
@@ -29,8 +32,6 @@
 @code {
     private bool _netDaemonInitialized;
     private bool _netDaemonConnected;
-    private DateTime _currentTime = DateTime.Now;
-    
 
     protected override void OnInitialized()
     {
@@ -40,12 +41,5 @@
             _netDaemonConnected = state == NetDaemonStates.Connected;
             InvokeAsync(StateHasChanged);
         });
-
-        var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
-        TimeZoneInstants.EverySecond().Subscribe(() =>
-        {
-            _currentTime = DateTime.Now;
-            StateHasChanged();
-        }, scheduler);
     }
 }

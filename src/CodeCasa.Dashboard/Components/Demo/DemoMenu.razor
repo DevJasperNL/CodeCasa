@@ -5,7 +5,12 @@
 
 <MudIconButton Icon="@Icons.Material.Filled.AutoAwesome" OnClick="ToggleDrawer" />
 
-<MudDrawer @bind-Open="@_open" Overlay="false" Elevation="1" Width="300px" Variant="@DrawerVariant.Temporary">
+<MudDrawer 
+    @bind-Open="@_open" 
+    Overlay="false" 
+    Elevation="1" 
+    Width="300px" 
+    Variant="@DrawerVariant.Temporary">
     <MudDrawerHeader>
         <MudText Typo="Typo.h6">Demo Functions</MudText>
         <MudSpacer/>
@@ -13,13 +18,13 @@
         Size="Size.Medium"
         Style="align-self: center;"  />
     </MudDrawerHeader>
-    <MudSwitch @bind-Value="_officeLight!.IsOn" Color="Color.Primary" Label="Office Lights" ThumbIcon="@Icons.Material.Filled.Lightbulb" Size="Size.Large" />
+    <MudSwitch @bind-Value="_officeLight.IsOn" Color="Color.Primary" Label="Office Lights" ThumbIcon="@Icons.Material.Filled.Lightbulb" Size="Size.Large" />
 </MudDrawer>
 
 @code {
     private bool _open;
 
-    private LightEntityVm? _officeLight;
+    private LightEntityVm _officeLight = null!;
 
     protected override void OnInitialized()
     {
