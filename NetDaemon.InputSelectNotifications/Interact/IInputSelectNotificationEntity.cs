@@ -1,14 +1,13 @@
 ﻿
-using NetDaemon.PhoneNotifications;
+using NetDaemon.InputSelectNotifications.Config;
 
-namespace NetDaemon.InputSelectNotifications.Interact
+namespace NetDaemon.InputSelectNotifications.Interact;
+
+public interface IInputSelectNotificationEntity
 {
-    public interface IInputSelectNotificationEntity
-    {
-        InputSelectNotification Notify(InputSelectNotificationConfig notification);
-        InputSelectNotification Notify(InputSelectNotificationConfig notification, InputSelectNotification notificationToReplace);
-        InputSelectNotification Notify(InputSelectNotificationConfig notification, string id);
-        void RemoveNotification(InputSelectNotification notificationToRemove);
-        void RemoveNotification(string id);
-    }
+    InputSelectNotification Notify(InputSelectNotificationConfig notification);
+    InputSelectNotification Notify(InputSelectNotificationConfig notification, InputSelectNotification notificationToReplace);
+    InputSelectNotification Notify(InputSelectNotificationConfig notification, string id);
+    void RemoveNotification(InputSelectNotification notificationToRemove);
+    void RemoveNotification(string id);
 }

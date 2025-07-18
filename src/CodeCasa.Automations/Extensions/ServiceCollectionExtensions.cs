@@ -18,6 +18,6 @@ public static class ServiceCollectionExtensions
             .AddAutomationPipelines()
             .AddHomeAssistantGenerated()
             .AddCodeCasaCustomEntities()
-            .RegisterInputSelectNotifications("input_select.living_room_panel_notifications");
+            .RegisterInputSelectNotifications("input_select.living_room_panel_notifications", "input_number.living_room_panel_notification_count");
     }
 }

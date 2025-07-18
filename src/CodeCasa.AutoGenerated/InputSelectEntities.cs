@@ -12,9 +12,13 @@ public partial class InputSelectEntities
 
     /// <summary>Enumerates all input_select entities currently registered (at runtime) in Home Assistant as InputSelectEntity</summary>
     public IEnumerable<InputSelectEntity> EnumerateAll() => _haContext.GetAllEntities().Where(e => e.EntityId.StartsWith("input_select.")).Select(e => new InputSelectEntity(e));
-        
+
+    ///<summary>Jane Notifications</summary>
+    public InputSelectEntity JaneNotifications => new(_haContext, "input_select.jane_notifications");
     ///<summary>Jane State</summary>
     public InputSelectEntity JaneDoeState => new(_haContext, "input_select.jane_state");
+    ///<summary>Jasper Notifications</summary>
+    public InputSelectEntity JasperNotifications => new(_haContext, "input_select.jasper_notifications");
     ///<summary>Jasper State</summary>
     public InputSelectEntity JasperState => new(_haContext, "input_select.jasper_state");
     ///<summary>Living Room Panel Notifications</summary>

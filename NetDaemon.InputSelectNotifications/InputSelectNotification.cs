@@ -1,4 +1,4 @@
-﻿namespace NetDaemon.PhoneNotifications;
+﻿namespace NetDaemon.InputSelectNotifications;
 
 public class InputSelectNotification(string id, IDisposable disposable) : IDisposable
 {
