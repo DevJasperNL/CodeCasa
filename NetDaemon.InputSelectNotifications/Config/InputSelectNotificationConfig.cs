@@ -12,9 +12,9 @@ public record InputSelectNotificationConfig(string Message)
     public string Message { get; set; } = Message;
     public string? SecondaryMessage { get; set; }
     public string? Icon { get; set; }
-    public Color? Color { get; set; }
+    public Color? IconColor { get; set; }
     public string? BadgeIcon { get; set; }
-    public Color? BadgeColor { get; set; }
+    public Color? BadgeIconColor { get; set; }
     public TimeSpan? Timeout { get; set; }
     public Action? Action { get; set; }
     public int? Order { get; set; }
@@ -25,9 +25,9 @@ public record InputSelectNotificationConfig(string Message)
         {
             SecondaryMessage = SecondaryMessage,
             Icon = Icon,
-            Color = Color?.Name.ToLowerInvariant(),
+            IconColor = IconColor?.Name.ToLowerInvariant(),
             BadgeIcon = BadgeIcon,
-            BadgeColor = BadgeColor?.Name.ToLowerInvariant(),
+            BadgeColor = BadgeIconColor?.Name.ToLowerInvariant(),
             TimeStamp = utcTimeStamp.ToString("yyyy-MM-ddTHH:mm:ssZ")
         };
     }

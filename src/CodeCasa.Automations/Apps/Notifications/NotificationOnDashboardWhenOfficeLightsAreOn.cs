@@ -15,23 +15,34 @@ internal class NotificationOnDashboardWhenOfficeLightsAreOn
         LightEntities lightEntities, 
         [FromKeyedServices("input_select.living_room_panel_notifications")] IInputSelectNotificationEntity inputSelectNotifications)
     {
+
         var notificationId = $"{nameof(NotificationOnDashboardWhenOfficeLightsAreOn)}_Notification";
-        lightEntities.OfficeLights.SubscribeOnOff(
-            () =>
-            {
-                inputSelectNotifications.Notify(new InputSelectNotificationConfig
-                {
-                    Message = "The office lights are on!",
-                    SecondaryMessage = "Click here to turn them off.",
-                    Action = () => lightEntities.OfficeLights.TurnOff()
-                }, notificationId);
-                inputSelectNotifications.Notify(new InputSelectNotificationConfig
-                {
-                    Message = "The office lights are on2!",
-                    SecondaryMessage = "Click here to turn them off2.",
-                    Action = () => lightEntities.OfficeLights.TurnOff()
-                }, notificationId + "bla");
-            },
-            () => inputSelectNotifications.RemoveNotification(notificationId));
+        inputSelectNotifications.Notify(new InputSelectNotificationConfig
+        {
+            Message = "The office lights are on!",
+            SecondaryMessage = "Click here to turn them off.",
+            Icon = "Icons.Material.Filled.Send",
+            BadgeIcon = "Icons.Material.Filled.Warning",
+            BadgeIconColor = "Error",
+            Action = () => lightEntities.OfficeLights.TurnOff()
+        }, notificationId);
+        //lightEntities.OfficeLights.SubscribeOnOff(
+        //    () =>
+        //    {
+        //        inputSelectNotifications.Notify(new InputSelectNotificationConfig
+        //        {
+        //            Message = "The office lights are on!",
+        //            SecondaryMessage = "Click here to turn them off.",
+        //            Icon = "Icons.Material.Filled.Send",
+        //            Action = () => lightEntities.OfficeLights.TurnOff()
+        //        }, notificationId);
+        //        //inputSelectNotifications.Notify(new InputSelectNotificationConfig
+        //        //{
+        //        //    Message = "The office lights are on2!",
+        //        //    SecondaryMessage = "Click here to turn them off2.",
+        //        //    Action = () => lightEntities.OfficeLights.TurnOff()
+        //        //}, notificationId + "bla");
+        //    },
+        //    () => inputSelectNotifications.RemoveNotification(notificationId));
     }
 }

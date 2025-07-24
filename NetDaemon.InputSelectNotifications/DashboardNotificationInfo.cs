@@ -2,7 +2,7 @@
 
 namespace NetDaemon.InputSelectNotifications;
 
-internal record DashboardNotificationInfo(string Message)
+public record DashboardNotificationInfo(string Message)
 {
     // Note: we keep property names as short as possible as the limit of the whole json is 256 chars.
     [JsonPropertyName("m")]
@@ -12,10 +12,12 @@ internal record DashboardNotificationInfo(string Message)
     [JsonPropertyName("i")]
     public string? Icon { get; init; }
     [JsonPropertyName("c")]
-    public string? Color { get; init; }
+    public string? IconColor { get; init; }
     [JsonPropertyName("b")]
     public string? BadgeIcon { get; init; }
-    [JsonPropertyName("bc")]
+    [JsonPropertyName("n")]
+    public string? BadgeContent { get; init; }
+    [JsonPropertyName("o")]
     public string? BadgeColor { get; init; }
     [JsonPropertyName("t")]
     public string? TimeStamp { get; init; }
