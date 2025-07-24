@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NetDaemon.InputSelectNotifications.Config;
 using NetDaemon.InputSelectNotifications.Interact;
@@ -9,40 +10,62 @@ namespace NetDaemon.InputSelectNotifications.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection RegisterInputSelectNotifications(this IServiceCollection serviceCollection, string inputSelectEntityId, string? inputNumberEntityId = null)
+    public static IServiceCollection AddInputSelectNotifications(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        // todo: check if key is registered
-        if (!serviceCollection.IsServiceRegistered<DashboardNotificationService>())
+        var inputSelectNotificationEntities = configuration
+            .GetSection("InputSelectNotificationEntities")
+            .Get<InputSelectNotificationItem[]>();
+
+        if (inputSelectNotificationEntities == null || inputSelectNotificationEntities.Length == 0)
         {
-            // RegisterInputSelectNotifications can be called multiple times (for different input select entities). We only want to register the background service the first time.
-            serviceCollection.AddNetDaemonRuntimeStateService();
-            serviceCollection.AddHostedService<DashboardNotificationService>();
+            throw new InvalidOperationException("Configuration for 'InputSelectNotificationEntities' is missing or empty.");
         }
-            
-        // Register the InputSelectNotificationContext as a keyed singleton so it can be resolved by the input select entity ID.
-        serviceCollection.TryAddKeyedSingleton<IInputSelectNotificationEntity, InputSelectNotificationEntity>(inputSelectEntityId); 
-        serviceCollection.TryAddKeyedSingleton(inputSelectEntityId, (serviceProvider, key) => (InputSelectNotificationEntity)serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(key));
 
-        // We also register the InputSelectNotificationContext as a non-keyed singleton so the user could request an IEnumerable for all contexts.
-        serviceCollection.AddSingleton(serviceProvider =>
-        {
-            var inputSelectNotificationContext = serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(inputSelectEntityId);
-            return inputSelectNotificationContext;
-        });
-        serviceCollection.AddSingleton(serviceProvider =>
-        {
-            var inputSelectNotificationContext = serviceProvider.GetRequiredKeyedService<InputSelectNotificationEntity>(inputSelectEntityId);
-            return inputSelectNotificationContext;
-        });
-
-        serviceCollection.AddTransient(_ => new InputSelectNotificationInitializationConfig(inputSelectEntityId, inputNumberEntityId));
-        //inputSelectNotificationEntities.Add(inputSelectEntityId);
-
-        return serviceCollection;
+        return AddInputSelectNotifications(serviceCollection, inputSelectNotificationEntities);
     }
 
-    public static bool IsServiceRegistered<TService>(this IServiceCollection services)
+    public static IServiceCollection AddInputSelectNotifications(this IServiceCollection serviceCollection, InputSelectNotificationItem[] inputSelectNotificationEntities)
     {
-        return services.Any(sd => sd.ServiceType == typeof(TService));
+        serviceCollection.AddSingleton(inputSelectNotificationEntities);
+
+        var duplicateKeys = inputSelectNotificationEntities.GroupBy(i => i.InputSelectEntityId)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+
+        if (duplicateKeys.Any())
+        {
+            throw new InvalidOperationException($"Duplicate InputSelectId(s) found: {string.Join(", ", duplicateKeys)}");
+        }
+
+        serviceCollection.AddNetDaemonRuntimeStateService();
+        serviceCollection.AddHostedService<DashboardNotificationBackgroundService>();
+
+        foreach (var item in inputSelectNotificationEntities)
+        {
+            var inputSelectEntityId = item.InputSelectEntityId;
+            if (string.IsNullOrWhiteSpace(inputSelectEntityId))
+            {
+                throw new InvalidOperationException("Each InputSelectNotificationEntity must have a non-empty InputSelectEntityId.");
+            }
+            
+            // Register the InputSelectNotificationContext as a keyed singleton so it can be resolved by the input select entity ID.
+            serviceCollection.TryAddKeyedSingleton<IInputSelectNotificationEntity, InputSelectNotificationEntity>(inputSelectEntityId);
+            serviceCollection.TryAddKeyedSingleton(inputSelectEntityId, (serviceProvider, key) => (InputSelectNotificationEntity)serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(key));
+
+            // We also register the InputSelectNotificationContext as a non-keyed singleton so the user could request an IEnumerable for all contexts.
+            serviceCollection.AddSingleton(serviceProvider =>
+            {
+                var inputSelectNotificationContext = serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(inputSelectEntityId);
+                return inputSelectNotificationContext;
+            });
+            serviceCollection.AddSingleton(serviceProvider =>
+            {
+                var inputSelectNotificationContext = serviceProvider.GetRequiredKeyedService<InputSelectNotificationEntity>(inputSelectEntityId);
+                return inputSelectNotificationContext;
+            });
+        }
+
+        return serviceCollection;
     }
 }

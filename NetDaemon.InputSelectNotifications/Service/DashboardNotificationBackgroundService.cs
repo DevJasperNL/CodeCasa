@@ -9,42 +9,32 @@ using NetDaemon.InputSelectNotifications.Config;
 
 namespace NetDaemon.InputSelectNotifications.Service;
 
-internal class DashboardNotificationService : BackgroundService
+internal class DashboardNotificationBackgroundService(
+    IServiceProvider serviceProvider,
+    InputSelectNotificationItem[] inputSelectNotificationItems,
+    NetDaemonRuntimeStateService netDaemonRuntimeStateService)
+    : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly InputSelectNotificationInitializationConfig[] _inputSelectNotificationConfigs;
-    private readonly NetDaemonRuntimeStateService _netDaemonRuntimeStateService;
-
-    public DashboardNotificationService(
-        IServiceProvider serviceProvider,
-        IEnumerable<InputSelectNotificationInitializationConfig> inputSelectNotificationEntities, 
-        NetDaemonRuntimeStateService netDaemonRuntimeStateService)
-    {
-        _serviceProvider = serviceProvider;
-        _inputSelectNotificationConfigs = inputSelectNotificationEntities.ToArray();
-        _netDaemonRuntimeStateService = netDaemonRuntimeStateService;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         // Wait for the NetDaemon runtime to be initialized.
-        await _netDaemonRuntimeStateService.WaitForInitializationAsync(cancellationToken);
+        await netDaemonRuntimeStateService.WaitForInitializationAsync(cancellationToken);
         if (cancellationToken.IsCancellationRequested)
         {
             return;
         }
 
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         var haContext = scope.ServiceProvider.GetRequiredService<IHaContext>();
         var scheduler = scope.ServiceProvider.GetRequiredService<IScheduler>();
 
-        var handlers = _inputSelectNotificationConfigs.Select(config =>
+        var handlers = inputSelectNotificationItems.Select(config =>
             new InputSelectNotificationHandler(
                 haContext,
                 scheduler,
                 new Entity(haContext, config.InputSelectEntityId),
                 config.InputNumberEntityId == null ? null : new Entity(haContext, config.InputNumberEntityId),
-                _serviceProvider
+                serviceProvider
                     .GetRequiredKeyedService<InputSelectNotificationEntity>(config.InputSelectEntityId))).ToArray();
 
         await Task.Delay(Timeout.Infinite, cancellationToken);
