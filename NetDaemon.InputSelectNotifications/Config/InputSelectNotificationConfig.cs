@@ -20,6 +20,7 @@ public record InputSelectNotificationConfig(string Message) : IInputSelectNotifi
     public Color? IconColor { get; set; }
     public string? BadgeIcon { get; set; }
     public Color? BadgeIconColor { get; set; }
+    public string? BadgeContent { get; set; }
     public TimeSpan? Timeout { get; set; }
     public Action? Action { get; set; }
     public int? Order { get; set; }
@@ -33,6 +34,7 @@ public record InputSelectNotificationConfig(string Message) : IInputSelectNotifi
             IconColor = IconColor?.Name.ToLowerInvariant(),
             BadgeIcon = BadgeIcon,
             BadgeColor = BadgeIconColor?.Name.ToLowerInvariant(),
+            BadgeContent = BadgeContent,
             TimeStamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
         };
 

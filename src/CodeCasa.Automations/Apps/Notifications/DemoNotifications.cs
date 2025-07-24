@@ -15,6 +15,7 @@ namespace CodeCasa.Automations.Apps.Notifications;
 internal class DemoNotifications
 {
     private List<InputSelectNotification> _notifications = new();
+    private int _manuallyAddedIndex;
 
     public DemoNotifications(
         IHaContext haContext,
@@ -24,16 +25,43 @@ internal class DemoNotifications
         haContext.Events.Where(e => e.EventType == Events.AddDemoNotificationEvent).Subscribe(_ =>
         {
             _notifications.Clear();
+            _manuallyAddedIndex = 0;
 
             var clickToRemoveNotificationId = $"{nameof(DemoNotifications)}_ClickToRemove";
-            _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
-            {
-                Message = "Demo Notification 1",
-                SecondaryMessage = "Click to remove me.",
-                Icon = "Icons.Material.Filled.AutoAwesome",
-                BadgeIcon = "Icons.Material.Filled.Warning",
-                Action = () => inputSelectNotifications.RemoveNotification(clickToRemoveNotificationId)
-            }, clickToRemoveNotificationId));
+            var clickToUndoRemoveNotificationId = $"{nameof(DemoNotifications)}_ClickToUndoRemove";
+
+            void AddClickToRemoveNotificationAction() =>
+                _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
+                {
+                    Message = "Demo Notification 1",
+                    SecondaryMessage = "Click to remove me.",
+                    Icon = "Icons.Material.Filled.AutoAwesome",
+                    IconColor = Color.Yellow,
+                    BadgeIcon = "Icons.Material.Filled.Delete",
+                    BadgeIconColor = Color.Red,
+                    Action = () =>
+                    {
+                        inputSelectNotifications.RemoveNotification(clickToRemoveNotificationId);
+                        _notifications = _notifications.Where(n => n.Id != clickToRemoveNotificationId).ToList();
+
+                        _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
+                        {
+                            Message = "Notification removed!",
+                            SecondaryMessage = "Click to undo remove.",
+                            Icon = "Icons.Material.Filled.Undo",
+                            IconColor = Color.Green,
+                            Timeout = TimeSpan.FromSeconds(3),
+                            Action = () =>
+                            {
+                                inputSelectNotifications.RemoveNotification(clickToUndoRemoveNotificationId);
+                                _notifications = _notifications.Where(n => n.Id != clickToUndoRemoveNotificationId).ToList();
+
+                                AddClickToRemoveNotificationAction();
+                            }
+                        }, clickToUndoRemoveNotificationId));
+                    }
+                }, clickToRemoveNotificationId));
+            AddClickToRemoveNotificationAction();
 
             var clearNotificationId = $"{nameof(DemoNotifications)}_Clear";
             _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
@@ -41,7 +69,8 @@ internal class DemoNotifications
                 Message = "Demo Notification 2",
                 SecondaryMessage = "Click to clear demo notifications.",
                 Icon = "Icons.Material.Filled.AutoAwesome",
-                BadgeIcon = "Icons.Material.Filled.Warning",
+                IconColor = Color.Yellow,
+                BadgeIcon = "Icons.Material.Filled.DeleteForever",
                 BadgeIconColor = Color.Red,
                 Action = () =>
                 {
@@ -54,31 +83,38 @@ internal class DemoNotifications
                 }
             }, clearNotificationId));
 
-            // todo: add one that can be removed and undone.
-
-
             var addNotificationNotificationId = $"{nameof(DemoNotifications)}_Add";
-            _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
+            void AddNotificationNotificationAction() => _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
             {
                 Message = "Demo Notification 3",
                 SecondaryMessage = "Click to add notification.",
                 Icon = "Icons.Material.Filled.AutoAwesome",
                 IconColor = Color.Yellow,
-                BadgeIcon = "Icons.Material.Filled.Add",
+                BadgeIcon = _manuallyAddedIndex == 0 ? "Icons.Material.Filled.Add" : null,
                 BadgeIconColor = Color.Green,
+                BadgeContent = _manuallyAddedIndex == 0 ? null : $"{_manuallyAddedIndex}",
                 Action = () =>
                 {
+                    _manuallyAddedIndex++;
                     var notificationId = Guid.NewGuid().ToString();
                     _notifications.Add(inputSelectNotifications.Notify(new InputSelectNotificationConfig
                     {
-                        Message = "Added Demo Notification",
+                        Message = $"Added Demo Notification ({_manuallyAddedIndex})",
                         SecondaryMessage = "Click to remove me.",
                         Icon = "Icons.Material.Filled.AutoAwesome",
                         IconColor = Color.Orange,
-                        Action = () => inputSelectNotifications.RemoveNotification(notificationId)
+                        BadgeContent = $"{_manuallyAddedIndex}",
+                        Action = () =>
+                        {
+                            inputSelectNotifications.RemoveNotification(notificationId);
+                            _notifications = _notifications.Where(n => n.Id != notificationId).ToList();
+                        }
                     }, notificationId));
+                    AddNotificationNotificationAction();
                 }
             }, addNotificationNotificationId));
+
+            AddNotificationNotificationAction();
         });
     }
 }

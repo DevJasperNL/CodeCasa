@@ -101,7 +101,7 @@ internal class InputSelectNotificationHandler : IDisposable
             var index = _notifications.FindIndex(n => n.Id == id);
             if (index == -1)
             {
-                var insertIndex = _notifications.FindIndex(n => n.Order.GetValueOrDefault(0) >= notificationConfig.Order.GetValueOrDefault(0));
+                var insertIndex = _notifications.FindIndex(n => n.Order.GetValueOrDefault(0) > notificationConfig.Order.GetValueOrDefault(0));
                 if (insertIndex == -1)
                 {
                     insertIndex = _notifications.Count;

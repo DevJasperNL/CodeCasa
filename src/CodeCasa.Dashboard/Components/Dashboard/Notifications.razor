@@ -3,7 +3,6 @@
 @using CodeCasa.Dashboard.Icons
 @using NetDaemon.HassModel
 @using NetDaemon.HassModel.Entities
-@using NetDaemon.InputSelectNotifications
 @using NetDaemon.InputSelectNotifications.Config
 
 @inject IHaContext HaContext
@@ -35,23 +34,29 @@
                     }
                     else
                     {
-                        <MudBadge
-                            Overlap="true"
-                            Icon="@badgeIcon"
-                            Content="@badgeContent"
-                            Class="mr-2"
-                                  Style="@($"--badge-icon-bg: {notification.BadgeColor};")">
-                            <MudIcon Icon="@icon" Style="@(string.IsNullOrEmpty(notification.IconColor) ? null : $"color: {notification.IconColor};")" />
-                            <style>
-                                .mud-badge {
-                                    color: #FFFFFF !important; /* Icon color */
-                                }
+                        <div class="custom-badge">
+                            <MudBadge
+                                Overlap="true"
+                                Icon="@badgeIcon"
+                                Content="@badgeContent"
+                                Class="mr-2"
+                                Style="@($"--badge-icon-bg: {notification.BadgeColor};")">
+                                <MudIcon Icon="@icon" Style="@(string.IsNullOrEmpty(notification.IconColor) ? null : $"color: {notification.IconColor};")" />
+                            </MudBadge>
+                        </div>
+                        <style>
+                            .custom-badge .mud-badge {
+                                color: #FFFFFF !important; /* Icon color */
+                            }
 
-                                .mud-badge-icon {
-                                    background-color: var(--badge-icon-bg) !important;
-                                }
-                            </style>
-                        </MudBadge>
+                            .custom-badge .mud-badge-icon {
+                                background-color: var(--badge-icon-bg) !important;
+                            }
+
+                            .custom-badge .mud-badge.mud-badge-top {
+                                background-color: var(--badge-icon-bg) !important;
+                            }
+                        </style>
                     }
                 }
                 else
