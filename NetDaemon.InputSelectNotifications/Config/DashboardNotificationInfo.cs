@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace NetDaemon.InputSelectNotifications;
+namespace NetDaemon.InputSelectNotifications.Config;
 
 public record DashboardNotificationInfo(string Message)
 {

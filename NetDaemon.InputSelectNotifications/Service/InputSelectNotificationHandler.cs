@@ -53,7 +53,7 @@ internal class InputSelectNotificationHandler : IDisposable
         UpdateOptionsInHomeAssistant();
     }
 
-    private void Notify(string id, InputSelectNotificationConfig notificationConfig)
+    private void Notify(string id, IInputSelectNotificationConfig notificationConfig)
     {
         if (notificationConfig.Timeout != null && notificationConfig.Timeout < TimeSpan.Zero)
         {
@@ -63,7 +63,7 @@ internal class InputSelectNotificationHandler : IDisposable
 
         lock (_lock)
         {
-            var notificationInfo = notificationConfig.ToDashboardNotificationInfo(DateTime.UtcNow);
+           
             var internalId = _nextInternalId++;
 
             IDisposable? scheduleDisposable = null;
@@ -80,9 +80,23 @@ internal class InputSelectNotificationHandler : IDisposable
                 });
             }
 
+            var inputSelectOptionString = notificationConfig.ToInputSelectOptionString();
+            if (string.IsNullOrEmpty(inputSelectOptionString))
+            {
+                throw new ArgumentException("Input select option cannot be null or empty.");
+            }
+            if (inputSelectOptionString.Length > MaxMessageLength)
+            {
+                throw new ArgumentException($"Input select option cannot exceed {MaxMessageLength} characters.");
+            }
+            if (_notifications.Any(n => n.InputSelectOption.Equals(inputSelectOptionString)))
+            {
+                throw new ArgumentException("No duplicate input select options allowed.");
+            }
+
             var managedNotificationToInsert = new ManagedNotification(
                 id, internalId, notificationConfig.Action,
-                notificationConfig.Order, notificationInfo, scheduleDisposable);
+                notificationConfig.Order, inputSelectOptionString, scheduleDisposable);
 
             var index = _notifications.FindIndex(n => n.Id == id);
             if (index == -1)
@@ -131,28 +145,7 @@ internal class InputSelectNotificationHandler : IDisposable
             return;
         }
 
-        var jsonSerializerOptions = new JsonSerializerOptions
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-        jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-
-        var options = _notifications.Select(n =>
-        {
-            var dashboardNotificationInfo = n.DashboardNotificationInfo;
-            var json = JsonSerializer.Serialize(dashboardNotificationInfo, jsonSerializerOptions);
-            if (json.Length <= MaxMessageLength)
-            {
-                return json;
-            }
-            var (message, secondaryMessage) = MessageShortener.ShortenMessages(
-                dashboardNotificationInfo.Message,
-                dashboardNotificationInfo.SecondaryMessage,
-                json.Length - MaxMessageLength);
-            return JsonSerializer.Serialize(dashboardNotificationInfo with { Message = message, SecondaryMessage = secondaryMessage }, jsonSerializerOptions);
-        }).ToArray();
-
-        _inputSelectEntity.CallService("set_options", new { options });
+        _inputSelectEntity.CallService("set_options", new { options = _notifications.Select(n => n.InputSelectOption).ToArray() });
         _inputNumberEntity?.CallService("set_value", new { value = _notifications.Count });
     }
 
@@ -176,6 +169,6 @@ internal class InputSelectNotificationHandler : IDisposable
         long InternalId,
         Action? Action,
         int? Order,
-        DashboardNotificationInfo DashboardNotificationInfo,
+        string InputSelectOption,
         IDisposable? ScheduleDisposable);
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetDaemon.InputSelectNotifications.Helpers
+﻿namespace NetDaemon.InputSelectNotifications.Helpers
 {
     internal static class MessageShortener
     {// todo: test

@@ -1,9 +1,14 @@
-﻿using System.Drawing;
+﻿using NetDaemon.InputSelectNotifications.Helpers;
+using System.Drawing;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace NetDaemon.InputSelectNotifications.Config;
 
-public record InputSelectNotificationConfig(string Message)
+public record InputSelectNotificationConfig(string Message) : IInputSelectNotificationConfig
 {
+    private const int MaxMessageLength = 255;
+
     // Can be used for templating
     public InputSelectNotificationConfig() : this(string.Empty)
     {
@@ -19,16 +24,33 @@ public record InputSelectNotificationConfig(string Message)
     public Action? Action { get; set; }
     public int? Order { get; set; }
 
-    internal DashboardNotificationInfo ToDashboardNotificationInfo(DateTime utcTimeStamp)
+    public string ToInputSelectOptionString()
     {
-        return new DashboardNotificationInfo(Message)
+        var notificationInfo = new DashboardNotificationInfo(Message)
         {
             SecondaryMessage = SecondaryMessage,
             Icon = Icon,
             IconColor = IconColor?.Name.ToLowerInvariant(),
             BadgeIcon = BadgeIcon,
             BadgeColor = BadgeIconColor?.Name.ToLowerInvariant(),
-            TimeStamp = utcTimeStamp.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            TimeStamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
         };
+
+        var jsonSerializerOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+        jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+        var json = JsonSerializer.Serialize(notificationInfo, jsonSerializerOptions);
+        if (json.Length <= MaxMessageLength)
+        {
+            return json;
+        }
+        var (message, secondaryMessage) = MessageShortener.ShortenMessages(
+            notificationInfo.Message,
+            notificationInfo.SecondaryMessage,
+            json.Length - MaxMessageLength);
+        return JsonSerializer.Serialize(notificationInfo with { Message = message, SecondaryMessage = secondaryMessage }, jsonSerializerOptions);
     }
 }
