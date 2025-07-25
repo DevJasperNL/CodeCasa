@@ -30,6 +30,7 @@ internal class DemoNotifications
             void AddClickToRemoveNotificationAction() =>
                 _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
                 {
+                    Order = 900,
                     Message = "Demo Notification 1",
                     SecondaryMessage = "Click to remove me.",
                     Icon = "Material.Filled.AutoAwesome",
@@ -63,6 +64,7 @@ internal class DemoNotifications
             var clearNotificationId = $"{nameof(DemoNotifications)}_Clear";
             _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
             {
+                Order = 901,
                 Message = "Demo Notification 2",
                 SecondaryMessage = "Click to clear demo notifications.",
                 Icon = "Material.Filled.AutoAwesome",
@@ -83,6 +85,7 @@ internal class DemoNotifications
             var addNotificationNotificationId = $"{nameof(DemoNotifications)}_Add";
             void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
             {
+                Order = 902,
                 Message = "Demo Notification 3",
                 SecondaryMessage = "Click to add notification.",
                 Icon = "Material.Filled.AutoAwesome",
@@ -96,6 +99,7 @@ internal class DemoNotifications
                     var notificationId = Guid.NewGuid().ToString();
                     _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
                     {
+                        Order = 903,
                         Message = $"Added Demo Notification ({_manuallyAddedIndex})",
                         SecondaryMessage = "Click to remove me.",
                         Icon = "Material.Filled.AutoAwesome",

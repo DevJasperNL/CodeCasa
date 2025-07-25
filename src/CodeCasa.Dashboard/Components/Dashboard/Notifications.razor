@@ -84,6 +84,7 @@
             if (stateChange.New?.Attributes?.Options == null || string.IsNullOrEmpty(stateChange.New.Attributes.Options.FirstOrDefault()))
             {
                 _notifications = [];
+                InvokeAsync(StateHasChanged);
                 return;
             }
             var jsonOptions = new JsonSerializerOptions
@@ -95,7 +96,7 @@
                 .Where(n => n != null)
                 .Select(n => n!).ToArray();
 
-            InvokeAsync(StateHasChanged).GetAwaiter().GetResult();
+            InvokeAsync(StateHasChanged);
         });
     }
 
