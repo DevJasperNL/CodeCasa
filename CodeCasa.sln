@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Automations", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.Utilities", "src\CodeCasa.NetDaemon.Utilities\CodeCasa.NetDaemon.Utilities.csproj", "{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetDaemon.PhoneNotifications", "src\NetDaemon.PhoneNotifications\NetDaemon.PhoneNotifications.csproj", "{5AEB474A-CC6F-4444-8956-501D265680FC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.CustomEntities", "src\CodeCasa.CustomEntities\CodeCasa.CustomEntities.csproj", "{F042FD19-1664-499C-8971-15223E4BB4CF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Entities", "Entities", "{B8417343-120D-42CE-9802-F9584E63E3AF}"
@@ -41,10 +39,6 @@ Global
 		{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF4EB14B-3F32-4DBD-8552-56CE2A470E48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5AEB474A-CC6F-4444-8956-501D265680FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5AEB474A-CC6F-4444-8956-501D265680FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5AEB474A-CC6F-4444-8956-501D265680FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5AEB474A-CC6F-4444-8956-501D265680FC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F042FD19-1664-499C-8971-15223E4BB4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F042FD19-1664-499C-8971-15223E4BB4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F042FD19-1664-499C-8971-15223E4BB4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
