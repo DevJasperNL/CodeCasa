@@ -5,8 +5,8 @@ using CodeCasa.CustomEntities.People;
 using NetDaemon.AppModel;
 using NetDaemon.Extensions.Observables;
 using NetDaemon.Notifications.InputSelect.Config;
-using NetDaemon.PhoneNotifications.Config;
 using System.Drawing;
+using NetDaemon.Notifications.Phone.Config;
 using Reactive.Boolean;
 
 namespace CodeCasa.Automations.Apps.Notifications;
@@ -54,6 +54,7 @@ internal class OfficeLightsNotifications
                 jasper.Phone.Notify(new AndroidNotificationConfig
                 {
                     Message = $"Hey {jasper.Name}, the office lights are on!",
+                    StatusBarIcon = "mdi:lightbulb",
                     Actions =
                     [
                         new(() => lightEntities.OfficeLights.TurnOff(), "Click here to turn them off.")
