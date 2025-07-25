@@ -9,7 +9,7 @@ public record InputSelectNotificationConfig(string Message) : IInputSelectNotifi
 {
     private const int MaxMessageLength = 255;
 
-    // Can be used for templating
+    // Can be used for record copying
     public InputSelectNotificationConfig() : this(string.Empty)
     {
     }

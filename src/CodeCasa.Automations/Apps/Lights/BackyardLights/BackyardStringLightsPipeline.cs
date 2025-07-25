@@ -70,7 +70,7 @@ internal class BackyardStringLightsPipeline
             .SetOutputHandler(lightEntities.BackyardDoorLight.ExecuteLightParameters);
     }
 
-    private void UpdateLightState(LightEntity lightEntity, bool state)
+    private static void UpdateLightState(LightEntity lightEntity, bool state)
     {
         if (state)
         {

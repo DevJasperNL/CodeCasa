@@ -35,7 +35,7 @@ internal class DashboardNotificationBackgroundService(
                 new Entity(haContext, config.InputSelectEntityId),
                 config.InputNumberEntityId == null ? null : new Entity(haContext, config.InputNumberEntityId),
                 serviceProvider
-                    .GetRequiredKeyedService<InputSelectNotificationEntity>(config.InputSelectEntityId))).ToArray();
+                    .GetRequiredKeyedService<InputSelectNotificationEntityMediator>(config.InputSelectEntityId))).ToArray();
 
         await Task.Delay(Timeout.Infinite, cancellationToken);
 

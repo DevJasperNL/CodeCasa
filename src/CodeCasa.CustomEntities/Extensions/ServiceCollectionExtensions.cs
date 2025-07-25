@@ -1,5 +1,6 @@
-﻿using CodeCasa.CustomEntities.People;
-using CodeCasa.CustomEntities.Phones;
+﻿using CodeCasa.CustomEntities.Notifications.Dashboards;
+using CodeCasa.CustomEntities.Notifications.Phones;
+using CodeCasa.CustomEntities.People;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.CustomEntities.Extensions;
@@ -10,13 +11,18 @@ public static class ServiceCollectionExtensions
     {
         return serviceCollection
 
-            // Phones
-            .AddTransient<PhoneJane>()
-            .AddTransient<PhoneJasper>()
-            .AddTransient<PeopleEntities>()
+            // Dashboard Notifications
+            .AddTransient<LivingRoomPanelDashboardNotifications>()
+            .AddTransient<JaneDashboardNotifications>()
+            .AddTransient<JasperDashboardNotifications>()
 
+            // Phone Notifications
+            .AddTransient<JanePhoneNotifications>()
+            .AddTransient<JasperPhoneNotifications>()
+            
             // People
             .AddTransient<Jane>()
-            .AddTransient<Jasper>();
+            .AddTransient<Jasper>()
+            .AddTransient<PeopleEntities>();
     }
 }

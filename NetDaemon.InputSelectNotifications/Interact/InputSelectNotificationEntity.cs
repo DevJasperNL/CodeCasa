@@ -1,43 +1,39 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿
 using NetDaemon.InputSelectNotifications.Config;
 
-namespace NetDaemon.InputSelectNotifications.Interact;
-
-public class InputSelectNotificationEntity : IInputSelectNotificationEntity
+namespace NetDaemon.InputSelectNotifications.Interact
 {
-    private readonly ReplaySubject<(string id, IInputSelectNotificationConfig config)> _notifySubject = new();
-    private readonly ReplaySubject<string> _removeNotificationSubject = new();
-
-    internal IObservable<(string id, IInputSelectNotificationConfig config)> NotifyObservable => _notifySubject.AsObservable();
-    internal IObservable<string> RemoveNotificationObservable => _removeNotificationSubject.AsObservable();
-
-    public InputSelectNotification Notify(IInputSelectNotificationConfig notification)
+    public abstract class InputSelectNotificationEntity(IInputSelectNotificationEntity inner)
+        : IInputSelectNotificationEntity
     {
-        return Notify(notification, Guid.NewGuid().ToString());
-    }
+        protected readonly IInputSelectNotificationEntity Inner = inner ?? throw new ArgumentNullException(nameof(inner));
 
-    public InputSelectNotification Notify(IInputSelectNotificationConfig notification,
-        InputSelectNotification notificationToReplace)
-    {
-        _notifySubject.OnNext((notificationToReplace.Id, notification));
-        return new InputSelectNotification(notificationToReplace.Id, Disposable.Create(() => RemoveNotification(notificationToReplace.Id)));
-    }
+        public string InputSelectEntityId => Inner.InputSelectEntityId;
+        public string? InputNumberEntityId => Inner.InputNumberEntityId;
 
-    public InputSelectNotification Notify(IInputSelectNotificationConfig notification, string id)
-    {
-        _notifySubject.OnNext((id, notification));
-        return new InputSelectNotification(id, Disposable.Create(() => RemoveNotification(id)));
-    }
+        public virtual InputSelectNotification Notify(IInputSelectNotificationConfig notification)
+        {
+            return Inner.Notify(notification);
+        }
 
-    public void RemoveNotification(InputSelectNotification notificationToRemove)
-    {
-        _removeNotificationSubject.OnNext(notificationToRemove.Id);
-    }
+        public virtual InputSelectNotification Notify(IInputSelectNotificationConfig notification, InputSelectNotification notificationToReplace)
+        {
+            return Inner.Notify(notification, notificationToReplace);
+        }
 
-    public void RemoveNotification(string id)
-    {
-        _removeNotificationSubject.OnNext(id);
+        public virtual InputSelectNotification Notify(IInputSelectNotificationConfig notification, string id)
+        {
+            return Inner.Notify(notification, id);
+        }
+
+        public virtual void RemoveNotification(InputSelectNotification notificationToRemove)
+        {
+            Inner.RemoveNotification(notificationToRemove);
+        }
+
+        public virtual void RemoveNotification(string id)
+        {
+            Inner.RemoveNotification(id);
+        }
     }
 }

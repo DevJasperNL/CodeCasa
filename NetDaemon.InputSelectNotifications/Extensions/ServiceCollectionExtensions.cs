@@ -50,20 +50,12 @@ public static class ServiceCollectionExtensions
             }
             
             // Register the InputSelectNotificationContext as a keyed singleton so it can be resolved by the input select entity ID.
-            serviceCollection.TryAddKeyedSingleton<IInputSelectNotificationEntity, InputSelectNotificationEntity>(inputSelectEntityId);
-            serviceCollection.TryAddKeyedSingleton(inputSelectEntityId, (serviceProvider, key) => (InputSelectNotificationEntity)serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(key));
+            serviceCollection.TryAddKeyedSingleton<IInputSelectNotificationEntity>(inputSelectEntityId, new InputSelectNotificationEntityMediator(inputSelectEntityId, item.InputNumberEntityId));
+            serviceCollection.TryAddKeyedSingleton(inputSelectEntityId, (serviceProvider, key) => (InputSelectNotificationEntityMediator)serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(key));
 
             // We also register the InputSelectNotificationContext as a non-keyed singleton so the user could request an IEnumerable for all contexts.
-            serviceCollection.AddSingleton(serviceProvider =>
-            {
-                var inputSelectNotificationContext = serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(inputSelectEntityId);
-                return inputSelectNotificationContext;
-            });
-            serviceCollection.AddSingleton(serviceProvider =>
-            {
-                var inputSelectNotificationContext = serviceProvider.GetRequiredKeyedService<InputSelectNotificationEntity>(inputSelectEntityId);
-                return inputSelectNotificationContext;
-            });
+            serviceCollection.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<IInputSelectNotificationEntity>(inputSelectEntityId));
+            serviceCollection.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<InputSelectNotificationEntityMediator>(inputSelectEntityId));
         }
 
         return serviceCollection;

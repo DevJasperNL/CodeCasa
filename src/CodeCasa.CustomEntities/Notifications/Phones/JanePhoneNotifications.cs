@@ -2,7 +2,7 @@
 using NetDaemon.HassModel;
 using NetDaemon.PhoneNotifications;
 
-namespace CodeCasa.CustomEntities.Phones;
+namespace CodeCasa.CustomEntities.Notifications.Phones;
 
-public class PhoneJane(NotifyServices notificationServices, IHaContext haContext)
+public class JanePhoneNotifications(NotifyServices notificationServices, IHaContext haContext)
     : PhoneNotificationEntity(haContext, notificationServices.MobileAppIphoneVanJane);

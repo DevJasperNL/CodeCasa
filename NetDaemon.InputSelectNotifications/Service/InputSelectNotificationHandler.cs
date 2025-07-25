@@ -4,9 +4,7 @@ using NetDaemon.InputSelectNotifications.Config;
 using NetDaemon.InputSelectNotifications.Interact;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Text.Json;
 using System.Text.Json.Serialization;
-using NetDaemon.InputSelectNotifications.Helpers;
 
 namespace NetDaemon.InputSelectNotifications.Service;
 
@@ -20,7 +18,7 @@ internal class InputSelectNotificationHandler : IDisposable
     private readonly IEntityCore _inputSelectEntity;
     private readonly IEntityCore? _inputNumberEntity;
 
-    private readonly List<ManagedNotification> _notifications = new();
+    private readonly List<ManagedNotification> _notifications = [];
 
     private int _nextInternalId;
 
@@ -29,7 +27,7 @@ internal class InputSelectNotificationHandler : IDisposable
         IScheduler scheduler, 
         IEntityCore inputSelectEntity,
         IEntityCore? inputNumberEntity,
-        InputSelectNotificationEntity inputSelectNotificationEntity)
+        InputSelectNotificationEntityMediator inputSelectNotificationEntity)
     {
         _scheduler = scheduler;
         _inputSelectEntity = inputSelectEntity;
