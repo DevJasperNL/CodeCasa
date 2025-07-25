@@ -6,7 +6,7 @@ namespace NetDaemon.PhoneNotifications.Config;
 
 public record AndroidNotificationConfig : PhoneNotificationConfig
 {
-    public string? ClickAction { get; set; } // Used for opening an URL when clicking the notification
+    public string? ClickAction { get; set; } // Used for opening a URL when clicking the notification
     public string? Subject { get; set; }
     public Color? Color { get; set; }
     public bool Sticky { get; set; }
