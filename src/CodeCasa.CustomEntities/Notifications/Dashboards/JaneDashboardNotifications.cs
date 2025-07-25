@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using NetDaemon.InputSelectNotifications.Interact;
+using NetDaemon.Notifications.InputSelect.Interact;
 
 namespace CodeCasa.CustomEntities.Notifications.Dashboards;
 

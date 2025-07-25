@@ -2,8 +2,8 @@
 using CodeCasa.CustomEntities.Notifications.Dashboards;
 using NetDaemon.AppModel;
 using NetDaemon.HassModel;
-using NetDaemon.InputSelectNotifications;
-using NetDaemon.InputSelectNotifications.Config;
+using NetDaemon.Notifications.InputSelect;
+using NetDaemon.Notifications.InputSelect.Config;
 using System.Drawing;
 using System.Reactive.Linq;
 

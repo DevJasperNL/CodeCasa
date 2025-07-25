@@ -4,7 +4,7 @@ using CodeCasa.CustomEntities.Notifications.Dashboards;
 using CodeCasa.CustomEntities.People;
 using NetDaemon.AppModel;
 using NetDaemon.Extensions.Observables;
-using NetDaemon.InputSelectNotifications.Config;
+using NetDaemon.Notifications.InputSelect.Config;
 using NetDaemon.PhoneNotifications.Config;
 using System.Drawing;
 using Reactive.Boolean;
