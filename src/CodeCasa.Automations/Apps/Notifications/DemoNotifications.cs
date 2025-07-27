@@ -28,7 +28,7 @@ internal class DemoNotifications
             var clickToUndoRemoveNotificationId = $"{nameof(DemoNotifications)}_ClickToUndoRemove";
 
             void AddClickToRemoveNotificationAction() =>
-                _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
+                _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
                 {
                     Order = 900,
                     Message = "Demo Notification 1",
@@ -42,7 +42,7 @@ internal class DemoNotifications
                         livingRoomPanelNotifications.RemoveNotification(clickToRemoveNotificationId);
                         _notifications = _notifications.Where(n => n.Id != clickToRemoveNotificationId).ToList();
 
-                        _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
+                        _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
                         {
                             Message = "Notification removed!",
                             SecondaryMessage = "Click to undo remove.",
@@ -62,7 +62,7 @@ internal class DemoNotifications
             AddClickToRemoveNotificationAction();
 
             var clearNotificationId = $"{nameof(DemoNotifications)}_Clear";
-            _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
+            _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
             {
                 Order = 901,
                 Message = "Demo Notification 2",
@@ -83,7 +83,7 @@ internal class DemoNotifications
             }, clearNotificationId));
 
             var addNotificationNotificationId = $"{nameof(DemoNotifications)}_Add";
-            void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
+            void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
             {
                 Order = 902,
                 Message = "Demo Notification 3",
@@ -97,7 +97,7 @@ internal class DemoNotifications
                 {
                     _manuallyAddedIndex++;
                     var notificationId = Guid.NewGuid().ToString();
-                    _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectNotificationConfig
+                    _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
                     {
                         Order = 903,
                         Message = $"Added Demo Notification ({_manuallyAddedIndex})",

@@ -36,7 +36,7 @@ internal class OfficeLightsNotifications
         officeLights.SubscribeOnOff(
             () =>
             {
-                livingRoomPanelDashboardNotifications.Notify(new InputSelectNotificationConfig
+                livingRoomPanelDashboardNotifications.Notify(new InputSelectDashboardNotificationConfig
                 {
                     Message = "The office lights are on!",
                     SecondaryMessage = "Click here to turn them off.",
