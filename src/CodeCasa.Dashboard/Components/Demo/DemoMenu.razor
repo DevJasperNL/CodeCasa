@@ -22,7 +22,8 @@
         Style="align-self: center;"  />
     </MudDrawerHeader>
     <MudSwitch @bind-Value="_officeLight.IsOn" Color="Color.Primary" Label="Office Lights" ThumbIcon="@Icons.Material.Filled.Lightbulb" Size="Size.Large" />
-    <MudButton OnClick="ShowDemoNotifications">Show Demo Notifications</MudButton>
+    <MudButton OnClick="ShowDashboardNotificationDemo">Show Dashboard Demo Notifications</MudButton>
+    <MudButton OnClick="ShowPhoneNotificationDemo">Show Phone Demo Notification</MudButton>
 </MudDrawer>
 
 @code {
@@ -35,9 +36,15 @@
         _officeLight = new LightEntityVm(LightEntities.OfficeLights);
     }
 
-    private void ShowDemoNotifications()
+    private void ShowDashboardNotificationDemo()
     {
-        HaContext.SendEvent(Events.AddDemoNotificationEvent);
+        HaContext.SendEvent(Events.DashboardNotificationDemoEvent);
+        ToggleDrawer();
+    }
+
+    private void ShowPhoneNotificationDemo()
+    {
+        HaContext.SendEvent(Events.PhoneNotificationDemoEvent);
         ToggleDrawer();
     }
 
