@@ -58,9 +58,21 @@ internal class OfficeLightsNotifications
 - The code from this `NetDaemonApp`: [OfficeLightsNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/DemoNotifications.cs)
 - The custom Jasper entity: [Jasper.cs](src/CodeCasa.CustomEntities/People/Jasper.cs)
 
+### Phone Notifications
+
+This project showcases the use of phone notification, built with the `CodeCasa.NetDaemon.Notifications.Phone` library from [`NetDaemon.Utils`](https://github.com/DevJasperNL/NetDaemon.Utils).
+
+Here’s a preview of the notifications in action:
+
+![Gif demonstrating phone notifications](img/phone_notification_demo.gif "Phone Notifications")
+
+For detailed usage and setup instructions, see the [`CodeCasa.NetDaemon.Notifications.Phone` documentation](https://github.com/DevJasperNL/NetDaemon.Utils?tab=readme-ov-file#codecasanetdaemonnotificationsphone).
+
+- The `NetDaemonApp` demo code: [PhoneDemoNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/PhoneDemoNotifications.cs)
+
 ### Input Select Notifications
 
-This project showcases **rich notifications** using an input select entity, built with the `CodeCasa.NetDaemon.Notifications.InputSelect` library from [`NetDaemon.Utils`](https://github.com/DevJasperNL/NetDaemon.Utils).
+This project also showcases **rich notifications** using an input select entity, built with the `CodeCasa.NetDaemon.Notifications.InputSelect` library from [`NetDaemon.Utils`](https://github.com/DevJasperNL/NetDaemon.Utils).
 
 Here’s a preview of the notifications in action:
 
@@ -68,7 +80,7 @@ Here’s a preview of the notifications in action:
 
 For detailed usage and setup instructions, see the [`CodeCasa.NetDaemon.Notifications.InputSelect` documentation](https://github.com/DevJasperNL/NetDaemon.Utils?tab=readme-ov-file#codecasanetdaemonnotificationsinputselect).
 
-- The `NetDaemonApp` demo code: [DemoNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/DemoNotifications.cs)
+- The `NetDaemonApp` demo code: [DashboardDemoNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/DashboardDemoNotifications.cs)
 - The Blazor component: [Notifications.razor](src/CodeCasa.Dashboard/Components/Dashboard/Notifications.razor)
 
 ### Automation Pipelines
