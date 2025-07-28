@@ -16,11 +16,11 @@ try
     await Host.CreateDefaultBuilder(args)
         .UseCodeCasa()
         .UseNetDaemonRuntime()
-        .ConfigureServices((_, services) =>
+        .ConfigureServices((context, services) =>
             services
                 .AddAppsFromAssembly(Assembly.GetExecutingAssembly())
                 .AddNetDaemonScheduler()
-                .AddCodeCasa()
+                .AddCodeCasa(context.Configuration)
         )
         .Build()
         .RunAsync()

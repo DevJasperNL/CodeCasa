@@ -1,0 +1,19 @@
+﻿@using System.Reactive.Concurrency
+@using Occurify.Reactive.Extensions
+@using Occurify.TimeZones
+
+<MudText Typo="Typo.h1" Align="Align.Center"><b>@_currentTime.ToString("HH:mm")</b></MudText>
+
+@code {
+    private DateTime _currentTime = DateTime.Now;
+
+    protected override void OnInitialized()
+    {
+        var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
+        TimeZoneInstants.EveryMinute().Subscribe(() =>
+        {
+            _currentTime = DateTime.Now;
+            StateHasChanged();
+        }, scheduler);
+    }
+}

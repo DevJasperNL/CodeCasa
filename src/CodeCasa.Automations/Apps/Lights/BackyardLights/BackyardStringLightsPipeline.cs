@@ -6,7 +6,7 @@ using CodeCasa.NetDaemon.Utilities;
 using CodeCasa.NetDaemon.Utilities.Extensions;
 using NetDaemon.AppModel;
 
-namespace CodeCasa.Automations.Lights.BackyardLights;
+namespace CodeCasa.Automations.Apps.Lights.BackyardLights;
 
 [NetDaemonApp]
 internal class BackyardStringLightsPipeline
@@ -18,7 +18,7 @@ internal class BackyardStringLightsPipeline
         IPipeline<LightParameters> backyardGarageLightPipeline,
         IPipeline<LightParameters> backyardEntranceLightPipeline,
         IPipeline<LightParameters> backyardDoorLightPipeline,
-        LightEntities lightEntities, 
+        LightEntities lightEntities,
         IScheduler scheduler)
     {
         // We use a separate pipeline for each light string to allow for different timing on the startup routine.
@@ -47,8 +47,8 @@ internal class BackyardStringLightsPipeline
         const int offsetSeconds = 10;
         backyardGarageLightPipeline
             .SetDefault(LightParameters.Off())
-            .RegisterNode(new LightStringRoutineNode<LightParameters>(scheduler, 
-                lightEntities.BackyardGarageLight.GetRelaxSceneParameters() with { Transition = TimeSpan.FromSeconds(transitionSeconds) }, 
+            .RegisterNode(new LightStringRoutineNode<LightParameters>(scheduler,
+                lightEntities.BackyardGarageLight.GetRelaxSceneParameters() with { Transition = TimeSpan.FromSeconds(transitionSeconds) },
                 TimeSpan.FromSeconds(offsetSeconds)))
             .RegisterNode<BackyardCoachLightsEnergySavingNode>()
             .SetOutputHandler(lightEntities.BackyardGarageLight.ExecuteLightParameters);
@@ -70,7 +70,7 @@ internal class BackyardStringLightsPipeline
             .SetOutputHandler(lightEntities.BackyardDoorLight.ExecuteLightParameters);
     }
 
-    private void UpdateLightState(LightEntity lightEntity, bool state)
+    private static void UpdateLightState(LightEntity lightEntity, bool state)
     {
         if (state)
         {
