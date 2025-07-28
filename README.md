@@ -8,6 +8,8 @@ This repository explores creative and powerful ways to use a rich programming la
 
 ## 📖 Table of Contents  
 - [Architectures & Implementations](#🛠️-architectures--implementations)
+    - [People](#people)
+    - [Input Select Notifications](#input-select-notifications)
     - [Automation Pipelines](#automation-pipelines)
 - [Projects Overview](#🔧-projects-overview)
 
