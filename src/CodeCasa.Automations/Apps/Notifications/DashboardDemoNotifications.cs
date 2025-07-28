@@ -10,22 +10,22 @@ using System.Reactive.Linq;
 namespace CodeCasa.Automations.Apps.Notifications;
 
 [NetDaemonApp]
-internal class DemoNotifications
+internal class DashboardDemoNotifications
 {
     private List<InputSelectNotification> _notifications = [];
     private int _manuallyAddedIndex;
 
-    public DemoNotifications(
+    public DashboardDemoNotifications(
         IHaContext haContext,
         LivingRoomPanelDashboardNotifications livingRoomPanelNotifications)
     {
-        haContext.Events.Where(e => e.EventType == Events.AddDemoNotificationEvent).Subscribe(_ =>
+        haContext.Events.Where(e => e.EventType == Events.DashboardNotificationDemoEvent).Subscribe(_ =>
         {
             _notifications.Clear();
             _manuallyAddedIndex = 0;
 
-            var clickToRemoveNotificationId = $"{nameof(DemoNotifications)}_ClickToRemove";
-            var clickToUndoRemoveNotificationId = $"{nameof(DemoNotifications)}_ClickToUndoRemove";
+            var clickToRemoveNotificationId = $"{nameof(DashboardDemoNotifications)}_ClickToRemove";
+            var clickToUndoRemoveNotificationId = $"{nameof(DashboardDemoNotifications)}_ClickToUndoRemove";
 
             void AddClickToRemoveNotificationAction() =>
                 _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
@@ -61,7 +61,7 @@ internal class DemoNotifications
                 }, clickToRemoveNotificationId));
             AddClickToRemoveNotificationAction();
 
-            var addNotificationNotificationId = $"{nameof(DemoNotifications)}_Add";
+            var addNotificationNotificationId = $"{nameof(DashboardDemoNotifications)}_Add";
             void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
             {
                 Order = 901,
@@ -96,7 +96,7 @@ internal class DemoNotifications
             }, addNotificationNotificationId));
             AddNotificationNotificationAction();
 
-            var clearNotificationId = $"{nameof(DemoNotifications)}_Clear";
+            var clearNotificationId = $"{nameof(DashboardDemoNotifications)}_Clear";
             _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
             {
                 Order = 903,

@@ -2,6 +2,7 @@
 {
     public static class Events
     {
-        public const string AddDemoNotificationEvent = nameof(AddDemoNotificationEvent);
+        public const string DashboardNotificationDemoEvent = nameof(DashboardNotificationDemoEvent);
+        public const string PhoneNotificationDemoEvent = nameof(PhoneNotificationDemoEvent);
     }
 }
