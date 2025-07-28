@@ -15,6 +15,19 @@ This repository explores creative and powerful ways to use a rich programming la
 
 One of the great advantages of using a general-purpose programming language like C# for home automations is the ability to introduce your own architectural patterns. This chapter highlights some of the patterns used in this example project.
 
+### Input Select Notifications
+
+This project showcases **rich notifications** using an input select entity, built with the `CodeCasa.NetDaemon.Notifications.InputSelect` library from [`NetDaemon.Utils`](https://github.com/DevJasperNL/NetDaemon.Utils).
+
+Here’s a preview of the notifications in action:
+
+![Gif demonstrating dashboard notifications](img/blazor_dashboard_notification_demo.gif "Dashboard Notifications")
+
+For detailed usage and setup instructions, see the [`CodeCasa.NetDaemon.Notifications.InputSelect` documentation](https://github.com/DevJasperNL/NetDaemon.Utils?tab=readme-ov-file#codecasanetdaemonnotificationsinputselect).
+
+- The `NetDaemonApp` demo code: [DemoNotifications.cs](src\CodeCasa.Automations\Apps\Notifications\DemoNotifications.cs)
+- The Blazor component: [Notifications.razor](src\CodeCasa.Dashboard\Components\Dashboard\Notifications.razor)
+
 ### Automation Pipelines
 
 This automation uses the [`AutomationPipelines`](https://github.com/DevJasperNL/CodeCasa.Libraries) library to handle complex logic in a modular, layered way.

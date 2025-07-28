@@ -61,10 +61,45 @@ internal class DemoNotifications
                 }, clickToRemoveNotificationId));
             AddClickToRemoveNotificationAction();
 
+            var addNotificationNotificationId = $"{nameof(DemoNotifications)}_Add";
+            void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+            {
+                Order = 901,
+                Message = "Demo Notification 3",
+                SecondaryMessage = "Click to add notification.",
+                Icon = "Material.Filled.AutoAwesome",
+                IconColor = Color.Yellow,
+                BadgeIcon = _manuallyAddedIndex == 0 ? "Material.Filled.Add" : null,
+                BadgeContent = _manuallyAddedIndex == 0 ? null : $"{_manuallyAddedIndex}",
+                BadgeIconColor = Color.Green,
+                Action = () =>
+                {
+                    _manuallyAddedIndex++;
+                    var notificationId = Guid.NewGuid().ToString();
+                    _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+                    {
+                        Order = 902,
+                        Message = $"Added Demo Notification ({_manuallyAddedIndex})",
+                        SecondaryMessage = "Click to remove me.",
+                        Icon = "Material.Filled.AutoAwesome",
+                        IconColor = Color.Orange,
+                        BadgeContent = $"{_manuallyAddedIndex}",
+                        BadgeIconColor = Color.Blue,
+                        Action = () =>
+                        {
+                            livingRoomPanelNotifications.RemoveNotification(notificationId);
+                            _notifications = _notifications.Where(n => n.Id != notificationId).ToList();
+                        }
+                    }, notificationId));
+                    AddNotificationNotificationAction();
+                }
+            }, addNotificationNotificationId));
+            AddNotificationNotificationAction();
+
             var clearNotificationId = $"{nameof(DemoNotifications)}_Clear";
             _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
             {
-                Order = 901,
+                Order = 903,
                 Message = "Demo Notification 2",
                 SecondaryMessage = "Click to clear demo notifications.",
                 Icon = "Material.Filled.AutoAwesome",
@@ -81,41 +116,6 @@ internal class DemoNotifications
                     _notifications.Clear();
                 }
             }, clearNotificationId));
-
-            var addNotificationNotificationId = $"{nameof(DemoNotifications)}_Add";
-            void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
-            {
-                Order = 902,
-                Message = "Demo Notification 3",
-                SecondaryMessage = "Click to add notification.",
-                Icon = "Material.Filled.AutoAwesome",
-                IconColor = Color.Yellow,
-                BadgeIcon = _manuallyAddedIndex == 0 ? "Material.Filled.Add" : null,
-                BadgeIconColor = Color.Green,
-                BadgeContent = _manuallyAddedIndex == 0 ? null : $"{_manuallyAddedIndex}",
-                Action = () =>
-                {
-                    _manuallyAddedIndex++;
-                    var notificationId = Guid.NewGuid().ToString();
-                    _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
-                    {
-                        Order = 903,
-                        Message = $"Added Demo Notification ({_manuallyAddedIndex})",
-                        SecondaryMessage = "Click to remove me.",
-                        Icon = "Material.Filled.AutoAwesome",
-                        IconColor = Color.Orange,
-                        BadgeContent = $"{_manuallyAddedIndex}",
-                        Action = () =>
-                        {
-                            livingRoomPanelNotifications.RemoveNotification(notificationId);
-                            _notifications = _notifications.Where(n => n.Id != notificationId).ToList();
-                        }
-                    }, notificationId));
-                    AddNotificationNotificationAction();
-                }
-            }, addNotificationNotificationId));
-
-            AddNotificationNotificationAction();
         });
     }
 }
