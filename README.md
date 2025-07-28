@@ -62,7 +62,7 @@ This project showcases **rich notifications** using an input select entity, buil
 
 Here’s a preview of the notifications in action:
 
-![Gif demonstrating dashboard notifications](img/blazor_dashboard_notification_demso.gif "Dashboard Notifications")
+![Gif demonstrating dashboard notifications](img/blazor_dashboard_notification_demo.gif "Dashboard Notifications")
 
 For detailed usage and setup instructions, see the [`CodeCasa.NetDaemon.Notifications.InputSelect` documentation](https://github.com/DevJasperNL/NetDaemon.Utils?tab=readme-ov-file#codecasanetdaemonnotificationsinputselect).
 
