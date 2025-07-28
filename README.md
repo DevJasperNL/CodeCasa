@@ -53,8 +53,8 @@ internal class OfficeLightsNotifications
 }
 ```
 
-- The code from this `NetDaemonApp`: [OfficeLightsNotifications.cs](src\CodeCasa.Automations\Apps\Notifications\DemoNotifications.cs)
-- The custom Jasper entity: [Jasper.cs](src\CodeCasa.CustomEntities\People\Jasper.cs)
+- The code from this `NetDaemonApp`: [OfficeLightsNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/DemoNotifications.cs)
+- The custom Jasper entity: [Jasper.cs](src/CodeCasa.CustomEntities/People/Jasper.cs)
 
 ### Input Select Notifications
 
@@ -66,8 +66,8 @@ Here’s a preview of the notifications in action:
 
 For detailed usage and setup instructions, see the [`CodeCasa.NetDaemon.Notifications.InputSelect` documentation](https://github.com/DevJasperNL/NetDaemon.Utils?tab=readme-ov-file#codecasanetdaemonnotificationsinputselect).
 
-- The `NetDaemonApp` demo code: [DemoNotifications.cs](src\CodeCasa.Automations\Apps\Notifications\DemoNotifications.cs)
-- The Blazor component: [Notifications.razor](src\CodeCasa.Dashboard\Components\Dashboard\Notifications.razor)
+- The `NetDaemonApp` demo code: [DemoNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/DemoNotifications.cs)
+- The Blazor component: [Notifications.razor](src/CodeCasa.Dashboard/Components/Dashboard/Notifications.razor)
 
 ### Automation Pipelines
 
