@@ -1,11 +1,11 @@
 ﻿using CodeCasa.CustomEntities.Events;
 using CodeCasa.CustomEntities.Notifications.Dashboards;
-using NetDaemon.AppModel;
-using NetDaemon.HassModel;
 using NetDaemon.Notifications.InputSelect;
 using NetDaemon.Notifications.InputSelect.Config;
 using System.Drawing;
-using System.Reactive.Linq;
+using CodeCasa.NetDaemon.Utilities.Extensions;
+using NetDaemon.AppModel;
+using NetDaemon.HassModel;
 
 namespace CodeCasa.Automations.Apps.Notifications;
 
@@ -19,7 +19,7 @@ internal class DashboardDemoNotifications
         IHaContext haContext,
         LivingRoomPanelDashboardNotifications livingRoomPanelNotifications)
     {
-        haContext.Events.Where(e => e.EventType == Events.DashboardNotificationDemoEvent).Subscribe(_ =>
+        haContext.Events.Filter(Events.DashboardNotificationDemoEvent).Subscribe(_ =>
         {
             _notifications.Clear();
             _manuallyAddedIndex = 0;
