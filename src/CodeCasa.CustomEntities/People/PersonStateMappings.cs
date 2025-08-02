@@ -3,7 +3,7 @@
 namespace CodeCasa.CustomEntities.People;
 
 internal static class PersonStateMappings
-{
+{// todo: use type-safe entities.
     public static readonly Dictionary<PersonStates, string> PeopleStatesToStateValues = new()
     {
         { PersonStates.Awake , "Awake" },

@@ -2,9 +2,13 @@
 @using Occurify.Reactive.Extensions
 @using Occurify.TimeZones
 
-<MudText Typo="Typo.h1" Align="Align.Center"><b>@_currentTime.ToString("HH:mm")</b></MudText>
+<div class="clock-container @(Centered ? "center" : "top")">
+    <h1><b>@_currentTime.ToString("HH:mm")</b></h1>
+</div>
 
 @code {
+    [Parameter] public bool Centered { get; set; }
+
     private DateTime _currentTime = DateTime.Now;
 
     protected override void OnInitialized()
@@ -17,3 +21,33 @@
         }, scheduler);
     }
 }
+
+<style>
+    .clock-container {
+        pointer-events: none;
+        position: fixed;
+        width: 100%;
+        transition: all 0.5s ease;
+        text-align: center;
+    }
+
+        .clock-container.center {
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .clock-container.top {
+            top: 20px; /* adjust as needed */
+            transform: translateY(0);
+        }
+
+        .clock-container h1 {
+            margin: 0;
+            transition: font-size 1s ease;
+            font-size: 30vw; /* default large size */
+        }
+
+        .clock-container.top h1 {
+            font-size: 15vw; /* smaller size */
+        }
+</style>

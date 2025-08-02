@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         return serviceCollection
             .AddAutomationPipelines()
             .AddHomeAssistantGenerated()
-            .AddCodeCasaCustomEntities()
+            .AddCodeCasaCustomAutomationEntities()
             .AddInputSelectNotifications(configuration);
     }
 }

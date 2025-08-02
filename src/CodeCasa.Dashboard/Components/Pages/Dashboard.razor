@@ -1,9 +1,12 @@
 ﻿@page "/"
+@using CodeCasa.CustomEntities.InputSelect
 @using CodeCasa.Dashboard.Components.Demo
-@using NetDaemon.RuntimeState
 @using CodeCasa.Dashboard.Components.Dashboard
+@using global::NetDaemon.HassModel.Entities
+@using global::NetDaemon.RuntimeState
 
 @inject NetDaemonRuntimeStateService NetDaemonConnectionStateService
+@inject LivingRoomWallPanelView LivingRoomWallPanelView
 
 @if (!_netDaemonInitialized)
 {
@@ -13,22 +16,21 @@
 @if (_netDaemonInitialized)
 {
     <DemoMenu />
-}
 
-<Clock/>
-
-@if (_netDaemonInitialized)
-{
-    <Notifications/>
+    <Notifications Visible="@(!_centered)"/>
 
     <MudOverlay Visible="!_netDaemonConnected" Absolute="false" LightBackground="true">
         <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center">Disconnected From Home Assistant.</MudAlert>
     </MudOverlay>
 }
 
+<Clock Centered="_centered" />
+
 @code {
     private bool _netDaemonInitialized;
     private bool _netDaemonConnected;
+
+    private bool _centered = true;
 
     protected override void OnInitialized()
     {
@@ -36,6 +38,12 @@
         {
             _netDaemonInitialized = state != NetDaemonStates.Initializing;
             _netDaemonConnected = state == NetDaemonStates.Connected;
+            InvokeAsync(StateHasChanged);
+        });
+
+        LivingRoomWallPanelView.StateChangesWithCurrent().Subscribe(state =>
+        {
+            _centered = state.New?.State == LivingRoomWallPanelView.LivingRoomWallPanelViewStates.Idle;
             InvokeAsync(StateHasChanged);
         });
     }
