@@ -3,17 +3,16 @@ using CodeCasa.NetDaemon.Utilities.Entities;
 
 namespace CodeCasa.CustomEntities.InputSelect;
 
-public record LivingRoomWallPanelView : TypeSafeInputSelectEntity<LivingRoomWallPanelView.LivingRoomWallPanelViewStates>
+public record LivingRoomWallPanelView : TypeSafeInputSelectEntity<LivingRoomWallPanelView.States>
 {
     public LivingRoomWallPanelView(InputSelectEntities inputSelectEntities) 
         : base(inputSelectEntities.VariableLivingRoomWallPanelView)
     {
     }
 
-    public enum LivingRoomWallPanelViewStates
+    public enum States
     {
         Idle,
-        Home,
-        Media
+        Home
     }
 }
