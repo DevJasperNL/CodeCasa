@@ -13,7 +13,8 @@ public static class GeneratedExtensions
             .AddTransient<CoverEntities>()
             .AddTransient<InputSelectEntities>()
             .AddTransient<LightEntities>()
+            .AddTransient<NotifyServices>()
             .AddTransient<PersonEntities>()
-            .AddTransient<NotifyServices>();
+            .AddTransient<WeatherEntities>();
     }
 }
