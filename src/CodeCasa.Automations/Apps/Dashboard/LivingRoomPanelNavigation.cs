@@ -5,6 +5,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Text.Json.Serialization;
 using CodeCasa.CustomEntities.Events;
+using CodeCasa.CustomEntities.InputSelect;
 using NetDaemon.Extensions.Observables;
 using Reactive.Boolean;
 
@@ -16,41 +17,27 @@ namespace CodeCasa.Automations.Apps.Dashboard
         public LivingRoomPanelNavigation(
             IHaContext context,
             AutomationEntities automationEntities,
-            InputSelectEntities inputSelectEntities,
+            LivingRoomWallPanelView livingRoomWallPanelView,
             IScheduler scheduler)
         {
-            // Home should always go back to "Idle" after 30 seconds.
-            inputSelectEntities.VariableLivingRoomWallPanelView
-                .ToBooleanObservable(s => s.State != "Idle")
-                .WhenTrueFor(TimeSpan.FromSeconds(30), scheduler)
-                .Subscribe(_ => inputSelectEntities.VariableLivingRoomWallPanelView.SelectOption("Idle"));
+            // Home should always go back to "Idle" after 60 seconds.
+            livingRoomWallPanelView
+                .ToBooleanObservable(s => s.State != LivingRoomWallPanelView.States.Idle)
+                .WhenTrueFor(TimeSpan.FromMinutes(1), scheduler)
+                .Subscribe(_ => livingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Idle));
 
             // todo: reset timer if any action is executed (e.g. on notifications).
-
-
-            //mediaPlayerEntities.LivingRoomSpeaker.ToBoolObservable(s =>
-            //    string.Equals("buffering", s.State, StringComparison.OrdinalIgnoreCase) ||
-            //    string.Equals("playing", s.State, StringComparison.OrdinalIgnoreCase));
-
-            ////frontendServices.SetTheme("dark_teal");
-            //frontendServices.SetTheme("Home Assistant");
-            ////frontendServices.SetTheme("Graphite");
-            //frontendServices.SetTheme("Home_Assistant");
-            //frontendServices.SetTheme("HomeAssistant");
-            //frontendServices.SetTheme("Home-Assistant");
-
-
-
 
             context.Events
                 .Filter<AutomationTriggeredEventData>(Events.AutomationTriggeredEvent)
                 .Where(e => e.Data?.EntityId == automationEntities.WebhookLivingRoomWallPanelProximityDetected.EntityId)
                 .Subscribe(_ =>
                 {
-                    if (inputSelectEntities.VariableLivingRoomWallPanelView.State == "Idle")
+                    if (livingRoomWallPanelView.State != LivingRoomWallPanelView.States.Idle)
                     {
-                        inputSelectEntities.VariableLivingRoomWallPanelView.SelectOption("Home");
+                        return;
                     }
+                    livingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Home);
                 });
         }
 
