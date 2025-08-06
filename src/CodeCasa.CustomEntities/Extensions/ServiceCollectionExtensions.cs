@@ -2,6 +2,7 @@
 using CodeCasa.CustomEntities.Notifications.Dashboards;
 using CodeCasa.CustomEntities.Notifications.Phones;
 using CodeCasa.CustomEntities.People;
+using CodeCasa.CustomEntities.Weather;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.CustomEntities.Extensions;
@@ -35,6 +36,8 @@ public static class ServiceCollectionExtensions
         return serviceCollection
 
             // Input Select Entities
-            .AddTransient<LivingRoomWallPanelView>();
+            .AddTransient<LivingRoomWallPanelView>()
+            
+            .AddTransient<ForecastHome>();
     }
 }
