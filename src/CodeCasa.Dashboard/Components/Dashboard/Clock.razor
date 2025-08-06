@@ -3,11 +3,12 @@
 @using Occurify.TimeZones
 
 <div class="clock-container @(Centered ? "center" : "top")">
-    <h1><b>@_currentTime.ToString("HH:mm")</b></h1>
+    <h1><button @onclick="OnClick" class="unstyled-button"><b>@_currentTime.ToString("HH:mm")</b></button></h1>
 </div>
 
 @code {
     [Parameter] public bool Centered { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
 
     private DateTime _currentTime = DateTime.Now;
 
@@ -37,17 +38,17 @@
         }
 
         .clock-container.top {
-            top: 20px; /* adjust as needed */
+            top: 20px;
             transform: translateY(0);
         }
 
         .clock-container h1 {
             margin: 0;
             transition: font-size 1s ease;
-            font-size: 30vw; /* default large size */
+            font-size: 30vw;
         }
 
         .clock-container.top h1 {
-            font-size: 15vw; /* smaller size */
+            font-size: 15vw;
         }
 </style>

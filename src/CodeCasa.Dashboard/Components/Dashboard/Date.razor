@@ -1,0 +1,30 @@
+﻿
+<div class="date-container @(Visible ? "visible" : "hidden")">
+    <h3><b>Maandag, 4 Augustus</b></h3>
+</div>
+
+@code {
+
+    [Parameter] public bool Visible { get; set; } = true;
+}
+
+<style>
+.date-container {
+        text-align: center; /* center text inside */
+        position: fixed;
+        pointer-events: none;
+        top: 110px;
+        overflow-y: auto;
+        width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.visible {
+    opacity: 1;
+}
+
+.hidden {
+    opacity: 0;
+}
+</style>
