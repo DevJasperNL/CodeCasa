@@ -1,8 +1,6 @@
 ﻿using CodeCasa.CustomEntities.Events;
 using CodeCasa.CustomEntities.Notifications.Dashboards;
 using NetDaemon.Notifications.InputSelect;
-using NetDaemon.Notifications.InputSelect.Config;
-using System.Drawing;
 using CodeCasa.NetDaemon.Utilities.Extensions;
 using NetDaemon.AppModel;
 using NetDaemon.HassModel;
@@ -28,26 +26,22 @@ internal class DashboardDemoNotifications
             var clickToUndoRemoveNotificationId = $"{nameof(DashboardDemoNotifications)}_ClickToUndoRemove";
 
             void AddClickToRemoveNotificationAction() =>
-                _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+                _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
                 {
                     Order = 900,
                     Message = "Demo Notification 1",
                     SecondaryMessage = "Click to remove me.",
                     Icon = "Material.Filled.AutoAwesome",
-                    IconColor = Color.Yellow,
-                    BadgeIcon = "Material.Filled.Delete",
-                    BadgeIconColor = Color.Red,
                     Action = () =>
                     {
                         livingRoomPanelNotifications.RemoveNotification(clickToRemoveNotificationId);
                         _notifications = _notifications.Where(n => n.Id != clickToRemoveNotificationId).ToList();
 
-                        _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+                        _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
                         {
                             Message = "Notification removed!",
                             SecondaryMessage = "Click to undo remove.",
                             Icon = "Material.Filled.Undo",
-                            IconColor = Color.Green,
                             Timeout = TimeSpan.FromSeconds(3),
                             Action = () =>
                             {
@@ -62,29 +56,22 @@ internal class DashboardDemoNotifications
             AddClickToRemoveNotificationAction();
 
             var addNotificationNotificationId = $"{nameof(DashboardDemoNotifications)}_Add";
-            void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+            void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
             {
                 Order = 901,
                 Message = "Demo Notification 3",
                 SecondaryMessage = "Click to add notification.",
                 Icon = "Material.Filled.AutoAwesome",
-                IconColor = Color.Yellow,
-                BadgeIcon = _manuallyAddedIndex == 0 ? "Material.Filled.Add" : null,
-                BadgeContent = _manuallyAddedIndex == 0 ? null : $"{_manuallyAddedIndex}",
-                BadgeIconColor = Color.Green,
                 Action = () =>
                 {
                     _manuallyAddedIndex++;
                     var notificationId = Guid.NewGuid().ToString();
-                    _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+                    _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
                     {
                         Order = 902,
                         Message = $"Added Demo Notification ({_manuallyAddedIndex})",
                         SecondaryMessage = "Click to remove me.",
                         Icon = "Material.Filled.AutoAwesome",
-                        IconColor = Color.Orange,
-                        BadgeContent = $"{_manuallyAddedIndex}",
-                        BadgeIconColor = Color.Blue,
                         Action = () =>
                         {
                             livingRoomPanelNotifications.RemoveNotification(notificationId);
@@ -97,15 +84,12 @@ internal class DashboardDemoNotifications
             AddNotificationNotificationAction();
 
             var clearNotificationId = $"{nameof(DashboardDemoNotifications)}_Clear";
-            _notifications.Add(livingRoomPanelNotifications.Notify(new InputSelectDashboardNotificationConfig
+            _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
             {
                 Order = 903,
                 Message = "Demo Notification 2",
                 SecondaryMessage = "Click to clear demo notifications.",
                 Icon = "Material.Filled.AutoAwesome",
-                IconColor = Color.Yellow,
-                BadgeIcon = "Material.Filled.DeleteForever",
-                BadgeIconColor = Color.Red,
                 Action = () =>
                 {
                     foreach (var notification in _notifications)
