@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Text.Json.Serialization;
 using CodeCasa.CustomEntities.Events;
 using CodeCasa.CustomEntities.InputSelect;
+using CodeCasa.NetDaemon.Utilities.Entities;
 using NetDaemon.Extensions.Observables;
 using Reactive.Boolean;
 

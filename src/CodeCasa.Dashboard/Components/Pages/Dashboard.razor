@@ -3,6 +3,7 @@
 @using CodeCasa.CustomEntities.InputSelect
 @using CodeCasa.Dashboard.Components.Demo
 @using CodeCasa.Dashboard.Components.Dashboard
+@using CodeCasa.NetDaemon.Utilities.Entities
 @using global::NetDaemon.HassModel.Entities
 @using global::NetDaemon.RuntimeState
 
@@ -29,7 +30,7 @@ else if (!_netDaemonConnected)
     <DemoMenu />
 
     <Notifications Visible="_homeScreenActive" />
-    <Temperatures Visible="_homeScreenActive" />
+    <Weather Visible="_homeScreenActive" />
 }
  
 <Clock Centered="@(!_homeScreenActive)" OnClick="ClockClicked" />
