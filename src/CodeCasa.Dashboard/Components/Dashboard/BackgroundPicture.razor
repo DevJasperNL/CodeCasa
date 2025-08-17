@@ -1,0 +1,79 @@
+﻿@inject IWebHostEnvironment Env
+
+@if (_images.Any())
+{
+    <div class="picture-container">
+        <div class="picture @(ToBackground ? "background" : "")" style="width:100%; height:100%; background-image: url('@($"/pics/{Path.GetFileName(_images[_currentIndex])}")');"></div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool ToBackground { get; set; }
+
+    private string[] _images = [];
+    private int _currentIndex = 0;
+    private Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        var picsPath = Path.Combine(Env.WebRootPath, "pics");
+        _images = Directory.GetFiles(picsPath, "*.*")
+            .Where(f => new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }
+                .Contains(Path.GetExtension(f).ToLower()))
+            .ToArray();
+
+        if (!_images.Any())
+        {
+            return;
+        }
+        _timer = new Timer(ChangeImage, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+    }
+
+    private void ChangeImage(object? _)
+    {
+        if (_images.Length == 0) return;
+
+        _currentIndex = (_currentIndex + 1) % _images.Length;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
+
+<style>
+.picture-container {
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        width: 100%;
+        height: 100vh;
+        z-index: -100;
+}
+
+    .picture {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+        .picture::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.2);
+            transition: background-color 0.5s ease;
+        }
+
+        .picture.background::after {
+            background-color: rgba(0,0,0,0.8);
+        }
+</style>
