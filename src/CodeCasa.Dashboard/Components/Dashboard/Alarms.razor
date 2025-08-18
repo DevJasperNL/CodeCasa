@@ -5,63 +5,63 @@
 
 @implements IDisposable
 
-@inject GoogleHomeTimerEntities GoogleHomeTimerEntities
+@inject GoogleHomeAlarmEntities GoogleHomeAlarmEntities
 
-@if (_timers.Any())
+@if (_alarms.Any())
 {
-    @foreach (var timer in _timers)
+    @foreach (var alarm in _alarms)
     {
-        <Timer TimerVm="@timer"/>
+        <Alarm AlarmVm="@alarm"/>
     }
 }
 
 @code {
 
     private readonly System.Timers.Timer _uiTimer = new(100);
-    private TimerVm[] _timers = [];
+    private AlarmVm[] _alarms = [];
     
     protected override void OnInitialized()
     {
-        GoogleHomeTimerEntities.Select(
+        GoogleHomeAlarmEntities.Select(
                 gt => gt
-                    .StateAllChangesDeserialized<SpeakerTimerInfo>())
+                    .StateAllChangesDeserialized<SpeakerAlarmInfo>())
             .CombineLatest()
             .Subscribe(speakerInfos =>
             {
-                var newTimers = speakerInfos
-                    .Where(si => si.Timers != null)
-                    .SelectMany(si => si.Timers!, (si, t) => new { Timer = t, SpeakerInfo = si })
-                    .OrderBy(x => x.Timer.FireTime)
-                    .Select(x => new TimerVm(x.SpeakerInfo.FriendlyName, x.Timer))
+                var newAlarms = speakerInfos
+                    .Where(si => si.Alarms != null)
+                    .SelectMany(si => si.Alarms!, (si, a) => new { Alarm = a, SpeakerInfo = si })
+                    .OrderBy(x => x.Alarm.FireTime)
+                    .Select(x => new AlarmVm(x.SpeakerInfo.FriendlyName, x.Alarm))
                     .Where(t => t.HasTimeLeft).ToArray();
 
                 InvokeAsync(() =>
                 {
-                    _timers = newTimers;
+                    _alarms = newAlarms;
                     StateHasChanged();
                 });
             });
 
         _uiTimer.Elapsed += (_, __) =>
         {
-            if (!_timers.Any())
+            if (!_alarms.Any())
             {
                 return;
             }
 
             InvokeAsync(() =>
             {
-                if (!_timers.Any())
+                if (!_alarms.Any())
                 {
                     return;
                 }
 
-                foreach (var timer in _timers)
+                foreach (var alarms in _alarms)
                 {
-                    timer.Update();
+                    alarms.Update();
                 }
 
-                _timers = _timers.Where(t => t.HasTimeLeft).ToArray();
+                _alarms = _alarms.Where(t => t.HasTimeLeft).ToArray();
 
                 StateHasChanged();
             });

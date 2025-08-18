@@ -1,0 +1,53 @@
+﻿@using System.Text
+@using CodeCasa.Dashboard.ViewModels
+
+<MudButton FullWidth="true"
+           Variant="Variant.Filled"
+           Style="background-color: rgba(66, 66, 66, 0.3); border-radius: 12px;">
+    <MudStack Row AlignItems="AlignItems.Center" Style="justify-content: flex-start; width: 100%;" Class="ma-2">
+        <MudIcon Icon="@Icons.Material.Filled.Alarm" Class="mr-2"/>
+        <MudStack Spacing="0" AlignItems="AlignItems.Start" Style="width: 100%;">
+            @if (AlarmVm.Label != null)
+            {
+                <MudText Typo="Typo.body1">@AlarmVm.Label - @AlarmVm.DeviceDescription</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1">@AlarmVm.DeviceDescription</MudText>
+            }
+            <MudText Typo="Typo.body2">@AlarmVm.DueTime</MudText>
+        </MudStack>
+        <MudSpacer/>
+        <MudStack AlignItems="AlignItems.Start">
+            <MudText Typo="Typo.caption" style="white-space: nowrap;">@(FormatTimeSpan(AlarmVm.TimeLeft))</MudText>
+            <MudSpacer />
+        </MudStack>
+    </MudStack>
+</MudButton>
+
+@code {
+    [Parameter] public AlarmVm AlarmVm { get; set; } = null!;
+
+    private static string FormatTimeSpan(TimeSpan ts)
+    {
+        var years = ts.Days / 365;
+        var days = ts.Days % 365;
+        var hours = ts.Hours;
+        var minutes = ts.Minutes;
+        var seconds = ts.Seconds;
+
+        var sb = new StringBuilder();
+
+        if (years > 0)
+            sb.Append($"{years}y ");
+        if (days > 0)
+            sb.Append($"{days}d ");
+
+        if (hours > 0 || years > 0 || days > 0)
+            sb.Append($"{hours:D2}:{minutes:D2}:{seconds:D2}");
+        else
+            sb.Append($"{minutes:D2}:{seconds:D2}");
+
+        return sb.ToString().Trim();
+    }
+}

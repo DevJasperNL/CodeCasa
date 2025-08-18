@@ -1,4 +1,5 @@
-﻿using CodeCasa.CustomEntities.InputSelect;
+﻿using CodeCasa.CustomEntities.GoogleHome;
+using CodeCasa.CustomEntities.InputSelect;
 using CodeCasa.CustomEntities.Notifications.Dashboards;
 using CodeCasa.CustomEntities.Notifications.Phones;
 using CodeCasa.CustomEntities.People;
@@ -32,8 +33,11 @@ public static class ServiceCollectionExtensions
     }
 
     public static IServiceCollection AddCodeCasaCustomFrontEndEntities(this IServiceCollection serviceCollection)
-    {// todo: more me to a separate project.
+    {// todo: move me to a separate project.
         return serviceCollection
+
+            .AddTransient<GoogleHomeAlarmEntities>()
+            .AddTransient<GoogleHomeTimerEntities>()
 
             // Input Select Entities
             .AddTransient<LivingRoomWallPanelView>()
