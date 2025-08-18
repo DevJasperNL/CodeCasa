@@ -15,9 +15,9 @@
     protected override void OnInitialized()
     {
         var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
-        TimeZoneInstants.EveryMinute().Subscribe(() =>
+        TimeZoneInstants.EveryMinute().Subscribe(t =>
         {
-            _currentTime = DateTime.Now;
+            _currentTime = t;
             StateHasChanged();
         }, scheduler);
     }
