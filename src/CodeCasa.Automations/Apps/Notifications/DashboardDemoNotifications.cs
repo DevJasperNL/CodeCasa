@@ -17,7 +17,7 @@ internal class DashboardDemoNotifications
         IHaContext haContext,
         LivingRoomPanelDashboardNotifications livingRoomPanelNotifications)
     {
-        haContext.Events.Filter(Events.DashboardNotificationDemoEvent).Subscribe(_ =>
+        haContext.Events.Filter(Events.LivingRoomPanelNotificationDemoEvent).Subscribe(_ =>
         {
             _notifications.Clear();
             _manuallyAddedIndex = 0;

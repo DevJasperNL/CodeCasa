@@ -1,15 +1,19 @@
 ﻿@page "/"
 
+@using CodeCasa.CustomEntities.Events
 @using CodeCasa.CustomEntities.InputSelect
 @using CodeCasa.Dashboard.Components.Demo
 @using CodeCasa.Dashboard.Components.Dashboard
 @using CodeCasa.NetDaemon.Utilities.Entities
+@using global::NetDaemon.HassModel
 @using global::NetDaemon.HassModel.Entities
 @using global::NetDaemon.RuntimeState
 
+@inject IHaContext HaContext
 @inject NetDaemonRuntimeStateService NetDaemonConnectionStateService
 @inject LivingRoomWallPanelView LivingRoomWallPanelView
 
+<GlobalClick OnClick="GlobalClicked"/>
 <BackgroundPicture ToBackground="_homeScreenActive" />
 
 @if (!_netDaemonInitialized)
@@ -46,6 +50,7 @@ else if (!_netDaemonConnected)
     private bool _netDaemonConnected;
 
     private bool _homeScreenActive;
+    private bool _clockWasClicked;
 
     protected override void OnInitialized()
     {
@@ -80,6 +85,21 @@ else if (!_netDaemonConnected)
         {
             return;
         }
+
+        _clockWasClicked = true;
         LivingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Idle);
+    }
+
+    private void GlobalClicked()
+    {
+        if (_clockWasClicked)
+        {
+            // We don't want to fire the event if the clock was clicked (as it would immediately go to the home screen again).
+            // Note: this is not the prettiest way, but it is reliable and simple: we know that this event is triggered after any other elements because of the way it is propagated through parent elements.
+            // An alternative way is to ignore the button element in the script of GlobalClick, but for now this is easier and acceptable for this single case.
+            _clockWasClicked = false;
+            return;
+        }
+        HaContext.SendEvent(Events.LivingRoomPanelInteractionEvent);
     }
 }

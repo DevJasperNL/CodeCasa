@@ -1,0 +1,34 @@
+﻿@inject IJSRuntime JSRuntime
+
+@code {
+    [Parameter] public EventCallback OnClick { get; set; }
+    private DotNetObjectReference<GlobalClick>? _objRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("globalClickHandler.initialize", _objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnGlobalClick()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+}
+
+<script>
+    window.globalClickHandler = {
+        initialize: function (dotNetRef) {
+            document.addEventListener("click", function (e) {
+                dotNetRef.invokeMethodAsync("OnGlobalClick");
+            });
+        }
+    };
+</script>
