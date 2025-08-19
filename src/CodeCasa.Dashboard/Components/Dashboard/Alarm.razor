@@ -1,4 +1,6 @@
-﻿@using System.Text
+﻿@using System.Globalization
+@using System.Text
+@using CodeCasa.Dashboard.Extensions
 @using CodeCasa.Dashboard.ViewModels
 
 <MudButton FullWidth="true"
@@ -15,11 +17,11 @@
             {
                 <MudText Typo="Typo.body1">@AlarmVm.DeviceDescription</MudText>
             }
-            <MudText Typo="Typo.body2">@AlarmVm.DueTime</MudText>
+            <MudText Typo="Typo.body2">@AlarmVm.DueTime.ToAlarmDueFormat(new CultureInfo("nl-NL"))</MudText>
         </MudStack>
         <MudSpacer/>
         <MudStack AlignItems="AlignItems.Start">
-            <MudText Typo="Typo.caption" style="white-space: nowrap;">@(FormatTimeSpan(AlarmVm.TimeLeft))</MudText>
+            <MudText Typo="Typo.caption" style="white-space: nowrap;">@AlarmVm.TimeLeft.ToShortDisplayFormat()</MudText>
             <MudSpacer />
         </MudStack>
     </MudStack>
@@ -27,27 +29,4 @@
 
 @code {
     [Parameter] public AlarmVm AlarmVm { get; set; } = null!;
-
-    private static string FormatTimeSpan(TimeSpan ts)
-    {
-        var years = ts.Days / 365;
-        var days = ts.Days % 365;
-        var hours = ts.Hours;
-        var minutes = ts.Minutes;
-        var seconds = ts.Seconds;
-
-        var sb = new StringBuilder();
-
-        if (years > 0)
-            sb.Append($"{years}y ");
-        if (days > 0)
-            sb.Append($"{days}d ");
-
-        if (hours > 0 || years > 0 || days > 0)
-            sb.Append($"{hours:D2}:{minutes:D2}:{seconds:D2}");
-        else
-            sb.Append($"{minutes:D2}:{seconds:D2}");
-
-        return sb.ToString().Trim();
-    }
 }

@@ -20,12 +20,12 @@ namespace CodeCasa.Dashboard.ViewModels
         public bool HasTimeLeft => TimeLeft > TimeSpan.Zero;
         public string? Label { get; private set; }
         public string? DeviceDescription { get; private set; }
-        public string DueTime => "15:00"; // todo: implement me.
+        public DateTime DueTime { get; private set; }
 
         public void Update()
         {
-            var localTime = DateTime.Parse(_alarm.LocalTime);
-            TimeLeft = localTime - DateTime.Now;
+            DueTime = DateTime.Parse(_alarm.LocalTime);
+            TimeLeft = DueTime - DateTime.Now;
         }
 
         private static string GetTextBeforeSpeaker(string input)

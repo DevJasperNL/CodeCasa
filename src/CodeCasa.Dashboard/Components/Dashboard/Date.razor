@@ -25,8 +25,8 @@
 
     private string GetFormattedDate(DateTime date)
     {
-        CultureInfo dutch = new CultureInfo("nl-NL");
-        string formatted = date.ToString("dddd, d MMMM", dutch);
+        var dutch = new CultureInfo("nl-NL");
+        var formatted = date.ToString("dddd, d MMMM", dutch);
         // Capitalize first letter
         return char.ToUpper(formatted[0]) + formatted.Substring(1);
     }

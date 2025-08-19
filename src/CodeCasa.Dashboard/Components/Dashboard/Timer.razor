@@ -1,4 +1,4 @@
-﻿@using System.Text
+﻿@using CodeCasa.Dashboard.Extensions
 @using CodeCasa.Dashboard.ViewModels
 
 <MudButton FullWidth="true"
@@ -19,7 +19,7 @@
         </MudStack>
         <MudSpacer/>
         <MudStack AlignItems="AlignItems.Start">
-            <MudText Typo="Typo.caption" style="white-space: nowrap;">@(FormatTimeSpan(TimerVm.TimeLeft))</MudText>
+            <MudText Typo="Typo.caption" style="white-space: nowrap;">@TimerVm.TimeLeft.ToShortDisplayFormat()</MudText>
             <MudSpacer />
         </MudStack>
     </MudStack>
@@ -27,27 +27,4 @@
 
 @code {
     [Parameter] public TimerVm TimerVm { get; set; } = null!;
-
-    private static string FormatTimeSpan(TimeSpan ts)
-    {
-        var years = ts.Days / 365;
-        var days = ts.Days % 365;
-        var hours = ts.Hours;
-        var minutes = ts.Minutes;
-        var seconds = ts.Seconds;
-
-        var sb = new StringBuilder();
-
-        if (years > 0)
-            sb.Append($"{years}y ");
-        if (days > 0)
-            sb.Append($"{days}d ");
-
-        if (hours > 0 || years > 0 || days > 0)
-            sb.Append($"{hours:D2}:{minutes:D2}:{seconds:D2}");
-        else
-            sb.Append($"{minutes:D2}:{seconds:D2}");
-
-        return sb.ToString().Trim();
-    }
 }
