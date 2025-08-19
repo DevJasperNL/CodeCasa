@@ -29,7 +29,12 @@ else if (!_netDaemonConnected)
 {
     <DemoMenu />
 
-    <ScrollArea Visible="_homeScreenActive" />
+    <ScrollArea Visible="_homeScreenActive">
+        <Timers />
+        <Alarms />
+        <Notifications />
+    </ScrollArea>
+
     <Weather Visible="_homeScreenActive" />
 }
  

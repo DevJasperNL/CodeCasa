@@ -1,14 +1,13 @@
 ﻿
 <div class="scroll-container @(Visible ? "visible" : "hidden")">
     <MudStack Spacing="2" Class="mx-2">
-        <Timers/>
-        <Alarms/>
-        <Notifications/>
+        @ChildContent
     </MudStack>
 </div>
 
 @code {
     [Parameter] public bool Visible { get; set; } = true;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 }
 
 <style>
