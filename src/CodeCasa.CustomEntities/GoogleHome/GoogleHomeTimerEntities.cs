@@ -6,6 +6,7 @@ namespace CodeCasa.CustomEntities.GoogleHome
     {
         public IEnumerator<SensorEntity> GetEnumerator()
         {
+            yield return sensorEntities.KitchenSpeakerTimers;
             yield return sensorEntities.LivingRoomSpeakerTimers;
             yield return sensorEntities.OfficeSpeakerTimers;
         }

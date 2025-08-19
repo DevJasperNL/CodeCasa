@@ -25,6 +25,10 @@ public partial class SensorEntities
     ///<summary>Meteorologisk Temperature</summary>
     public NumericSensorEntity MeteorologiskTemperature => new(_haContext, "sensor.meteorologisk_temperature");
 
+    ///<summary>Kitchen speaker alarms</summary>
+    public SensorEntity KitchenSpeakerAlarms => new(_haContext, "sensor.kitchen_speaker_alarms");
+    ///<summary>Kitchen speaker timers</summary>
+    public SensorEntity KitchenSpeakerTimers => new(_haContext, "sensor.kitchen_speaker_timers");
     ///<summary>Living Room speaker alarms</summary>
     public SensorEntity LivingRoomSpeakerAlarms => new(_haContext, "sensor.living_room_speaker_alarms");
     ///<summary>Living Room speaker timers</summary>
