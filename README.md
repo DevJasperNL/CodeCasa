@@ -24,7 +24,7 @@ I've never been a fan of large tablets that display every available entity. Part
 
 It was a fun challenge to get it working in a smooth and intuitive way. Rather than using a standard Home Assistant dashboard, I built a **custom dashboard using Blazor**. Here’s a preview:
 
-![Gif demonstrating NSPanel Pro](https://jasperlammers.com/wp-content/uploads/2025/08/ns_panel_demo.gif "NSPanel Pro demo")
+![Gif demonstrating NSPanel Pro](img/nspanel_pro_demo.gif "NSPanel Pro demo")
 
 The source code for this dashboard is available in this repository.  
 
