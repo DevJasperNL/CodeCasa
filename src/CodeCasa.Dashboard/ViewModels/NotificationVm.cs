@@ -1,4 +1,4 @@
-﻿using CodeCasa.CustomEntities.Notifications.Dashboards;
+﻿using CodeCasa.CustomEntities.Core.Notifications;
 
 namespace CodeCasa.Dashboard.ViewModels
 {

@@ -1,4 +1,4 @@
-﻿using CodeCasa.CustomEntities.GoogleHome;
+﻿using CodeCasa.CustomEntities.Core.GoogleHome;
 using CodeCasa.Dashboard.Extensions;
 
 namespace CodeCasa.Dashboard.ViewModels

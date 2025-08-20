@@ -1,5 +1,5 @@
 ﻿using CodeCasa.Dashboard.Extensions;
-using Timer = CodeCasa.CustomEntities.GoogleHome.Timer;
+using Timer = CodeCasa.CustomEntities.Core.GoogleHome.Timer;
 
 namespace CodeCasa.Dashboard.ViewModels
 {

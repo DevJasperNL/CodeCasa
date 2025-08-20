@@ -1,4 +1,4 @@
-﻿using CodeCasa.CustomEntities.People;
+﻿using CodeCasa.CustomEntities.Automation.People;
 using NetDaemon.AppModel;
 using Reactive.Boolean;
 

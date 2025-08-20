@@ -1,5 +1,5 @@
-﻿using CodeCasa.CustomEntities.Events;
-using CodeCasa.CustomEntities.Notifications.Dashboards;
+﻿using CodeCasa.CustomEntities.Automation.Notifications.Dashboards;
+using CodeCasa.CustomEntities.Core.Events;
 using NetDaemon.Notifications.InputSelect;
 using CodeCasa.NetDaemon.Utilities.Extensions;
 using NetDaemon.AppModel;
@@ -29,9 +29,9 @@ internal class DashboardDemoNotifications
                 _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
                 {
                     Order = 900,
-                    Message = "Demo Notification 1",
-                    SecondaryMessage = "Click to remove me.",
-                    Icon = "Material.Filled.AutoAwesome",
+                    Message = "Paper bin will be picked up tomorrow.",
+                    SecondaryMessage = "Click here if the bin is already outside.",
+                    Icon = "Material.Filled.Delete",
                     Action = () =>
                     {
                         livingRoomPanelNotifications.RemoveNotification(clickToRemoveNotificationId);
@@ -59,9 +59,9 @@ internal class DashboardDemoNotifications
             void AddNotificationNotificationAction() => _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
             {
                 Order = 901,
-                Message = "Demo Notification 3",
-                SecondaryMessage = "Click to add notification.",
-                Icon = "Material.Filled.AutoAwesome",
+                Message = "Curtains will close in 23 minutes.",
+                SecondaryMessage = "Click here to close them early.",
+                Icon = "Material.Filled.Curtains",
                 Action = () =>
                 {
                     _manuallyAddedIndex++;
@@ -87,9 +87,8 @@ internal class DashboardDemoNotifications
             _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
             {
                 Order = 903,
-                Message = "Demo Notification 2",
-                SecondaryMessage = "Click to clear demo notifications.",
-                Icon = "Material.Filled.AutoAwesome",
+                Message = "Laundry is done!",
+                Icon = "Material.Filled.LocalLaundryService",
                 Action = () =>
                 {
                     foreach (var notification in _notifications)
@@ -100,6 +99,40 @@ internal class DashboardDemoNotifications
                     _notifications.Clear();
                 }
             }, clearNotificationId));
+
+            var clearNotificationId2 = $"{nameof(DashboardDemoNotifications)}_Clear2";
+            _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
+            {
+                Order = 903,
+                Message = "Gerrit is sitting in front of the window and might want to come in!",
+                Icon = "Material.Filled.Pets",
+                Action = () =>
+                {
+                    foreach (var notification in _notifications)
+                    {
+                        livingRoomPanelNotifications.RemoveNotification(notification);
+                    }
+
+                    _notifications.Clear();
+                }
+            }, clearNotificationId2));
+
+            _notifications.Add(livingRoomPanelNotifications.Notify(new LivingRoomPanelNotificationConfig
+            {
+                Order = 899,
+                Message = "The grill is already on for 46 minutes.",
+                SecondaryMessage = "Did you forget to turn it off?",
+                Icon = "Material.Filled.OutdoorGrill",
+                Action = () =>
+                {
+                    foreach (var notification in _notifications)
+                    {
+                        livingRoomPanelNotifications.RemoveNotification(notification);
+                    }
+
+                    _notifications.Clear();
+                }
+            }, clearNotificationId + "l"));
         });
     }
 }
