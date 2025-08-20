@@ -17,7 +17,7 @@
         var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
         TimeZoneInstants.EveryMinute().Subscribe(t =>
         {
-            _currentTime = t;
+            _currentTime = t.ToLocalTime();
             StateHasChanged();
         }, scheduler);
     }

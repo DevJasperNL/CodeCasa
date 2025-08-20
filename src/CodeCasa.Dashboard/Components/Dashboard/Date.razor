@@ -18,7 +18,7 @@
         var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
         TimeZoneInstants.Daily().Subscribe(t =>
         {
-            _currentDate = t;
+            _currentDate = t.ToLocalTime();
             StateHasChanged();
         }, scheduler);
     }
