@@ -4,14 +4,6 @@ namespace CodeCasa.CustomEntities.Automation.People;
 
 internal static class PersonStateMappings
 {// todo: use type-safe entities.
-    public static readonly Dictionary<PersonStates, string> PeopleStatesToStateValues = new()
-    {
-        { PersonStates.Awake , "Awake" },
-        { PersonStates.Asleep , "Asleep" },
-        { PersonStates.Away , "Away" },
-    };
-    public static readonly Dictionary<string, PersonStates> StateValuesToPeopleStates = PeopleStatesToStateValues.Inverse(StringComparer.OrdinalIgnoreCase);
-
     public static readonly Dictionary<PersonEntityStates, string> PeopleEntityStatesToStateValues = new()
     {
         { PersonEntityStates.Home , "home" },
