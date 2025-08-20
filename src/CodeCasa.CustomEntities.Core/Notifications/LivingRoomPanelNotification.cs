@@ -9,7 +9,7 @@ namespace CodeCasa.CustomEntities.Core.Notifications
         /// Serialized as 'm' in JSON.
         /// </summary>
         [JsonPropertyName("m")]
-        public string Message { get; set; }
+        public string Message { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets an optional secondary message for additional information.
