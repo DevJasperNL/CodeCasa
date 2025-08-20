@@ -10,6 +10,7 @@ This repository explores creative and powerful ways to use a rich programming la
 - [Architectures & Implementations](#🛠️-architectures--implementations)
     - [Blazor Frontend (NSPanel Pro)](#blazor-frontend-nspanel-pro)
     - [People](#people)
+    - [Phone Notifications](#phone-notifications)
     - [Input Select Notifications](#input-select-notifications)
     - [Automation Pipelines](#automation-pipelines)
 - [Projects Overview](#🔧-projects-overview)
@@ -29,6 +30,7 @@ It was a fun challenge to get it working in a smooth and intuitive way. Rather t
 The source code for this dashboard is available in this repository.  
 
 #### Key Features
+- **Custom webview** Using the posts from [Blakadder](https://blakadder.com/nspanel-pro-sideload/)
 - **Proximity detection:** Managed by the Automate app, which calls a Home Assistant webhook. The webhook triggers an automation that the panel subscribes to.  
 - **Panel state:** Stored in an input select value and managed in [LivingRoomPanelNavigation.cs](src/CodeCasa.Automations/Apps/Dashboard/LivingRoomPanelNavigation.cs).  
 - **Google timers & alarms:** Implemented via the HACS integration [ha-google-home](https://github.com/leikoilja/ha-google-home).  
@@ -72,8 +74,8 @@ internal class OfficeLightsNotifications
 }
 ```
 
-- The code from this `NetDaemonApp`: [OfficeLightsNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/DemoNotifications.cs)
-- The custom Jasper entity: [Jasper.cs](src/CodeCasa.CustomEntities/People/Jasper.cs)
+- The code from this `NetDaemonApp`: [OfficeLightsNotifications.cs](src/CodeCasa.Automations/Apps/Notifications/OfficeLightsNotifications.cs)
+- The custom Jasper entity: [Jasper.cs](src/CodeCasa.CustomEntities.Automation/People/Jasper.cs)
 
 ### Phone Notifications
 
