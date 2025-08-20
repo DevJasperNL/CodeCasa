@@ -8,6 +8,7 @@ This repository explores creative and powerful ways to use a rich programming la
 
 ## 📖 Table of Contents  
 - [Architectures & Implementations](#🛠️-architectures--implementations)
+    - [Blazor Frontend (NSPanel Pro)](#blazor-frontend-nspanel-pro)
     - [People](#people)
     - [Input Select Notifications](#input-select-notifications)
     - [Automation Pipelines](#automation-pipelines)
@@ -16,6 +17,22 @@ This repository explores creative and powerful ways to use a rich programming la
 ## 🛠️ Architectures & Implementations
 
 One of the great advantages of using a general-purpose programming language like C# for home automations is the ability to introduce your own architectural patterns. This chapter highlights some of the patterns used in this example project.
+
+### Blazor Frontend (NSPanel Pro)
+
+I've never been a fan of large tablets that display every available entity. Part of making a home "smart" is tailoring it to show only the information the inhabitants actually care about. That’s why I opted for an NSPanel Pro instead.
+
+It was a fun challenge to get it working in a smooth and intuitive way. Rather than using a standard Home Assistant dashboard, I built a **custom dashboard using Blazor**. Here’s a preview:
+
+![Gif demonstrating NSPanel Pro](https://jasperlammers.com/wp-content/uploads/2025/08/ns_panel_demo.gif "NSPanel Pro demo")
+
+The source code for this dashboard is available in this repository.  
+
+#### Key Features
+- **Proximity detection:** Managed by the Automate app, which calls a Home Assistant webhook. The webhook triggers an automation that the panel subscribes to.  
+- **Panel state:** Stored in an input select value and managed in [LivingRoomPanelNavigation.cs](src/CodeCasa.Automations/Apps/Dashboard/LivingRoomPanelNavigation.cs).  
+- **Google timers & alarms:** Implemented via the HACS integration [ha-google-home](https://github.com/leikoilja/ha-google-home).  
+- **Interactive notifications:** Powered by [Input Select Notifications](#input-select-notifications).
 
 ### People
 
@@ -119,9 +136,9 @@ A Blazor-based web dashboard that demonstrates how to integrate with Home Assist
 
 NetDaemon can auto-generate strongly-typed classes based on the entities in your Home Assistant configuration. For this demo, a curated selection of generated code is included to illustrate how this feature simplifies development and enhances type safety.
 
-### 🧩 Custom Entities (`CodeCasa.CustomEntities`)
+### 🧩 Custom Entities (`CodeCasa.CustomEntities.Core`/`CodeCasa.CustomEntities.Automation`)
 
-This project combines existing entities into compound entities or creates entirely new entities tailored to specific automation scenarios. It also includes helper constants to simplify and standardize usage across automations and dashboards.
+These projects combine existing entities into compound entities or creates entirely new entities tailored to specific automation or dashboard scenarios. It also includes helper constants to simplify and standardize usage across automations and dashboards.
 
 ### 🛠️ NetDaemon Utilities (`CodeCasa.NetDaemon.Utilities`)
 
