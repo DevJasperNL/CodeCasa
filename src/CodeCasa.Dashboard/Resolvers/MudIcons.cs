@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace CodeCasa.Dashboard.Icons
+namespace CodeCasa.Dashboard.Resolvers
 {
     public class MudIcons
     {

@@ -1,0 +1,54 @@
+﻿@using System.Globalization
+@using System.Reactive.Concurrency
+@using Occurify.Reactive.Extensions
+@using Occurify.TimeZones
+
+<div class="date-container @(Visible ? "visible" : "hidden")">
+    <h3><b>@GetFormattedDate(_currentDate)</b></h3>
+</div>
+
+@code {
+
+    [Parameter] public bool Visible { get; set; } = true;
+
+    private DateTime _currentDate = DateTime.Now;
+
+    protected override void OnInitialized()
+    {
+        var scheduler = new SynchronizationContextScheduler(SynchronizationContext.Current!);
+        TimeZoneInstants.Daily().Subscribe(t =>
+        {
+            _currentDate = t.ToLocalTime();
+            StateHasChanged();
+        }, scheduler);
+    }
+
+    private string GetFormattedDate(DateTime date)
+    {
+        var dutch = new CultureInfo("nl-NL");
+        var formatted = date.ToString("dddd, d MMMM", dutch);
+        // Capitalize first letter
+        return char.ToUpper(formatted[0]) + formatted.Substring(1);
+    }
+}
+
+<style>
+.date-container {
+        text-align: center; /* center text inside */
+        position: fixed;
+        pointer-events: none;
+        top: 110px;
+        overflow-y: auto;
+        width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.visible {
+    opacity: 1;
+}
+
+.hidden {
+    opacity: 0;
+}
+</style>

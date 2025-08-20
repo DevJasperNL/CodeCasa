@@ -1,0 +1,76 @@
+﻿@using System.Reactive.Linq
+@using CodeCasa.CustomEntities.Core.GoogleHome
+@using CodeCasa.Dashboard.ViewModels
+@using CodeCasa.NetDaemon.Utilities.Extensions
+
+@implements IDisposable
+
+@inject GoogleHomeAlarmEntities GoogleHomeAlarmEntities
+
+@if (_alarms.Any())
+{
+    @foreach (var alarm in _alarms)
+    {
+        <Alarm AlarmVm="@alarm"/>
+    }
+}
+
+@code {
+
+    private readonly System.Timers.Timer _uiTimer = new(100);
+    private AlarmVm[] _alarms = [];
+    
+    protected override void OnInitialized()
+    {
+        GoogleHomeAlarmEntities.Select(
+                gt => gt
+                    .StateAllChangesDeserialized<SpeakerAlarmInfo>())
+            .CombineLatest()
+            .Subscribe(speakerInfos =>
+            {
+                var newAlarms = speakerInfos
+                    .Where(si => si.Alarms != null)
+                    .SelectMany(si => si.Alarms!, (si, a) => new { Alarm = a, SpeakerInfo = si })
+                    .OrderBy(x => x.Alarm.FireTime)
+                    .Select(x => new AlarmVm(x.SpeakerInfo.FriendlyName, x.Alarm))
+                    .Where(t => t.HasTimeLeft).ToArray();
+
+                InvokeAsync(() =>
+                {
+                    _alarms = newAlarms;
+                    StateHasChanged();
+                });
+            });
+
+        _uiTimer.Elapsed += (_, __) =>
+        {
+            if (!_alarms.Any())
+            {
+                return;
+            }
+
+            InvokeAsync(() =>
+            {
+                if (!_alarms.Any())
+                {
+                    return;
+                }
+
+                foreach (var alarms in _alarms)
+                {
+                    alarms.Update();
+                }
+
+                _alarms = _alarms.Where(t => t.HasTimeLeft).ToArray();
+
+                StateHasChanged();
+            });
+        };
+        _uiTimer.Start();
+    }
+
+    public void Dispose()
+    {
+        _uiTimer.Dispose();
+    }
+}

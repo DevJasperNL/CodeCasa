@@ -1,48 +1,108 @@
 ﻿@page "/"
+@using CodeCasa.CustomEntities.Core.Events
+@using CodeCasa.CustomEntities.Core.InputSelect
 @using CodeCasa.Dashboard.Components.Demo
-@using NetDaemon.RuntimeState
 @using CodeCasa.Dashboard.Components.Dashboard
+@using CodeCasa.NetDaemon.Utilities.Entities
+@using global::NetDaemon.HassModel
+@using global::NetDaemon.HassModel.Entities
+@using global::NetDaemon.RuntimeState
 
+@inject IHaContext HaContext
+@inject IWebHostEnvironment Env
 @inject NetDaemonRuntimeStateService NetDaemonConnectionStateService
+@inject LivingRoomWallPanelView LivingRoomWallPanelView
+
+<GlobalClick OnClick="GlobalClicked"/>
+<BackgroundPicture ToBackground="_homeScreenActive" />
 
 @if (!_netDaemonInitialized)
 {
-    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center">Loading NetDaemon...</MudAlert>
+    <MudAlert ContentAlignment="HorizontalAlignment.Center"
+              Variant="Variant.Filled"
+              style="background-color: rgba(33, 150, 243, 0.7);">Loading NetDaemon and Connecting to Home Assistant...</MudAlert>
+}
+else if (!_netDaemonConnected)
+{
+    <MudAlert ContentAlignment="HorizontalAlignment.Center"
+              Variant="Variant.Filled"
+              style="background-color: rgba(244, 67, 54, 0.7);">Disconnected From Home Assistant.</MudAlert>
 }
 
 @if (_netDaemonInitialized)
 {
-    <DemoMenu />
+    @if (Env.IsDevelopment())
+    {
+        <DemoMenu/>
+    }
+
+    <ScrollArea Visible="_homeScreenActive">
+        <Timers />
+        <Alarms />
+        <Notifications />
+    </ScrollArea>
+
+    <Weather Visible="_homeScreenActive" />
 }
-
-<Clock/>
-
-@if (_netDaemonInitialized)
-{
-    <Notifications/>
-
-    <MudOverlay Visible="!_netDaemonConnected" Absolute="false" LightBackground="true">
-        <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center">Disconnected From Home Assistant.</MudAlert>
-    </MudOverlay>
-}
+ 
+<Clock Centered="@(!_homeScreenActive)" OnClick="ClockClicked" />
+<Date Visible="_homeScreenActive" />
 
 @code {
     private bool _netDaemonInitialized;
     private bool _netDaemonConnected;
 
+    private bool _homeScreenActive;
+    private bool _clockWasClicked;
+
     protected override void OnInitialized()
     {
         NetDaemonConnectionStateService.ConnectedChangesWithCurrent().Subscribe(state =>
         {
+            var netDaemonWasAlreadyInitialized = _netDaemonInitialized;
+
             _netDaemonInitialized = state != NetDaemonStates.Initializing;
             _netDaemonConnected = state == NetDaemonStates.Connected;
+
+            if (_netDaemonInitialized && !netDaemonWasAlreadyInitialized)
+            {
+                NetDaemonInitialized();
+            }
+
             InvokeAsync(StateHasChanged);
         });
     }
-}
 
-@* <style>
-    body {
-        background-color: black; /* For deployment to actual LCD screen */
+    private void NetDaemonInitialized()
+    {
+        LivingRoomWallPanelView.StateChangesWithCurrent().Subscribe(state =>
+        {
+            _homeScreenActive = state.New?.State == LivingRoomWallPanelView.States.Home;
+            InvokeAsync(StateHasChanged);
+        });
     }
-</style> *@
+
+    private void ClockClicked()
+    {
+        if (!_netDaemonConnected || LivingRoomWallPanelView.State == LivingRoomWallPanelView.States.Idle)
+        {
+            return;
+        }
+
+        _clockWasClicked = true;
+        LivingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Idle);
+    }
+
+    private void GlobalClicked()
+    {
+        if (_clockWasClicked)
+        {
+            // We don't want to fire the event if the clock was clicked (as it would immediately go to the home screen again).
+            // Note: this is not the prettiest way, but it is reliable and simple: we know that this event is triggered after any other elements because of the way it is propagated through parent elements.
+            // An alternative way is to ignore the button element in the script of GlobalClick, but for now this is easier and acceptable for this single case.
+            _clockWasClicked = false;
+            return;
+        }
+        HaContext.SendEvent(Events.LivingRoomPanelInteractionEvent);
+    }
+}

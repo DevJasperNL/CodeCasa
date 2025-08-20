@@ -1,0 +1,30 @@
+﻿@using CodeCasa.Dashboard.Extensions
+@using CodeCasa.Dashboard.ViewModels
+
+<MudButton FullWidth="true"
+           Variant="Variant.Filled"
+           Style="background-color: rgba(66, 66, 66, 0.3); border-radius: 12px;">
+    <MudStack Row AlignItems="AlignItems.Center" Style="justify-content: flex-start; width: 100%;" Class="ma-2">
+        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Class="mr-2"/>
+        <MudStack Spacing="0" AlignItems="AlignItems.Start" Style="width: 100%;">
+            @if (TimerVm.Label != null)
+            {
+                <MudText Typo="Typo.body1">@TimerVm.Label - @TimerVm.DeviceDescription</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1">@TimerVm.DeviceDescription</MudText>
+            }
+            <MudProgressLinear Color="Color.Success" Rounded="true" Size="Size.Large" Value="@TimerVm.ProgressValue" Max="@TimerVm.ProgressMax" />
+        </MudStack>
+        <MudSpacer/>
+        <MudStack AlignItems="AlignItems.Start">
+            <MudText Typo="Typo.caption" style="white-space: nowrap;">@TimerVm.TimeLeft.ToShortDisplayFormat()</MudText>
+            <MudSpacer />
+        </MudStack>
+    </MudStack>
+</MudButton>
+
+@code {
+    [Parameter] public TimerVm TimerVm { get; set; } = null!;
+}

@@ -1,0 +1,76 @@
+﻿@using System.Reactive.Linq
+@using CodeCasa.CustomEntities.Core.GoogleHome
+@using CodeCasa.Dashboard.ViewModels
+@using CodeCasa.NetDaemon.Utilities.Extensions
+
+@implements IDisposable
+
+@inject GoogleHomeTimerEntities GoogleHomeTimerEntities
+
+@if (_timers.Any())
+{
+    @foreach (var timer in _timers)
+    {
+        <Timer TimerVm="@timer"/>
+    }
+}
+
+@code {
+
+    private readonly System.Timers.Timer _uiTimer = new(100);
+    private TimerVm[] _timers = [];
+    
+    protected override void OnInitialized()
+    {
+        GoogleHomeTimerEntities.Select(
+                gt => gt
+                    .StateAllChangesDeserialized<SpeakerTimerInfo>())
+            .CombineLatest()
+            .Subscribe(speakerInfos =>
+            {
+                var newTimers = speakerInfos
+                    .Where(si => si.Timers != null)
+                    .SelectMany(si => si.Timers!, (si, t) => new { Timer = t, SpeakerInfo = si })
+                    .OrderBy(x => x.Timer.FireTime)
+                    .Select(x => new TimerVm(x.SpeakerInfo.FriendlyName, x.Timer))
+                    .Where(t => t.HasTimeLeft).ToArray();
+
+                InvokeAsync(() =>
+                {
+                    _timers = newTimers;
+                    StateHasChanged();
+                });
+            });
+
+        _uiTimer.Elapsed += (_, __) =>
+        {
+            if (!_timers.Any())
+            {
+                return;
+            }
+
+            InvokeAsync(() =>
+            {
+                if (!_timers.Any())
+                {
+                    return;
+                }
+
+                foreach (var timer in _timers)
+                {
+                    timer.Update();
+                }
+
+                _timers = _timers.Where(t => t.HasTimeLeft).ToArray();
+
+                StateHasChanged();
+            });
+        };
+        _uiTimer.Start();
+    }
+
+    public void Dispose()
+    {
+        _uiTimer.Dispose();
+    }
+}

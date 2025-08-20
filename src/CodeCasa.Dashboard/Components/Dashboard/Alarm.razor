@@ -1,0 +1,31 @@
+﻿@using System.Globalization
+@using CodeCasa.Dashboard.Extensions
+@using CodeCasa.Dashboard.ViewModels
+
+<MudButton FullWidth="true"
+           Variant="Variant.Filled"
+           Style="background-color: rgba(66, 66, 66, 0.3); border-radius: 12px;">
+    <MudStack Row AlignItems="AlignItems.Center" Style="justify-content: flex-start; width: 100%;" Class="ma-2">
+        <MudIcon Icon="@Icons.Material.Filled.Alarm" Class="mr-2"/>
+        <MudStack Spacing="0" AlignItems="AlignItems.Start" Style="width: 100%;">
+            @if (AlarmVm.Label != null)
+            {
+                <MudText Typo="Typo.body1">@AlarmVm.Label - @AlarmVm.DeviceDescription</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1">@AlarmVm.DeviceDescription</MudText>
+            }
+            <MudText Typo="Typo.body2">@AlarmVm.DueTime.ToAlarmDueFormat(new CultureInfo("nl-NL"))</MudText>
+        </MudStack>
+        <MudSpacer/>
+        <MudStack AlignItems="AlignItems.Start">
+            <MudText Typo="Typo.caption" style="white-space: nowrap;">@AlarmVm.TimeLeft.ToShortDisplayFormat()</MudText>
+            <MudSpacer />
+        </MudStack>
+    </MudStack>
+</MudButton>
+
+@code {
+    [Parameter] public AlarmVm AlarmVm { get; set; } = null!;
+}

@@ -1,0 +1,38 @@
+﻿
+<div class="scroll-container @(Visible ? "visible" : "hidden")">
+    <MudStack Spacing="2" Class="mx-2">
+        @ChildContent
+    </MudStack>
+</div>
+
+@code {
+    [Parameter] public bool Visible { get; set; } = true;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
+
+<style>
+.scroll-container {
+        position: fixed;
+        top: 140px;
+        height: calc(100vh - 170px);
+        overflow-y: auto;
+        width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+        /* Fade out contents near the bottom */
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 100% 100%;
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+        mask-repeat: no-repeat;
+        mask-size: 100% 100%;
+}
+
+.visible {
+    opacity: 1;
+}
+
+.hidden {
+    opacity: 0;
+}
+</style>

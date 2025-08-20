@@ -1,10 +1,10 @@
-﻿using CodeCasa.CustomEntities.Events;
-using CodeCasa.CustomEntities.Notifications.Phones;
-using NetDaemon.AppModel;
+﻿using NetDaemon.AppModel;
 using NetDaemon.HassModel;
 using NetDaemon.Notifications.Phone.Config;
 using System.Drawing;
-using System.Reactive.Linq;
+using CodeCasa.CustomEntities.Automation.Notifications.Phones;
+using CodeCasa.CustomEntities.Core.Events;
+using CodeCasa.NetDaemon.Utilities.Extensions;
 
 namespace CodeCasa.Automations.Apps.Notifications;
 
@@ -22,7 +22,7 @@ internal class PhoneDemoNotifications
     {
         _jasperPhone = jasperPhone;
         
-        haContext.Events.Where(e => e.EventType == Events.PhoneNotificationDemoEvent).Subscribe(_ =>
+        haContext.Events.Filter(Events.PhoneNotificationDemoEvent).Subscribe(_ =>
         {
             AddOrUpdatePhoneNotification(null, Color.Yellow, FirstMessage);
         });
