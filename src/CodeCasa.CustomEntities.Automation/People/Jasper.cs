@@ -2,6 +2,7 @@
 using CodeCasa.CustomEntities.Automation.Notifications.Dashboards;
 using CodeCasa.CustomEntities.Automation.Notifications.Phones;
 using CodeCasa.CustomEntities.Core.InputSelect;
+using CodeCasa.NetDaemon.Utilities.Entities;
 
 namespace CodeCasa.CustomEntities.Automation.People;
 
@@ -13,6 +14,6 @@ public class Jasper(
     : CompositePersonEntity("Jasper",
         Genders.Male,
         new PersonStateEntity(inputSelectEntities.JasperState),
-        personEntities.Jasper,
+        new TypeSafePersonEntity(personEntities.Jasper),
         jasperDashboardNotifications,
         jasperPhoneNotifications);

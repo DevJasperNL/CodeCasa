@@ -8,12 +8,12 @@ namespace CodeCasa.NetDaemon.Utilities.Entities
     public record EnumEntityState<TEnum, TAttributes> : EntityState<TAttributes>
         where TAttributes : class where TEnum : struct, Enum
     {
-        private readonly Dictionary<string, TEnum> _valueToTypeMapper;
+        private readonly Func<string, TEnum?> _valueToTypeFunc;
 
         /// <summary>Copy constructor from base class</summary>
-        public EnumEntityState(EntityState source, Dictionary<string, TEnum> valueToTypeMapper) : base(source)
+        public EnumEntityState(EntityState source, Func<string, TEnum?> valueToTypeFunc) : base(source)
         {
-            _valueToTypeMapper = valueToTypeMapper;
+            _valueToTypeFunc = valueToTypeFunc;
         }
 
         /// <summary>The state converted to TEnum if possible, null if it is not</summary>
@@ -22,11 +22,7 @@ namespace CodeCasa.NetDaemon.Utilities.Entities
             get
             {
                 var baseState = base.State;
-                return baseState == null ||
-                       !_valueToTypeMapper.TryGetValue(baseState,
-                           out var state)
-                    ? null
-                    : state;
+                return baseState == null ? null : _valueToTypeFunc(baseState);
             }
         }
     }

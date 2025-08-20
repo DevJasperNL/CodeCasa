@@ -13,14 +13,14 @@ public abstract class CompositePersonEntity(
     string name,
     Genders gender,
     PersonStateEntity personStateEntity,
-    PersonEntity personEntity,
+    TypeSafePersonEntity personEntity,
     IInputSelectNotificationEntity dashboardNotifications,
     PhoneNotificationEntity phoneNotifications)
 {
     public string Name { get; } = name;
     public Genders Gender { get; } = gender;
     public PersonStateEntity PersonStateEntity { get; } = personStateEntity;
-    public PersonEntity PersonEntity { get; } = personEntity;
+    public TypeSafePersonEntity PersonEntity { get; } = personEntity;
     public IInputSelectNotificationEntity Dashboard { get; } = dashboardNotifications;
     public PhoneNotificationEntity Phone { get; } = phoneNotifications;
 
@@ -37,7 +37,7 @@ public abstract class CompositePersonEntity(
         }
     }
 
-    public PersonEntityStates? EntityState => StateValueToPersonEntityState(PersonEntity.State);
+    public PersonEntityStates? EntityState => PersonEntity.State;
 
     private static PersonEntityStates? StateValueToPersonEntityState(string? stateValue)
     {
