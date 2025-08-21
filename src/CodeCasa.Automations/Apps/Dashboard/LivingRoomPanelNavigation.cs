@@ -66,24 +66,8 @@ namespace CodeCasa.Automations.Apps.Dashboard
                 .Where(b => b != null).Select(b => b!.Value);
 
             recentInteraction.Or(infoToDisplay, OperatorDistinctness.NotDistinct).SubscribeTrueFalse(
-                    () =>
-                    {
-                        if (livingRoomWallPanelView.State != LivingRoomWallPanelView.States.Idle)
-                        {
-                            return;
-                        }
-
-                        livingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Home);
-                    },
-                    () =>
-                    {
-                        if (livingRoomWallPanelView.State == LivingRoomWallPanelView.States.Idle)
-                        {
-                            return;
-                        }
-
-                        livingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Idle);
-                    });
+                    () => livingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Home),
+                    () => livingRoomWallPanelView.SelectOption(LivingRoomWallPanelView.States.Idle));
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
