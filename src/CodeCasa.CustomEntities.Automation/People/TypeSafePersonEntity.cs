@@ -3,6 +3,7 @@ using CodeCasa.NetDaemon.Utilities.Entities;
 using CodeCasa.Shared.Extensions;
 using NetDaemon.HassModel;
 using NetDaemon.HassModel.Entities;
+using NetDaemon.TypedEntities;
 
 namespace CodeCasa.CustomEntities.Automation.People;
 
