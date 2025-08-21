@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.NetDaemon.Utilities.Entities
+﻿namespace CodeCasa.CustomEntities.Core.Weather
 {
     public enum WeatherTypes
     {

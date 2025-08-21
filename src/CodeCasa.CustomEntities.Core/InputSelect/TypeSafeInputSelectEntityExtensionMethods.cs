@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.NetDaemon.Utilities.Entities;
+﻿namespace CodeCasa.CustomEntities.Core.InputSelect;
 
 public static class TypeSafeInputSelectEntityExtensionMethods
 {

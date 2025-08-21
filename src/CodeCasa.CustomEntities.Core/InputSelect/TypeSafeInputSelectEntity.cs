@@ -3,7 +3,7 @@ using NetDaemon.HassModel;
 using NetDaemon.HassModel.Entities;
 using NetDaemon.TypedEntities;
 
-namespace CodeCasa.NetDaemon.Utilities.Entities;
+namespace CodeCasa.CustomEntities.Core.InputSelect;
 
 public record TypeSafeInputSelectEntity<T> : EnumEntity<T, TypeSafeInputSelectEntity<T>, EnumEntityState<T, InputSelectAttributes>, InputSelectAttributes>, IInputSelectEntityCore 
     where T : struct, Enum

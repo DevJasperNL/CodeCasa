@@ -3,7 +3,7 @@ using NetDaemon.Notifications.InputSelect.Interact;
 using NetDaemon.Notifications.Phone;
 using System.Reactive.Linq;
 using NetDaemon.HassModel.Entities;
-using CodeCasa.NetDaemon.Utilities.Entities;
+using CodeCasa.CustomEntities.Core.InputSelect;
 
 namespace CodeCasa.CustomEntities.Automation.People;
 

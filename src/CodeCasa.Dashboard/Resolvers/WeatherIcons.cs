@@ -1,4 +1,4 @@
-﻿using CodeCasa.NetDaemon.Utilities.Entities;
+﻿using CodeCasa.CustomEntities.Core.Weather;
 
 namespace CodeCasa.Dashboard.Resolvers
 {
