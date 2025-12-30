@@ -9,9 +9,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
 public partial class LightTransitionReactiveNodeConfigurator
 {
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
         => AddCycle(triggerObservable, lightParameters.ToArray());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable,
         params LightParameters[] lightParameters)
     {
@@ -24,9 +26,11 @@ public partial class LightTransitionReactiveNodeConfigurator
         });
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
         => AddCycle(triggerObservable, lightTransitions.ToArray());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable,
         params LightTransition[] lightTransitions)
     {
@@ -39,6 +43,7 @@ public partial class LightTransitionReactiveNodeConfigurator
         });
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable,
         Action<ILightTransitionCycleConfigurator> configure)
     {

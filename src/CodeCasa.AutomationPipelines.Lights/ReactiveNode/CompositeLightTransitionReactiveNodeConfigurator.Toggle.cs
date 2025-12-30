@@ -10,9 +10,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
 public partial class CompositeLightTransitionReactiveNodeConfigurator
 {
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
         => AddToggle(triggerObservable, lightParameters.ToArray());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable,
         params LightParameters[] lightParameters)
     {
@@ -25,9 +27,11 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
         });
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
         => AddToggle(triggerObservable, lightTransitions.ToArray());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable,
         params LightTransition[] lightTransitions)
     {
@@ -40,9 +44,11 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
         });
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<Func<ILightPipelineContext, IPipelineNode<LightTransition>>> nodeFactories)
         => AddToggle(triggerObservable, nodeFactories.ToArray());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, params Func<ILightPipelineContext, IPipelineNode<LightTransition>>[] nodeFactories)
     {
         return AddToggle(triggerObservable, configure =>
@@ -54,6 +60,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
         });
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, Action<ILightTransitionToggleConfigurator> configure)
     {
         var toggleConfigurators = configurators.ToDictionary(kvp => kvp.Key,

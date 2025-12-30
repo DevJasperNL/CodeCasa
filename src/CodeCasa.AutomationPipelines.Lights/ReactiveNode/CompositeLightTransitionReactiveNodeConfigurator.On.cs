@@ -10,30 +10,37 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
 public partial class CompositeLightTransitionReactiveNodeConfigurator
 {
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, LightParameters lightParameters)
         => On(triggerObservable, lightParameters.AsTransition());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Func<ILightPipelineContext, LightParameters> lightParametersFactory)
         => On(triggerObservable, c => lightParametersFactory(c).AsTransition());
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, LightTransition lightTransition)
         => On(triggerObservable, c => new StaticLightTransitionNode(lightTransition, c.ServiceProvider.GetRequiredService<IScheduler>()));
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Func<ILightPipelineContext, LightTransition> lightTransitionFactory)
         => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()));
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T, TNode>(IObservable<T> triggerObservable) where TNode : IPipelineNode<LightTransition>
     {
         configurators.Values.ForEach(c => c.On<T, TNode>(triggerObservable));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory)
     {
         configurators.Values.ForEach(c => c.On(triggerObservable, nodeFactory));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator> pipelineConfigurator)
     {
         // Note: we create the pipeline in composite context so all configuration is also applied in that context.
@@ -43,6 +50,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
         // Note: we create the pipeline in composite context so all configuration is also applied in that context.
@@ -52,18 +60,21 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator PassThroughOn<T>(IObservable<T> triggerObservable)
     {
         configurators.Values.ForEach(c => c.PassThroughOn(triggerObservable));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator TurnOffWhen<T>(IObservable<T> triggerObservable)
     {
         configurators.Values.ForEach(c => c.TurnOffWhen(triggerObservable));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator TurnOnWhen<T>(IObservable<T> triggerObservable)
     {
         return On(triggerObservable, LightTransition.On());

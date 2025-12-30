@@ -7,6 +7,10 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
+/// <summary>
+/// Configures light transition reactive nodes for multiple light entities as a composite.
+/// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
+/// </summary>
 public partial class CompositeLightTransitionReactiveNodeConfigurator(
     IServiceProvider serviceProvider,
     LightPipelineFactory lightPipelineFactory,
@@ -15,12 +19,14 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
     IScheduler scheduler)
     : ILightTransitionReactiveNodeConfigurator
 {
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator SetName(string name)
     {
         configurators.Values.ForEach(c => c.SetName(name));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddReactiveDimmer(IDimmer dimmer)
     {
         foreach (var configurator in configurators)
@@ -30,6 +36,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator SetReactiveDimmerOptions(DimmerOptions dimmerOptions)
     {
         foreach (var configurator in configurators)
@@ -39,27 +46,33 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer)
     {
         return AddUncoupledDimmer(dimmer, _ => { });
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
     {
         // todo: support.
         throw new NotSupportedException();
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddNodeSource(IObservable<Func<ILightPipelineContext, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
         configurators.Values.ForEach(c => c.AddNodeSource(nodeFactorySource));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator ForLight(string lightEntityId, Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightEntityId], configure);
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator ForLight(ILight lightEntity, Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightEntity], configure);
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
         var lightEntityIdsArray =
@@ -85,6 +98,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
         var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lightEntities, configurators.Keys);
