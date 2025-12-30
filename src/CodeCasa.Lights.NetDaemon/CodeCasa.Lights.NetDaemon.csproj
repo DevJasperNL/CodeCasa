@@ -35,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CodeCasa.Lights.NetDaemon.Scenes" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NetDaemon.HassModel" Version="25.48.0" />
   </ItemGroup>
 

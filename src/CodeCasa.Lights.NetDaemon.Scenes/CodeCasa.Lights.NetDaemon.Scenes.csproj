@@ -16,6 +16,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageIcon>ccnd_icon.png</PackageIcon>
     <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
+    <Version>1.7.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,15 +35,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\CodeCasa.Lights.NetDaemon\Extensions\LightAttributesExtensions.cs" Link="Extensions\LightAttributesExtensions.cs" />
-    <Compile Include="..\CodeCasa.Lights.NetDaemon\Generated\LightAttributes.cs" Link="Generated\LightAttributes.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NetDaemon.HassModel" Version="25.48.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CodeCasa.Lights.NetDaemon\CodeCasa.Lights.NetDaemon.csproj" />
     <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />
   </ItemGroup>
 
