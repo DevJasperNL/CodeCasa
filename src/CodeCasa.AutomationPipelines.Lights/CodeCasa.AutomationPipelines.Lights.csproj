@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Title>CodeCasa.AutomationPipelines.Lights</Title>
+    <Authors>Jasper Lammers</Authors>
+    <Company>DevJasper</Company>
+    <Description>Light automation pipeline extensions for CodeCasa.AutomationPipelines, providing composable and reactive light control logic.</Description>
+    <RepositoryUrl>https://github.com/DevJasperNL/CodeCasa</RepositoryUrl>
+    <PackageTags>Home Automation;Home Assistant;HA Integration;Smart Home;Automation;Lights;Light;Pipeline;Pipelines;Node;Nodes;Reactive;Rx;Reactive Extensions;C#;.NET;DotNet;Extension Methods</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageId>CodeCasa.AutomationPipelines.Lights</PackageId>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageIcon>cc_icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\img\cc_icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeCasa.Abstractions\CodeCasa.Abstractions.csproj" />
+    <ProjectReference Include="..\CodeCasa.AutomationPipelines\CodeCasa.AutomationPipelines.csproj" />
+    <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />
+  </ItemGroup>
+
+</Project>
