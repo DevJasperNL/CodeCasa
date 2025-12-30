@@ -107,31 +107,31 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         ILightTransitionToggleConfigurator AddPassThrough();
 
         /// <summary>
-        /// Creates a scoped toggle configuration for a specific light entity identified by its entity ID.
+        /// Creates a scoped toggle configuration for a specific light identified by its entity ID.
         /// </summary>
-        /// <param name="lightEntityId">The entity ID of the light to configure.</param>
+        /// <param name="lightId">The entity ID of the light to configure.</param>
         /// <param name="configure">An action to configure the toggle for this specific light.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator ForLight(string lightEntityId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionToggleConfigurator ForLight(string lightId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
 
         /// <summary>
-        /// Creates a scoped toggle configuration for a specific light entity.
+        /// Creates a scoped toggle configuration for a specific light.
         /// </summary>
-        /// <param name="lightEntity">The light entity to configure.</param>
+        /// <param name="light">The light to configure.</param>
         /// <param name="configure">An action to configure the toggle for this specific light.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator ForLight(ILight lightEntity, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionToggleConfigurator ForLight(ILight light, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
 
         /// <summary>
         /// Creates a scoped toggle configuration for multiple light entities identified by their entity IDs.
         /// </summary>
-        /// <param name="lightEntityIds">The entity IDs of the lights to configure.</param>
+        /// <param name="lightIds">The entity IDs of the lights to configure.</param>
         /// <param name="configure">An action to configure the toggle for these lights.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightIds, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
 
         /// <summary>
         /// Creates a scoped toggle configuration for multiple light entities.

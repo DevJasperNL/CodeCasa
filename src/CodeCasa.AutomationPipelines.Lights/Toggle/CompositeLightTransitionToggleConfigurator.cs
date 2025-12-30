@@ -93,18 +93,18 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return this;
         }
 
-        public ILightTransitionToggleConfigurator ForLight(string lightEntityId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightEntityId], configure, excludedLightBehaviour);
+        public ILightTransitionToggleConfigurator ForLight(string lightId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
 
-        public ILightTransitionToggleConfigurator ForLight(ILight lightEntity, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightEntity], configure, excludedLightBehaviour);
+        public ILightTransitionToggleConfigurator ForLight(ILight light, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
 
-        public ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightEntityIds,
+        public ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightIds,
             Action<ILightTransitionToggleConfigurator> configure,
             ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
         {
-            var lightEntityIdsArray =
-                CompositeHelper.ValidateLightsSupported(lightEntityIds, activeConfigurators.Keys);
+            var lightIdsArray =
+                CompositeHelper.ValidateLightsSupported(lightIds, activeConfigurators.Keys);
 
-            if (lightEntityIdsArray.Length == activeConfigurators.Count)
+            if (lightIdsArray.Length == activeConfigurators.Count)
             {
                 configure(this);
                 return this;
@@ -112,22 +112,22 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
 
             if (excludedLightBehaviour == ExcludedLightBehaviours.None)
             {
-                if (lightEntityIdsArray.Length == 1)
+                if (lightIdsArray.Length == 1)
                 {
-                    configure(activeConfigurators[lightEntityIdsArray.First()]);
+                    configure(activeConfigurators[lightIdsArray.First()]);
                     return this;
                 }
 
                 configure(new CompositeLightTransitionToggleConfigurator(
-                    activeConfigurators.Where(kvp => lightEntityIdsArray.Contains(kvp.Key))
+                    activeConfigurators.Where(kvp => lightIdsArray.Contains(kvp.Key))
                         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value), []));
                 return this;
             }
 
             configure(new CompositeLightTransitionToggleConfigurator(
-                activeConfigurators.Where(kvp => lightEntityIdsArray.Contains(kvp.Key))
+                activeConfigurators.Where(kvp => lightIdsArray.Contains(kvp.Key))
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                activeConfigurators.Where(kvp => !lightEntityIdsArray.Contains(kvp.Key))
+                activeConfigurators.Where(kvp => !lightIdsArray.Contains(kvp.Key))
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)));
             return this;
         }

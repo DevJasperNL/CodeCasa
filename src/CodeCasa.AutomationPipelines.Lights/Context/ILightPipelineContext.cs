@@ -3,7 +3,7 @@
 namespace CodeCasa.AutomationPipelines.Lights.Context;
 
 /// <summary>
-/// Represents the context for a light pipeline, providing access to the service provider and the light entity being controlled.
+/// Represents the context for a light pipeline, providing access to the service provider and the light being controlled.
 /// </summary>
 public interface ILightPipelineContext
 {
@@ -13,7 +13,7 @@ public interface ILightPipelineContext
     IServiceProvider ServiceProvider { get; }
 
     /// <summary>
-    /// Gets the light entity being controlled by the pipeline.
+    /// Gets the light being controlled by the pipeline.
     /// </summary>
-    ILight LightEntity { get; }
+    ILight Light { get; }
 }

@@ -23,7 +23,7 @@ public record DimmerOptions
     public TimeSpan TimeBetweenSteps { get; set; } = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
-    /// Gets or sets the collection of light entity IDs that define the order for dimming operations.
+    /// Gets or sets the collection of light IDs that define the order for dimming operations.
     /// </summary>
     public IEnumerable<string>? DimOrderLightEntities { get; set; }
 

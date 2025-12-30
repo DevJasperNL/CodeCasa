@@ -47,12 +47,12 @@ public partial class LightTransitionReactiveNodeConfigurator
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable,
         Action<ILightTransitionCycleConfigurator> configure)
     {
-        var cycleConfigurator = new LightTransitionCycleConfigurator(LightEntity, scheduler);
+        var cycleConfigurator = new LightTransitionCycleConfigurator(Light, scheduler);
         configure(cycleConfigurator);
         AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurator.CycleNodeFactories.Select(tuple =>
         {
             var serviceScope = serviceProvider.CreateScope();
-            var context = new LightPipelineContext(serviceScope.ServiceProvider, LightEntity);
+            var context = new LightPipelineContext(serviceScope.ServiceProvider, Light);
             var factory = new Func<IPipelineNode<LightTransition>>(() => new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(context)));
             var valueIsActiveFunc = () => tuple.matchesNodeState(context);
             return (factory, valueIsActiveFunc);

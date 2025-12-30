@@ -102,31 +102,31 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         ILightTransitionCycleConfigurator AddPassThrough(Func<ILightPipelineContext, bool> matchesNodeState);
 
         /// <summary>
-        /// Creates a scoped cycle configuration for a specific light entity identified by its entity ID.
+        /// Creates a scoped cycle configuration for a specific light identified by its entity ID.
         /// </summary>
-        /// <param name="lightEntityId">The entity ID of the light to configure.</param>
+        /// <param name="lightId">The entity ID of the light to configure.</param>
         /// <param name="configure">An action to configure the cycle for this specific light.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator ForLight(string lightEntityId, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionCycleConfigurator ForLight(string lightId, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
 
         /// <summary>
-        /// Creates a scoped cycle configuration for a specific light entity.
+        /// Creates a scoped cycle configuration for a specific light.
         /// </summary>
-        /// <param name="lightEntity">The light entity to configure.</param>
+        /// <param name="light">The light to configure.</param>
         /// <param name="configure">An action to configure the cycle for this specific light.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator ForLight(ILight lightEntity, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionCycleConfigurator ForLight(ILight light, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
 
         /// <summary>
         /// Creates a scoped cycle configuration for multiple light entities identified by their entity IDs.
         /// </summary>
-        /// <param name="lightEntityIds">The entity IDs of the lights to configure.</param>
+        /// <param name="lightIds">The entity IDs of the lights to configure.</param>
         /// <param name="configure">An action to configure the cycle for these lights.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionCycleConfigurator ForLights(IEnumerable<string> lightIds, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
 
         /// <summary>
         /// Creates a scoped cycle configuration for multiple light entities.

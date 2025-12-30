@@ -7,9 +7,9 @@ using CodeCasa.Lights.Extensions;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle;
 
-internal class LightTransitionCycleConfigurator(ILight lightEntity, IScheduler scheduler) : ILightTransitionCycleConfigurator
+internal class LightTransitionCycleConfigurator(ILight light, IScheduler scheduler) : ILightTransitionCycleConfigurator
 {
-    public ILight LightEntity { get; } = lightEntity;
+    public ILight Light { get; } = light;
 
     internal List<(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext, bool> matchesNodeState)> CycleNodeFactories
     {
@@ -18,7 +18,7 @@ internal class LightTransitionCycleConfigurator(ILight lightEntity, IScheduler s
 
     public ILightTransitionCycleConfigurator AddOff()
     {
-        return Add<TurnOffThenPassThroughNode>(_ => LightEntity.IsOff());
+        return Add<TurnOffThenPassThroughNode>(_ => Light.IsOff());
     }
 
     public ILightTransitionCycleConfigurator AddOn()
@@ -45,7 +45,7 @@ internal class LightTransitionCycleConfigurator(ILight lightEntity, IScheduler s
     {
         comparer ??= EqualityComparer<LightParameters>.Default;
         return Add(new StaticLightTransitionNode(lightTransition, scheduler), _ => comparer.Equals(
-            LightEntity.GetParameters(),
+            Light.GetParameters(),
             lightTransition.LightParameters));
     }
 
@@ -80,19 +80,19 @@ internal class LightTransitionCycleConfigurator(ILight lightEntity, IScheduler s
         return Add(new PassThroughNode<LightTransition>(), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator ForLight(string lightEntityId, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightEntityId], configure, excludedLightBehaviour);
+    public ILightTransitionCycleConfigurator ForLight(string lightId, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
 
-    public ILightTransitionCycleConfigurator ForLight(ILight lightEntity, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightEntity], configure, excludedLightBehaviour);
+    public ILightTransitionCycleConfigurator ForLight(ILight light, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
 
-    public ILightTransitionCycleConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+    public ILightTransitionCycleConfigurator ForLights(IEnumerable<string> lightIds, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
-        CompositeHelper.ValidateLightSupported(lightEntityIds, LightEntity.Id);
+        CompositeHelper.ValidateLightSupported(lightIds, Light.Id);
         return this;
     }
 
     public ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
-        CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, LightEntity.Id);
+        CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
         return this;
     }
 }

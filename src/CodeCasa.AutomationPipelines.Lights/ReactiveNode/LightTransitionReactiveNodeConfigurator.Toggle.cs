@@ -63,17 +63,17 @@ public partial class LightTransitionReactiveNodeConfigurator
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, Action<ILightTransitionToggleConfigurator> configure)
     {
-        var toggleConfigurator = new LightTransitionToggleConfigurator(LightEntity, scheduler);
+        var toggleConfigurator = new LightTransitionToggleConfigurator(Light, scheduler);
         configure(toggleConfigurator);
         AddNodeSource(triggerObservable.ToToggleObservable(
-            () => LightEntity.IsOn(),
+            () => Light.IsOn(),
             () => new TurnOffThenPassThroughNode(),
             toggleConfigurator.NodeFactories.Select(fact =>
             {
                 return new Func<IPipelineNode<LightTransition>>(() =>
                 {
                     var serviceScope = serviceProvider.CreateScope();
-                    var context = new LightPipelineContext(serviceScope.ServiceProvider, LightEntity);
+                    var context = new LightPipelineContext(serviceScope.ServiceProvider, Light);
                     return new ScopedNode<LightTransition>(serviceScope, fact(context));
                 });
             }),

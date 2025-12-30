@@ -59,30 +59,30 @@ public partial interface ILightTransitionReactiveNodeConfigurator
                 nodeFactorySource);
 
     /// <summary>
-    /// Creates a scoped reactive node configuration for a specific light entity identified by its entity ID.
+    /// Creates a scoped reactive node configuration for a specific light identified by its entity ID.
     /// </summary>
-    /// <param name="lightEntityId">The entity ID of the light to configure.</param>
+    /// <param name="lightId">The entity ID of the light to configure.</param>
     /// <param name="configure">An action to configure the reactive node for this specific light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator ForLight(string lightEntityId,
+    ILightTransitionReactiveNodeConfigurator ForLight(string lightId,
         Action<ILightTransitionReactiveNodeConfigurator> configure);
 
     /// <summary>
-    /// Creates a scoped reactive node configuration for a specific light entity.
+    /// Creates a scoped reactive node configuration for a specific light.
     /// </summary>
-    /// <param name="lightEntity">The light entity to configure.</param>
+    /// <param name="light">The light to configure.</param>
     /// <param name="configure">An action to configure the reactive node for this specific light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator ForLight(ILight lightEntity,
+    ILightTransitionReactiveNodeConfigurator ForLight(ILight light,
         Action<ILightTransitionReactiveNodeConfigurator> configure);
 
     /// <summary>
     /// Creates a scoped reactive node configuration for multiple light entities identified by their entity IDs.
     /// </summary>
-    /// <param name="lightEntityIds">The entity IDs of the lights to configure.</param>
+    /// <param name="lightIds">The entity IDs of the lights to configure.</param>
     /// <param name="configure">An action to configure the reactive node for these lights.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightEntityIds,
+    ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightIds,
         Action<ILightTransitionReactiveNodeConfigurator> configure);
 
     /// <summary>

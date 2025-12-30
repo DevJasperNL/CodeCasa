@@ -43,10 +43,10 @@ public partial class LightTransitionReactiveNodeConfigurator
         AddNodeSource(triggerObservable.Select(_ => nodeFactory));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator> pipelineConfigurator) => On(triggerObservable, c => lightPipelineFactory.CreateLightPipeline(c.LightEntity, pipelineConfigurator));
+    public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator> pipelineConfigurator) => On(triggerObservable, c => lightPipelineFactory.CreateLightPipeline(c.Light, pipelineConfigurator));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator> configure) => On(triggerObservable, c => reactiveNodeFactory.CreateReactiveNode(c.LightEntity, configure));
+    public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator> configure) => On(triggerObservable, c => reactiveNodeFactory.CreateReactiveNode(c.Light, configure));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator PassThroughOn<T>(IObservable<T> triggerObservable)

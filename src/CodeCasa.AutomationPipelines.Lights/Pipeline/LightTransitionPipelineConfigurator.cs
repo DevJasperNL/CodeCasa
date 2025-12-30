@@ -12,12 +12,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
         ReactiveNodeFactory reactiveNodeFactory,
-        ILight lightEntity)
+        ILight light)
         : ILightTransitionPipelineConfigurator
     {
         private readonly List<IPipelineNode<LightTransition>> _nodes = new();
 
-        internal ILight LightEntity { get; } = lightEntity;
+        internal ILight Light { get; } = light;
         internal string? Name { get; private set; }
 
         public IReadOnlyCollection<IPipelineNode<LightTransition>> Nodes => _nodes.AsReadOnly();
@@ -36,7 +36,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         public ILightTransitionPipelineConfigurator AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
-            _nodes.Add(serviceProvider.CreateInstanceWithinContext<TNode>(LightEntity));
+            _nodes.Add(serviceProvider.CreateInstanceWithinContext<TNode>(Light));
             return this;
         }
 
@@ -48,14 +48,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         public ILightTransitionPipelineConfigurator AddNode(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory)
         {
-            _nodes.Add(nodeFactory(new LightPipelineContext(serviceProvider, LightEntity)));
+            _nodes.Add(nodeFactory(new LightPipelineContext(serviceProvider, Light)));
             return this;
         }
 
         public ILightTransitionPipelineConfigurator AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
-            return AddNode(reactiveNodeFactory.CreateReactiveNode(LightEntity, configure));
+            return AddNode(reactiveNodeFactory.CreateReactiveNode(Light, configure));
         }
 
         public ILightTransitionPipelineConfigurator AddDimmer(IDimmer dimmer)
@@ -71,27 +71,27 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             });
         }
 
-        public ILightTransitionPipelineConfigurator ForLight(string lightEntityId,
+        public ILightTransitionPipelineConfigurator ForLight(string lightId,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) =>
-            ForLights([lightEntityId], compositeNodeBuilder);
+            ForLights([lightId], compositeNodeBuilder);
 
-        public ILightTransitionPipelineConfigurator ForLight(ILight lightEntity,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([lightEntity], compositeNodeBuilder);
+        public ILightTransitionPipelineConfigurator ForLight(ILight light,
+            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
 
-        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightEntityIds,
+        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightIds,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
         {
-            CompositeHelper.ValidateLightSupported(lightEntityIds, LightEntity.Id);
+            CompositeHelper.ValidateLightSupported(lightIds, Light.Id);
             return this;
         }
 
         public ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lightEntities,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
         {
-            CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, LightEntity.Id);
+            CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
             return this;
         }
 
-        public ILightTransitionPipelineConfigurator AddPipeline(Action<ILightTransitionPipelineConfigurator> pipelineNodeOptions) => AddNode(lightPipelineFactory.CreateLightPipeline(LightEntity, pipelineNodeOptions));
+        public ILightTransitionPipelineConfigurator AddPipeline(Action<ILightTransitionPipelineConfigurator> pipelineNodeOptions) => AddNode(lightPipelineFactory.CreateLightPipeline(Light, pipelineNodeOptions));
     }
 }

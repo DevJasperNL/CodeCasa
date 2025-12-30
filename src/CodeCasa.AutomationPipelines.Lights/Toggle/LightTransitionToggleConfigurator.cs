@@ -7,9 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Toggle
 {
-    internal class LightTransitionToggleConfigurator(ILight lightEntity, IScheduler scheduler) : ILightTransitionToggleConfigurator
+    internal class LightTransitionToggleConfigurator(ILight light, IScheduler scheduler) : ILightTransitionToggleConfigurator
     {
-        public ILight LightEntity { get; } = lightEntity;
+        public ILight Light { get; } = light;
         internal TimeSpan? ToggleTimeout { get; private set; }
         internal bool? IncludeOffValue { get; private set; }
         internal List<Func<ILightPipelineContext, IPipelineNode<LightTransition>>> NodeFactories
@@ -97,19 +97,19 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return Add(new PassThroughNode<LightTransition>());
         }
 
-        public ILightTransitionToggleConfigurator ForLight(string lightEntityId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightEntityId], configure, excludedLightBehaviour);
+        public ILightTransitionToggleConfigurator ForLight(string lightId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
 
-        public ILightTransitionToggleConfigurator ForLight(ILight lightEntity, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightEntity], configure, excludedLightBehaviour);
+        public ILightTransitionToggleConfigurator ForLight(ILight light, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
 
-        public ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+        public ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightIds, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
         {
-            CompositeHelper.ValidateLightSupported(lightEntityIds, LightEntity.Id);
+            CompositeHelper.ValidateLightSupported(lightIds, Light.Id);
             return this;
         }
 
         public ILightTransitionToggleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
         {
-            CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, LightEntity.Id);
+            CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
             return this;
         }
 

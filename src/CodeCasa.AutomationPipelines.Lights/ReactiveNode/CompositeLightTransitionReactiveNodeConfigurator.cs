@@ -67,25 +67,25 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLight(string lightEntityId, Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightEntityId], configure);
+    public ILightTransitionReactiveNodeConfigurator ForLight(string lightId, Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightId], configure);
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLight(ILight lightEntity, Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightEntity], configure);
+    public ILightTransitionReactiveNodeConfigurator ForLight(ILight light, Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([light], configure);
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionReactiveNodeConfigurator> configure)
+    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightIds, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
-        var lightEntityIdsArray =
-            CompositeHelper.ValidateLightsSupported(lightEntityIds, configurators.Keys);
+        var lightIdsArray =
+            CompositeHelper.ValidateLightsSupported(lightIds, configurators.Keys);
 
-        if (lightEntityIdsArray.Length == configurators.Count)
+        if (lightIdsArray.Length == configurators.Count)
         {
             configure(this);
             return this;
         }
-        if (lightEntityIdsArray.Length == 1)
+        if (lightIdsArray.Length == 1)
         {
-            configure(configurators[lightEntityIdsArray.First()]);
+            configure(configurators[lightIdsArray.First()]);
             return this;
         }
 
@@ -94,7 +94,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
             lightPipelineFactory,
             reactiveNodeFactory,
             configurators
-            .Where(kvp => lightEntityIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value), scheduler));
+            .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value), scheduler));
         return this;
     }
 

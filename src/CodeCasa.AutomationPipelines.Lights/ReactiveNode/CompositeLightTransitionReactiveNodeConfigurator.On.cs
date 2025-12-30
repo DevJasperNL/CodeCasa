@@ -44,9 +44,9 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator> pipelineConfigurator)
     {
         // Note: we create the pipeline in composite context so all configuration is also applied in that context.
-        var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.LightEntity),
+        var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.Light),
             pipelineConfigurator);
-        configurators.Values.ForEach(c => c.On(triggerObservable, ctx => pipelines[ctx.LightEntity.Id]));
+        configurators.Values.ForEach(c => c.On(triggerObservable, ctx => pipelines[ctx.Light.Id]));
         return this;
     }
 
@@ -54,9 +54,9 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
         // Note: we create the pipeline in composite context so all configuration is also applied in that context.
-        var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.LightEntity),
+        var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.Light),
             configure);
-        configurators.Values.ForEach(c => c.On(triggerObservable, ctx => nodes[ctx.LightEntity.Id]));
+        configurators.Values.ForEach(c => c.On(triggerObservable, ctx => nodes[ctx.Light.Id]));
         return this;
     }
 

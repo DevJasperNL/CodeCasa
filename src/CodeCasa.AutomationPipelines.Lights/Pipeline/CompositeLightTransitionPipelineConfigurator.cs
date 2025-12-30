@@ -38,7 +38,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
-            var nodes = reactiveNodeFactory.CreateReactiveNodes(NodeContainers.Select(nc => nc.Value.LightEntity),
+            var nodes = reactiveNodeFactory.CreateReactiveNodes(NodeContainers.Select(nc => nc.Value.Light),
                 configure);
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(nodes[kvp.Key]));
             return this;
@@ -46,7 +46,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         public ILightTransitionPipelineConfigurator AddPipeline(Action<ILightTransitionPipelineConfigurator> pipelineNodeOptions)
         {
-            var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.LightEntity),
+            var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light),
                 pipelineNodeOptions);
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(pipelines[kvp.Key]));
             return this;
@@ -65,31 +65,31 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             });
         }
 
-        public ILightTransitionPipelineConfigurator ForLight(string lightEntityId,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([lightEntityId], compositeNodeBuilder);
+        public ILightTransitionPipelineConfigurator ForLight(string lightId,
+            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([lightId], compositeNodeBuilder);
 
-        public ILightTransitionPipelineConfigurator ForLight(ILight lightEntity,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([lightEntity], compositeNodeBuilder);
+        public ILightTransitionPipelineConfigurator ForLight(ILight light,
+            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
 
-        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightEntityIds,
+        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightIds,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
         {
-            var lightEntityIdsArray =
-                CompositeHelper.ValidateLightsSupported(lightEntityIds, NodeContainers.Keys);
+            var lightIdsArray =
+                CompositeHelper.ValidateLightsSupported(lightIds, NodeContainers.Keys);
 
-            if (lightEntityIdsArray.Length == NodeContainers.Count)
+            if (lightIdsArray.Length == NodeContainers.Count)
             {
                 compositeNodeBuilder(this);
                 return this;
             }
-            if (lightEntityIdsArray.Length == 1)
+            if (lightIdsArray.Length == 1)
             {
-                compositeNodeBuilder(NodeContainers[lightEntityIdsArray.First()]);
+                compositeNodeBuilder(NodeContainers[lightIdsArray.First()]);
                 return this;
             }
 
             compositeNodeBuilder(new CompositeLightTransitionPipelineConfigurator(serviceProvider, lightPipelineFactory, reactiveNodeFactory, NodeContainers
-                    .Where(kvp => lightEntityIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                    .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 scheduler));
             return this;
         }

@@ -11,20 +11,20 @@ using CodeCasa.Lights;
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
 /// <summary>
-/// Configures a light transition reactive node for a single light entity.
+/// Configures a light transition reactive node for a single light.
 /// This configurator allows adding reactive dimmer controls, node sources, and scoped configurations for light automation.
 /// </summary>
 public partial class LightTransitionReactiveNodeConfigurator(
     IServiceProvider serviceProvider,
     LightPipelineFactory lightPipelineFactory,
     ReactiveNodeFactory reactiveNodeFactory,
-    ILight lightEntity, 
+    ILight light, 
     IScheduler scheduler) : ILightTransitionReactiveNodeConfigurator
 {
     /// <summary>
-    /// Gets the light entity associated with this configurator.
+    /// Gets the light associated with this configurator.
     /// </summary>
-    public ILight LightEntity { get; } = lightEntity;
+    public ILight Light { get; } = light;
 
     internal string? Name { get; private set; }
     internal List<IObservable<IPipelineNode<LightTransition>?>> NodeObservables { get; } = new();
@@ -63,18 +63,18 @@ public partial class LightTransitionReactiveNodeConfigurator(
     {
         var options = new DimmerOptions();
         dimOptions(options);
-        options.ValidateSingleLightEntity(LightEntity.Id);
+        options.ValidateSingleLight(Light.Id);
 
         var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
         var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
 
-        AddDimPulses(options, [LightEntity], dimPulses, brightenPulses);
+        AddDimPulses(options, [Light], dimPulses, brightenPulses);
         return this;
     }
 
     internal void AddDimPulses(DimmerOptions options, IEnumerable<ILight> lightsInDimOrder, IObservable<Unit> dimPulses, IObservable<Unit> brightenPulses)
     {
-        var dimHelper = new DimHelper(LightEntity, lightsInDimOrder, options.MinBrightness, options.BrightnessStep);
+        var dimHelper = new DimHelper(Light, lightsInDimOrder, options.MinBrightness, options.BrightnessStep);
         AddNodeSource(dimPulses
             .Select(_ => dimHelper.DimStep())
             .Where(t => t != null)
@@ -99,22 +99,22 @@ public partial class LightTransitionReactiveNodeConfigurator(
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddNodeSource(IObservable<Func<ILightPipelineContext, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
-        return AddNodeSource(nodeFactorySource.Select(f => f(new LightPipelineContext(serviceProvider, LightEntity))));
+        return AddNodeSource(nodeFactorySource.Select(f => f(new LightPipelineContext(serviceProvider, Light))));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLight(string lightEntityId,
-        Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightEntityId], configure);
+    public ILightTransitionReactiveNodeConfigurator ForLight(string lightId,
+        Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightId], configure);
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLight(ILight lightEntity,
-        Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightEntity], configure);
+    public ILightTransitionReactiveNodeConfigurator ForLight(ILight light,
+        Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([light], configure);
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightEntityIds,
+    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightIds,
         Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
-        CompositeHelper.ValidateLightSupported(lightEntityIds, LightEntity.Id);
+        CompositeHelper.ValidateLightSupported(lightIds, Light.Id);
         return this;
     }
 
@@ -122,7 +122,7 @@ public partial class LightTransitionReactiveNodeConfigurator(
     public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lightEntities,
         Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
-        CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, LightEntity.Id);
+        CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
         return this;
     }
 }

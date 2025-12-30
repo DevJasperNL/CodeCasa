@@ -59,28 +59,28 @@ public partial interface ILightTransitionPipelineConfigurator
     ILightTransitionPipelineConfigurator AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions);
 
     /// <summary>
-    /// Creates a scoped pipeline configuration for a specific light entity identified by its entity ID.
+    /// Creates a scoped pipeline configuration for a specific light identified by its entity ID.
     /// </summary>
-    /// <param name="lightEntityId">The entity ID of the light to configure.</param>
+    /// <param name="lightId">The entity ID of the light to configure.</param>
     /// <param name="compositeNodeBuilder">An action to configure the pipeline for this specific light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator ForLight(string lightEntityId, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
+    ILightTransitionPipelineConfigurator ForLight(string lightId, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
 
     /// <summary>
-    /// Creates a scoped pipeline configuration for a specific light entity.
+    /// Creates a scoped pipeline configuration for a specific light.
     /// </summary>
-    /// <param name="lightEntity">The light entity to configure.</param>
+    /// <param name="light">The light to configure.</param>
     /// <param name="compositeNodeBuilder">An action to configure the pipeline for this specific light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator ForLight(ILight lightEntity, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
+    ILightTransitionPipelineConfigurator ForLight(ILight light, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
 
     /// <summary>
     /// Creates a scoped pipeline configuration for multiple light entities identified by their entity IDs.
     /// </summary>
-    /// <param name="lightEntityIds">The entity IDs of the lights to configure.</param>
+    /// <param name="lightIds">The entity IDs of the lights to configure.</param>
     /// <param name="compositeNodeBuilder">An action to configure the pipeline for these lights.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightEntityIds, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
+    ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightIds, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
 
     /// <summary>
     /// Creates a scoped pipeline configuration for multiple light entities.

@@ -47,13 +47,13 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator
     public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable, Action<ILightTransitionCycleConfigurator> configure)
     {
         var cycleConfigurators = configurators.ToDictionary(kvp => kvp.Key,
-            kvp => new LightTransitionCycleConfigurator(kvp.Value.LightEntity, scheduler));
+            kvp => new LightTransitionCycleConfigurator(kvp.Value.Light, scheduler));
         var compositeCycleConfigurator = new CompositeLightTransitionCycleConfigurator(cycleConfigurators, []);
         configure(compositeCycleConfigurator);
         configurators.ForEach(kvp => kvp.Value.AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurators[kvp.Key].CycleNodeFactories.Select(tuple =>
         {
             var serviceScope = serviceProvider.CreateScope();
-            var context = new LightPipelineContext(serviceScope.ServiceProvider, kvp.Value.LightEntity);
+            var context = new LightPipelineContext(serviceScope.ServiceProvider, kvp.Value.Light);
             var factory = new Func<IPipelineNode<LightTransition>>(() => new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(context)));
             var valueIsActiveFunc = () => tuple.matchesNodeState(context);
             return (factory, valueIsActiveFunc);

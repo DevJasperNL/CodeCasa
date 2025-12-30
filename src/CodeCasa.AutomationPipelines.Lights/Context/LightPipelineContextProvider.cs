@@ -14,7 +14,7 @@
             _lightPipelineContext = context;
         }
 
-        public void ResetLightEntity()
+        public void ResetLight()
         {
             _lightPipelineContext = null;
         }

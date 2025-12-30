@@ -30,13 +30,13 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// Initializes a new instance of the <see cref="ReactiveDimmerNode"/> class.
         /// </summary>
         /// <param name="reactiveNode">The reactive node to monitor for state changes.</param>
-        /// <param name="lightEntityId">The entity ID of the light this dimmer node controls.</param>
+        /// <param name="lightId">The entity ID of the light this dimmer node controls.</param>
         /// <param name="minBrightness">The minimum brightness level before the light turns off.</param>
         /// <param name="brightnessStep">The step size for each dimming/brightening increment.</param>
         /// <param name="scheduler">The scheduler used for timing operations.</param>
         public ReactiveDimmerNode(
             ReactiveNode reactiveNode,
-            string lightEntityId,
+            string lightId,
             int minBrightness, 
             int brightnessStep, 
             IScheduler scheduler) : base(scheduler)
@@ -44,7 +44,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             reactiveNode.NodeChanged.Subscribe(_ => Reset());
             PassThrough = true;
 
-            LightEntityId = lightEntityId;
+            LightId = lightId;
             _minBrightness = minBrightness;
             _brightnessStep = brightnessStep;
         }
@@ -52,7 +52,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// <summary>
         /// Gets the entity ID of the light this dimmer node controls.
         /// </summary>
-        public string LightEntityId { get; }
+        public string LightId { get; }
 
         /// <summary>
         /// Resets the dimming state back to pass-through mode.
@@ -118,7 +118,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 
         private bool ShouldDim(DimmingContext context)
         {
-            var subjectParameters = context.DimmerNodeOutputParametersInOrder.Single(x => x.entityId == LightEntityId).parametersAfterDim;
+            var subjectParameters = context.DimmerNodeOutputParametersInOrder.Single(x => x.entityId == LightId).parametersAfterDim;
             var subjectBrightness = subjectParameters?.Brightness ?? 0;
             if (subjectBrightness > _minBrightness)
             {
@@ -147,12 +147,12 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 lightToTurnOff ??= entityId;
             }
 
-            return lightToTurnOff == LightEntityId;
+            return lightToTurnOff == LightId;
         }
 
         private bool ShouldBrighten(DimmingContext context)
         {
-            var subjectParameters = context.DimmerNodeOutputParametersInOrder.Single(x => x.entityId == LightEntityId).parametersAfterDim;
+            var subjectParameters = context.DimmerNodeOutputParametersInOrder.Single(x => x.entityId == LightId).parametersAfterDim;
             var subjectBrightness = subjectParameters?.Brightness ?? 0;
             if (subjectBrightness > _minBrightness)
             {
@@ -176,7 +176,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 lightToTurnOn ??= entityId;
             }
 
-            return lightToTurnOn == null || lightToTurnOn == LightEntityId;
+            return lightToTurnOn == null || lightToTurnOn == LightId;
         }
 
         private void ScheduleInterpolatedLightTransition()

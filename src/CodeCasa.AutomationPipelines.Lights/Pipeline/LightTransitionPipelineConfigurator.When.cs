@@ -62,7 +62,7 @@ public partial class LightTransitionPipelineConfigurator
     public ILightTransitionPipelineConfigurator When<TObservable>(
         Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
     {
-        var observable = serviceProvider.CreateInstanceWithinContext<TObservable>(LightEntity);
+        var observable = serviceProvider.CreateInstanceWithinContext<TObservable>(Light);
         return When(observable, nodeFactory);
     }
 
@@ -78,7 +78,7 @@ public partial class LightTransitionPipelineConfigurator
         where TObservable : IObservable<bool>
         where TNode : IPipelineNode<LightTransition>
     {
-        var observable = serviceProvider.CreateInstanceWithinContext<TObservable>(LightEntity);
+        var observable = serviceProvider.CreateInstanceWithinContext<TObservable>(Light);
         return When<TNode>(observable);
     }
 
@@ -92,7 +92,7 @@ public partial class LightTransitionPipelineConfigurator
 
     public ILightTransitionPipelineConfigurator AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator> configure) where TObservable : IObservable<bool>
     {
-        var observable = serviceProvider.CreateInstanceWithinContext<TObservable>(LightEntity);
+        var observable = serviceProvider.CreateInstanceWithinContext<TObservable>(Light);
         return AddReactiveNodeWhen(observable, configure);
     }
 
@@ -105,12 +105,12 @@ public partial class LightTransitionPipelineConfigurator
 
     public ILightTransitionPipelineConfigurator AddPipelineWhen<TObservable>(Action<ILightTransitionPipelineConfigurator> pipelineConfigurator) where TObservable : IObservable<bool>
     {
-        return When<TObservable>(c => lightPipelineFactory.CreateLightPipeline(c.LightEntity, pipelineConfigurator));
+        return When<TObservable>(c => lightPipelineFactory.CreateLightPipeline(c.Light, pipelineConfigurator));
     }
 
     public ILightTransitionPipelineConfigurator AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator> pipelineConfigurator)
     {
-        return When(observable, c => lightPipelineFactory.CreateLightPipeline(c.LightEntity, pipelineConfigurator));
+        return When(observable, c => lightPipelineFactory.CreateLightPipeline(c.Light, pipelineConfigurator));
     }
 
     public ILightTransitionPipelineConfigurator TurnOffWhen<TObservable>() where TObservable : IObservable<bool>
