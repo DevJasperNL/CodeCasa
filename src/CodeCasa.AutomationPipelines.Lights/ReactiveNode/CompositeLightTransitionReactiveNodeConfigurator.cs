@@ -11,7 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// Configures light transition reactive nodes for multiple light entities as a composite.
 /// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
 /// </summary>
-public partial class CompositeLightTransitionReactiveNodeConfigurator(
+internal partial class CompositeLightTransitionReactiveNodeConfigurator(
     IServiceProvider serviceProvider,
     LightPipelineFactory lightPipelineFactory,
     ReactiveNodeFactory reactiveNodeFactory,

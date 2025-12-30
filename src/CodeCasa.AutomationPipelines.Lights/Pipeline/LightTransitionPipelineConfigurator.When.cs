@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-public partial class LightTransitionPipelineConfigurator
+internal partial class LightTransitionPipelineConfigurator
 {
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator When<TObservable>(LightParameters lightParameters)

@@ -9,7 +9,7 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-public partial class CompositeLightTransitionPipelineConfigurator
+internal partial class CompositeLightTransitionPipelineConfigurator
 {
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable>(LightParameters trueLightParameters,

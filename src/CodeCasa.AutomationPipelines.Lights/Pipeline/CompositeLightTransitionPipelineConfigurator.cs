@@ -11,7 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Configures light transition pipelines for multiple light entities as a composite.
     /// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
     /// </summary>
-    public partial class CompositeLightTransitionPipelineConfigurator(
+    internal partial class CompositeLightTransitionPipelineConfigurator(
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
         ReactiveNodeFactory reactiveNodeFactory,

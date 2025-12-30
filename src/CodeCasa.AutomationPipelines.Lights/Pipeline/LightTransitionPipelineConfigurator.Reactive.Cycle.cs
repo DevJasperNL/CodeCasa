@@ -3,7 +3,7 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-public partial class LightTransitionPipelineConfigurator
+internal partial class LightTransitionPipelineConfigurator
 {
     public ILightTransitionPipelineConfigurator AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
     {

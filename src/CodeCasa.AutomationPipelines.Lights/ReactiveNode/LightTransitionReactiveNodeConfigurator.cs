@@ -14,7 +14,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// Configures a light transition reactive node for a single light.
 /// This configurator allows adding reactive dimmer controls, node sources, and scoped configurations for light automation.
 /// </summary>
-public partial class LightTransitionReactiveNodeConfigurator(
+internal partial class LightTransitionReactiveNodeConfigurator(
     IServiceProvider serviceProvider,
     LightPipelineFactory lightPipelineFactory,
     ReactiveNodeFactory reactiveNodeFactory,

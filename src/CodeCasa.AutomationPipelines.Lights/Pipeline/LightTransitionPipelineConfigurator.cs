@@ -11,7 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Configures a light transition pipeline for a single light entity.
     /// This configurator allows adding pipeline nodes, reactive nodes, dimmers, and conditional logic to light automation.
     /// </summary>
-    public partial class LightTransitionPipelineConfigurator(
+    internal partial class LightTransitionPipelineConfigurator(
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
         ReactiveNodeFactory reactiveNodeFactory,

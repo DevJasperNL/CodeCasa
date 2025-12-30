@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
-public partial class CompositeLightTransitionReactiveNodeConfigurator
+internal partial class CompositeLightTransitionReactiveNodeConfigurator
 {
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)

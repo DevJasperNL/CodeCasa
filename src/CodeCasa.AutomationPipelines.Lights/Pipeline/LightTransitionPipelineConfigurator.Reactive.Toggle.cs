@@ -4,7 +4,7 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-public partial class LightTransitionPipelineConfigurator
+internal partial class LightTransitionPipelineConfigurator
 {
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,

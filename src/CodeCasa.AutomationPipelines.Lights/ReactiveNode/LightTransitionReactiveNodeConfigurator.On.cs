@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
-public partial class LightTransitionReactiveNodeConfigurator
+internal partial class LightTransitionReactiveNodeConfigurator
 {
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
