@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Reactive.Concurrency;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;

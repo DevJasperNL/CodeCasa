@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CodeCasa.Lights.NetDaemon\Extensions\LightAttributesExtensions.cs" Link="Extensions\LightAttributesExtensions.cs" />
+    <Compile Include="..\CodeCasa.Lights.NetDaemon\Generated\LightAttributes.cs" Link="Generated\LightAttributes.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetDaemon.HassModel" Version="25.48.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />
+  </ItemGroup>
+
+</Project>

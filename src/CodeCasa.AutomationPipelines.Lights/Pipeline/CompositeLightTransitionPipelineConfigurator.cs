@@ -1,5 +1,4 @@
-﻿using System.Reactive.Concurrency;
-using CodeCasa.Abstractions;
+﻿using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
