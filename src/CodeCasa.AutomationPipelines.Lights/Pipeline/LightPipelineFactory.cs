@@ -6,9 +6,18 @@ using CodeCasa.Lights.Extensions;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
+    /// <summary>
+    /// Factory for creating and configuring light transition pipelines.
+    /// </summary>
     public class LightPipelineFactory(
         ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider, ReactiveNodeFactory reactiveNodeFactory, IScheduler scheduler)
     {
+        /// <summary>
+        /// Sets up a light pipeline for the specified light entity and configures it with the provided builder action.
+        /// </summary>
+        /// <param name="lightEntity">The light entity to set up the pipeline for.</param>
+        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+        /// <returns>An async disposable representing the created pipeline(s) that can be disposed to clean up resources.</returns>
         public IAsyncDisposable SetupLightPipeline(ILight lightEntity,
             Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
         {
@@ -21,11 +30,23 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             return disposables;
         }
 
+        /// <summary>
+        /// Creates a single light pipeline for the specified light entity.
+        /// </summary>
+        /// <param name="lightEntity">The light entity to create a pipeline for.</param>
+        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+        /// <returns>A configured pipeline for controlling the specified light.</returns>
         internal IPipeline<LightTransition> CreateLightPipeline(ILight lightEntity, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
         {
             return CreateLightPipelines([lightEntity], pipelineBuilder)[lightEntity.Id];
         }
 
+        /// <summary>
+        /// Creates light pipelines for multiple light entities.
+        /// </summary>
+        /// <param name="lightEntities">The light entities to create pipelines for.</param>
+        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+        /// <returns>A dictionary mapping light entity IDs to their corresponding pipelines.</returns>
         internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines(IEnumerable<ILight> lightEntities, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
         {
             // Note: we simply assume that these are not groups.

@@ -1,5 +1,8 @@
 ﻿namespace CodeCasa.AutomationPipelines.Lights;
 
+/// <summary>
+/// Specifies the behavior for lights that are excluded from specific pipeline operations.
+/// </summary>
 public enum ExcludedLightBehaviours
 {
     /// <summary>
