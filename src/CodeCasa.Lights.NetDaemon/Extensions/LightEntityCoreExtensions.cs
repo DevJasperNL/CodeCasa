@@ -11,8 +11,13 @@ namespace CodeCasa.Lights.NetDaemon.Extensions;
 /// including turning lights on/off, applying transitions, retrieving parameters, and checking state.
 /// All methods are extension methods on <see cref="ILightEntityCore"/>, allowing for a fluent API.
 /// </remarks>
-public static class LightEntityCodeExtensions
+public static class LightEntityCoreExtensions
 {
+    public static NetDaemonLight AsLight(this ILightEntityCore lightEntity)
+    {
+        return new NetDaemonLight(lightEntity);
+    }
+
     /// <summary>
     /// Turns on a light entity with the specified light parameters.
     /// </summary>
