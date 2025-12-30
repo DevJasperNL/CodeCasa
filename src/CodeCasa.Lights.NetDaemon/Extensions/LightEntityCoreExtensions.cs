@@ -13,6 +13,11 @@ namespace CodeCasa.Lights.NetDaemon.Extensions;
 /// </remarks>
 public static class LightEntityCoreExtensions
 {
+    /// <summary>
+    /// Converts an <see cref="ILightEntityCore"/> to a <see cref="NetDaemonLight"/> wrapper.
+    /// </summary>
+    /// <param name="lightEntity">The light entity to convert.</param>
+    /// <returns>A <see cref="NetDaemonLight"/> wrapper around the provided light entity.</returns>
     public static NetDaemonLight AsLight(this ILightEntityCore lightEntity)
     {
         return new NetDaemonLight(lightEntity);

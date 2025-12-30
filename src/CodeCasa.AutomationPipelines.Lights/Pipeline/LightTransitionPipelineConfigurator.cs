@@ -7,12 +7,12 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
+    /// <inheritdoc />
     public partial class LightTransitionPipelineConfigurator(
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
         ReactiveNodeFactory reactiveNodeFactory,
-        ILight lightEntity,
-        IScheduler scheduler)
+        ILight lightEntity)
         : ILightTransitionPipelineConfigurator
     {
         private readonly List<IPipelineNode<LightTransition>> _nodes = new();

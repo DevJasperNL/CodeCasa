@@ -35,7 +35,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var configurators = lightEntityArray.ToDictionary(l => l.Id, l => new LightTransitionPipelineConfigurator(serviceProvider, this, reactiveNodeFactory, l, scheduler));
+            var configurators = lightEntityArray.ToDictionary(l => l.Id, l => new LightTransitionPipelineConfigurator(serviceProvider, this, reactiveNodeFactory, l));
             ILightTransitionPipelineConfigurator configurator = lightEntityArray.Length == 1
                 ? configurators[lightEntityArray[0].Id]
                 : new CompositeLightTransitionPipelineConfigurator(
