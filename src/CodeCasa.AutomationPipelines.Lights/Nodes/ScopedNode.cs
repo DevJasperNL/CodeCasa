@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CodeCasa.AutomationPipelines.Lights.Utils;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
@@ -7,26 +8,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
     {
         public async ValueTask DisposeAsync()
         {
-            // todo: make this a helper method
-            switch (serviceScope)
-            {
-                case IAsyncDisposable asyncDisposable:
-                    await asyncDisposable.DisposeAsync();
-                    break;
-                case IDisposable disposable:
-                    disposable.Dispose();
-                    break;
-            }
-
-            switch (innerNode)
-            {
-                case IAsyncDisposable asyncDisposable:
-                    await asyncDisposable.DisposeAsync();
-                    break;
-                case IDisposable disposable:
-                    disposable.Dispose();
-                    break;
-            }
+            await serviceScope.DisposeOrDisposeAsync();
+            await innerNode.DisposeOrDisposeAsync();
         }
 
         public TState? Input

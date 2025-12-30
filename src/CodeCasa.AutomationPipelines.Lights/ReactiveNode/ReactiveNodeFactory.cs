@@ -19,9 +19,8 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             return CreateReactiveNodes([lightEntity], configure)[lightEntity.Id];
         }
 
-        public Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes(IEnumerable<ILight> lightEntities, Action<ILightTransitionReactiveNodeConfigurator> configure)
+        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes(IEnumerable<ILight> lightEntities, Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
-            // todo: is this assumption correct? Make internal?
             // Note: we simply assume that these are not groups.
             var lightEntityArray = lightEntities.ToArray();
             if (!lightEntityArray.Any())
@@ -29,7 +28,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 return new Dictionary<string, IPipelineNode<LightTransition>>();
             }
 
-            var lightPipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>(); // todo
+            var lightPipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
             var reactiveConfigurators = lightEntityArray.ToDictionary(l => l.Id, l => new LightTransitionReactiveNodeConfigurator(serviceProvider, lightPipelineFactory,
                 this, l, scheduler));
             ILightTransitionReactiveNodeConfigurator configurator = lightEntityArray.Length == 1

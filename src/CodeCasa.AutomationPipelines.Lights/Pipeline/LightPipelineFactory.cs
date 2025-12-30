@@ -28,7 +28,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines(IEnumerable<ILight> lightEntities, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
         {
-            // todo: is this assumption correct? Make internal?
             // Note: we simply assume that these are not groups.
             var lightEntityArray = lightEntities.ToArray();
             if (!lightEntityArray.Any())

@@ -1,6 +1,7 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using CodeCasa.AutomationPipelines.Lights.Utils;
 using CodeCasa.Lights;
 using Microsoft.Extensions.Logging;
 
@@ -66,15 +67,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
         if (_activeNode != null)
         {
             _activeNode.Input = null;
-            switch (_activeNode)
-            {
-                case IAsyncDisposable asyncDisposable:
-                        asyncDisposable.DisposeAsync().GetAwaiter().GetResult();
-                    break;
-                case IDisposable disposable:
-                        disposable.Dispose();
-                    break;
-            }
+            _activeNode.DisposeOrDisposeAsync().GetAwaiter().GetResult();
         }
 
         _activeNode = null;
