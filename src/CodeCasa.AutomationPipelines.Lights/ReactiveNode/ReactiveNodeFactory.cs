@@ -144,12 +144,12 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 
     internal class ReactiveDimmerPipeline : Pipeline<LightTransition>
     {
-        private readonly RegisterInterface<ReactiveDimmerPipeline> _registerInterface;
+        private readonly IRegisterInterface<ReactiveDimmerPipeline> _registerInterface;
 
         public ReactiveDimmerPipeline(
             ReactiveNode reactiveNode, 
             ReactiveDimmerNode reactiveDimmerNode,
-            RegisterInterface<ReactiveDimmerPipeline> registerInterface)
+            IRegisterInterface<ReactiveDimmerPipeline> registerInterface)
         {
             _registerInterface = registerInterface;
             _registerInterface.Register(this);
@@ -164,17 +164,17 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         }
     }
 
-    internal interface RegisterInterface<T>
+    internal interface IRegisterInterface<in T>
     {
         void Register(T reference);
         void Unregister(T reference);
     }
 
-    internal sealed class RegistrationManager<T> : RegisterInterface<T>, IDisposable
+    internal sealed class RegistrationManager<T> : IRegisterInterface<T>, IDisposable
     {
-        private readonly HashSet<T> _items = new HashSet<T>();
-        private readonly object _lock = new object();
-        private readonly Subject<Unit> _lastUnregistered = new Subject<Unit>();
+        private readonly HashSet<T> _items = new();
+        private readonly Lock _lock = new();
+        private readonly Subject<Unit> _lastUnregistered = new ();
         private bool _isDisposed;
 
         public IObservable<Unit> LastUnregistered => _lastUnregistered;
@@ -183,9 +183,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         {
             lock (_lock)
             {
-                if (_isDisposed)
-                    throw new ObjectDisposedException(nameof(RegistrationManager<T>));
-                    
+                ObjectDisposedException.ThrowIf(_isDisposed, typeof(RegistrationManager<T>));
                 _items.Add(reference);
             }
         }
