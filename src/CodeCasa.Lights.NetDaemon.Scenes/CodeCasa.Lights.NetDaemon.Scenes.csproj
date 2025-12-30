@@ -4,16 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Title>CodeCasa.Lights.NetDaemon</Title>
+    <Title>CodeCasa.Lights.NetDaemon.Scenes</Title>
     <Authors>Jasper Lammers</Authors>
     <Company>DevJasper</Company>
-    <Description>NetDaemon integration for Home Assistant light entities, enabling advanced light control with CodeCasa.Lights abstractions and automatic color mode detection.</Description>
+    <Description>NetDaemon integration for light scenes, enabling advanced scene management and transitions through CodeCasa.Lights and Home Assistant scene entities.</Description>
     <RepositoryUrl>https://github.com/DevJasperNL/CodeCasa</RepositoryUrl>
-    <PackageTags>
-      NetDaemon;Light Control;Lights;Home Automation;Home Assistant;HA Integration;Smart Home;Automation;Color;Colors;RGB;RGBW;RGBWW;XY;Transitions;Scenes;C#;.NET;DotNet;Extension Methods</PackageTags>
+    <PackageTags>NetDaemon;Light Control;Lights;Home Automation;Home Assistant;HA Integration;Smart Home;Automation;Scenes;Scene Management;C#;.NET;DotNet;Extension Methods</PackageTags>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageId>CodeCasa.Lights.NetDaemon</PackageId>
+    <PackageId>CodeCasa.Lights.NetDaemon.Scenes</PackageId>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageIcon>ccnd_icon.png</PackageIcon>
     <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
@@ -35,14 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="CodeCasa.Lights.NetDaemon.Scenes" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NetDaemon.HassModel" Version="25.48.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CodeCasa.Lights.NetDaemon\CodeCasa.Lights.NetDaemon.csproj" />
     <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />
   </ItemGroup>
 
