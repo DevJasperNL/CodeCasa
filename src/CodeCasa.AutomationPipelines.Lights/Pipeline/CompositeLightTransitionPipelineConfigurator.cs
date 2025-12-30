@@ -7,6 +7,10 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
+    /// <summary>
+    /// Configures light transition pipelines for multiple light entities as a composite.
+    /// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
+    /// </summary>
     public partial class CompositeLightTransitionPipelineConfigurator(
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
@@ -16,24 +20,28 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     {
         public Dictionary<string, LightTransitionPipelineConfigurator> NodeContainers { get; } = nodeContainers;
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator SetName(string name)
         {
             NodeContainers.Values.ForEach(b => b.SetName(name));
             return this;
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
             NodeContainers.Values.ForEach(b => b.AddNode<TNode>());
             return this;
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator AddNode(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory)
         {
             NodeContainers.Values.ForEach(b => b.AddNode(nodeFactory));
             return this;
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
@@ -43,6 +51,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             return this;
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator AddPipeline(Action<ILightTransitionPipelineConfigurator> pipelineNodeOptions)
         {
             var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light),
@@ -51,11 +60,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             return this;
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator AddDimmer(IDimmer dimmer)
         {
             return AddDimmer(dimmer, _ => { });
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
         {
             return AddReactiveNode(c =>
@@ -64,12 +75,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             });
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator ForLight(string lightId,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([lightId], compositeNodeBuilder);
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator ForLight(ILight light,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightIds,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
         {
@@ -92,6 +106,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             return this;
         }
 
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lightEntities,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
         {

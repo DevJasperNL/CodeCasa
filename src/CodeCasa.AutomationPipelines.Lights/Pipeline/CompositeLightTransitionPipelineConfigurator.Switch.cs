@@ -11,6 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
 public partial class CompositeLightTransitionPipelineConfigurator
 {
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable>(LightParameters trueLightParameters,
         LightParameters falseLightParameters) where TObservable : IObservable<bool>
     {
@@ -18,6 +19,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch(IObservable<bool> observable, LightParameters trueLightParameters,
         LightParameters falseLightParameters)
     {
@@ -25,6 +27,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable>(Func<ILightPipelineContext, LightParameters> trueLightParametersFactory,
         Func<ILightPipelineContext, LightParameters> falseLightParametersFactory) where TObservable : IObservable<bool>
     {
@@ -32,6 +35,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch(IObservable<bool> observable, Func<ILightPipelineContext, LightParameters> trueLightParametersFactory,
         Func<ILightPipelineContext, LightParameters> falseLightParametersFactory)
     {
@@ -39,6 +43,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable>(LightTransition trueLightTransition,
         LightTransition falseLightTransition) where TObservable : IObservable<bool>
     {
@@ -46,6 +51,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch(IObservable<bool> observable, LightTransition trueLightTransition,
         LightTransition falseLightTransition)
     {
@@ -53,6 +59,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable>(Func<ILightPipelineContext, LightTransition> trueLightTransitionFactory,
         Func<ILightPipelineContext, LightTransition> falseLightTransitionFactory) where TObservable : IObservable<bool>
     {
@@ -60,6 +67,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch(IObservable<bool> observable, Func<ILightPipelineContext, LightTransition> trueLightTransitionFactory,
         Func<ILightPipelineContext, LightTransition> falseLightTransitionFactory)
     {
@@ -67,12 +75,14 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable>(Func<ILightPipelineContext, IPipelineNode<LightTransition>> trueNodeFactory, Func<ILightPipelineContext, IPipelineNode<LightTransition>> falseNodeFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.Switch<TObservable>(trueNodeFactory, falseNodeFactory));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch(IObservable<bool> observable, Func<ILightPipelineContext, IPipelineNode<LightTransition>> trueNodeFactory,
         Func<ILightPipelineContext, IPipelineNode<LightTransition>> falseNodeFactory)
     {
@@ -80,18 +90,21 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TObservable, TTrueNode, TFalseNode>() where TObservable : IObservable<bool> where TTrueNode : IPipelineNode<LightTransition> where TFalseNode : IPipelineNode<LightTransition>
     {
         NodeContainers.Values.ForEach(b => b.Switch<TObservable, TTrueNode, TFalseNode>());
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator Switch<TTrueNode, TFalseNode>(IObservable<bool> observable) where TTrueNode : IPipelineNode<LightTransition> where TFalseNode : IPipelineNode<LightTransition>
     {
         NodeContainers.Values.ForEach(b => b.Switch<TTrueNode, TFalseNode>(observable));
         return this;
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator AddReactiveNodeSwitch<TObservable>(Action<ILightTransitionReactiveNodeConfigurator> trueConfigure,
         Action<ILightTransitionReactiveNodeConfigurator> falseConfigure) where TObservable : IObservable<bool>
     {
@@ -104,6 +117,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure);
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator AddReactiveNodeSwitch(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator> trueConfigure,
         Action<ILightTransitionReactiveNodeConfigurator> falseConfigure)
     {
@@ -113,12 +127,14 @@ public partial class CompositeLightTransitionPipelineConfigurator
             .On(observable.Where(x => !x), falseConfigure));
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator> trueConfigure, Action<ILightTransitionPipelineConfigurator> falseConfigure) where TObservable : IObservable<bool>
     {
         var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return AddPipelineSwitch(observable, trueConfigure, falseConfigure);
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator AddPipelineSwitch(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator> trueConfigure,
         Action<ILightTransitionPipelineConfigurator> falseConfigure)
     {
@@ -128,11 +144,13 @@ public partial class CompositeLightTransitionPipelineConfigurator
             .On(observable.Where(x => x), falseConfigure));
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator TurnOnOff<TObservable>() where TObservable : IObservable<bool>
     {
         return Switch<TObservable>(LightTransition.On(), LightTransition.Off());
     }
 
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator TurnOnOff(IObservable<bool> observable)
     {
         return Switch(observable, LightTransition.On(), LightTransition.Off());

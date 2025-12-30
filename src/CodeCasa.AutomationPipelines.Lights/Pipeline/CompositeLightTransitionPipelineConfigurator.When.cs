@@ -11,6 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
 public partial class CompositeLightTransitionPipelineConfigurator
 {
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TObservable>(LightParameters lightParameters)
         where TObservable : IObservable<bool>
     {
@@ -18,6 +19,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When(IObservable<bool> observable,
         LightParameters lightParameters)
     {
@@ -25,6 +27,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TObservable>(
         Func<ILightPipelineContext, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
     {
@@ -32,6 +35,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When(IObservable<bool> observable,
         Func<ILightPipelineContext, LightParameters> lightParametersFactory)
     {
@@ -39,6 +43,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TObservable>(LightTransition lightTransition)
         where TObservable : IObservable<bool>
     {
@@ -46,6 +51,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When(IObservable<bool> observable,
         LightTransition lightTransition)
     {
@@ -53,6 +59,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TObservable>(
         Func<ILightPipelineContext, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
     {
@@ -60,6 +67,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When(IObservable<bool> observable,
         Func<ILightPipelineContext, LightTransition> lightTransitionFactory)
     {
@@ -67,6 +75,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TObservable>(
         Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
     {
@@ -74,6 +83,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When(IObservable<bool> observable,
         Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory)
     {
@@ -81,6 +91,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TObservable, TNode>()
         where TObservable : IObservable<bool> where TNode : IPipelineNode<LightTransition>
     {
@@ -88,6 +99,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator When<TNode>(IObservable<bool> observable)
         where TNode : IPipelineNode<LightTransition>
     {
@@ -95,6 +107,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator> configure) where TObservable : IObservable<bool>
     {
         /*
@@ -106,6 +119,7 @@ public partial class CompositeLightTransitionPipelineConfigurator
         return AddReactiveNodeWhen(observable, configure);
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
         // Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
@@ -114,12 +128,14 @@ public partial class CompositeLightTransitionPipelineConfigurator
             .PassThroughOn(observable.Where(x => !x)));
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator AddPipelineWhen<TObservable>(Action<ILightTransitionPipelineConfigurator> configure) where TObservable : IObservable<bool>
     {
         var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return AddPipelineWhen(observable, configure);
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator> configure)
     {
         // Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
@@ -128,23 +144,27 @@ public partial class CompositeLightTransitionPipelineConfigurator
             .PassThroughOn(observable.Where(x => !x)));
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator TurnOffWhen<TObservable>() where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.TurnOffWhen<TObservable>());
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator TurnOffWhen(IObservable<bool> observable)
     {
         NodeContainers.Values.ForEach(b => b.TurnOffWhen(observable));
         return this;
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator TurnOnWhen<TObservable>() where TObservable : IObservable<bool>
     {
         return When<TObservable>(LightTransition.On());
     }
 
+    /// <inheritdoc />
     public ILightTransitionPipelineConfigurator TurnOnWhen(IObservable<bool> observable)
     {
         return When(observable, LightTransition.On());
