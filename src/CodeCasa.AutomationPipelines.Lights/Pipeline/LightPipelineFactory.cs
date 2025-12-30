@@ -63,7 +63,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                     serviceProvider,
                     this,
                     reactiveNodeFactory,
-                    configurators, scheduler);
+                    configurators);
             pipelineBuilder(configurator);
 
             return configurators.ToDictionary(kvp => kvp.Key, kvp =>

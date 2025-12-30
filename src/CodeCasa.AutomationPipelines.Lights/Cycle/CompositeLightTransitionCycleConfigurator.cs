@@ -90,10 +90,10 @@ internal class CompositeLightTransitionCycleConfigurator(
         Action<ILightTransitionCycleConfigurator> configure,
         ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
-        var lightIds =
+        var lightIdArray =
             CompositeHelper.ValidateLightsSupported(lightIds, activeConfigurators.Keys);
 
-        if (lightIds.Length == activeConfigurators.Count)
+        if (lightIdArray.Length == activeConfigurators.Count)
         {
             configure(this);
             return this;
@@ -101,22 +101,22 @@ internal class CompositeLightTransitionCycleConfigurator(
 
         if (excludedLightBehaviour == ExcludedLightBehaviours.None)
         {
-            if (lightIds.Length == 1)
+            if (lightIdArray.Length == 1)
             {
-                configure(activeConfigurators[lightIds.First()]);
+                configure(activeConfigurators[lightIdArray.First()]);
                 return this;
             }
 
             configure(new CompositeLightTransitionCycleConfigurator(
-                activeConfigurators.Where(kvp => lightIds.Contains(kvp.Key))
+                activeConfigurators.Where(kvp => lightIdArray.Contains(kvp.Key))
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value), []));
             return this;
         }
 
         configure(new CompositeLightTransitionCycleConfigurator(
-            activeConfigurators.Where(kvp => lightIds.Contains(kvp.Key))
+            activeConfigurators.Where(kvp => lightIdArray.Contains(kvp.Key))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-            activeConfigurators.Where(kvp => !lightIds.Contains(kvp.Key))
+            activeConfigurators.Where(kvp => !lightIdArray.Contains(kvp.Key))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)));
         return this;
     }

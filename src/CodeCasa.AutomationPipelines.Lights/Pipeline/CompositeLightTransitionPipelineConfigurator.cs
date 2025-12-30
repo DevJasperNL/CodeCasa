@@ -11,8 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
         ReactiveNodeFactory reactiveNodeFactory,
-        Dictionary<string, LightTransitionPipelineConfigurator> nodeContainers,
-        IScheduler scheduler)
+        Dictionary<string, LightTransitionPipelineConfigurator> nodeContainers)
         : ILightTransitionPipelineConfigurator
     {
         public Dictionary<string, LightTransitionPipelineConfigurator> NodeContainers { get; } = nodeContainers;
@@ -89,8 +88,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             }
 
             compositeNodeBuilder(new CompositeLightTransitionPipelineConfigurator(serviceProvider, lightPipelineFactory, reactiveNodeFactory, NodeContainers
-                    .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                scheduler));
+                    .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)));
             return this;
         }
 
