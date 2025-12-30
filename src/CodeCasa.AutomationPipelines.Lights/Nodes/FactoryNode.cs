@@ -1,8 +1,9 @@
 ﻿namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 
-public class FactoryNode<TState>(Func<TState?, TState?> lightTransitionFactory)
+internal class FactoryNode<TState>(Func<TState?, TState?> lightTransitionFactory)
     : PipelineNode<TState>
 {
+    /// <inheritdoc />
     protected override void InputReceived(TState? input)
     {
         Output = lightTransitionFactory(input);

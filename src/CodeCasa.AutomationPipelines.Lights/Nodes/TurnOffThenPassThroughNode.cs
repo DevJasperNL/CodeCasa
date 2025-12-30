@@ -2,7 +2,7 @@
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 
-public class TurnOffThenPassThroughNode : PipelineNode<LightTransition>
+internal class TurnOffThenPassThroughNode : PipelineNode<LightTransition>
 {
     public TurnOffThenPassThroughNode()
     {
@@ -10,6 +10,7 @@ public class TurnOffThenPassThroughNode : PipelineNode<LightTransition>
         Output = LightTransition.Off();
     }
 
+    /// <inheritdoc />
     protected override void InputReceived(LightTransition? input)
     {
         TurnOnPassThroughOnNextInput();

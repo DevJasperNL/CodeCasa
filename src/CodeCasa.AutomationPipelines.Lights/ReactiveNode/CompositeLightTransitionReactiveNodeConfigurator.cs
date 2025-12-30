@@ -46,6 +46,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
 
     public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
     {
+        // todo: support.
         throw new NotSupportedException();
     }
 

@@ -1,6 +1,6 @@
 ﻿namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 
-public class PassThroughNode<TState> : PipelineNode<TState>
+internal class PassThroughNode<TState> : PipelineNode<TState>
 {
     public PassThroughNode()
     {

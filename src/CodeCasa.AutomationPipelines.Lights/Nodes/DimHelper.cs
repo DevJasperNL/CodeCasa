@@ -2,7 +2,7 @@
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 
-public class DimHelper(
+internal class DimHelper(
     ILight subject,
     IEnumerable<ILight> lightsInDimOrder,
     int minBrightness,

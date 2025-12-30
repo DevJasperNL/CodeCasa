@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
+/// <summary>
+/// A pipeline node that dynamically switches between different child nodes based on an observable source.
+/// The active node can change at runtime, allowing for reactive behavior switching.
+/// </summary>
 public class ReactiveNode : PipelineNode<LightTransition>
 {
     private readonly Lock _lock = new();
@@ -16,6 +20,12 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private IPipelineNode<LightTransition>? _activeNode;
     private IDisposable? _activeNodeSubscription;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReactiveNode"/> class.
+    /// </summary>
+    /// <param name="name">Optional name for the reactive node, used for logging purposes.</param>
+    /// <param name="nodeObservable">An observable that emits the pipeline nodes to activate. Null values deactivate the current node.</param>
+    /// <param name="logger">Optional logger for diagnostic information.</param>
     public ReactiveNode(string? name, IObservable<IPipelineNode<LightTransition>?> nodeObservable, ILogger<ReactiveNode> logger)
     {
         _name = name;
@@ -44,8 +54,12 @@ public class ReactiveNode : PipelineNode<LightTransition>
 
     private string LogPrefix => _name == null ? "" : $"{_name}: ";
 
+    /// <summary>
+    /// Gets an observable that emits whenever the active node changes.
+    /// </summary>
     public IObservable<Unit> NodeChanged => _nodeChangedSubject.AsObservable();
 
+    /// <inheritdoc />
     protected override void InputReceived(LightTransition? input)
     {
         if (_activeNode == null)
@@ -102,5 +116,6 @@ public class ReactiveNode : PipelineNode<LightTransition>
         PassThrough = false;
     }
 
+    /// <inheritdoc />
     public override string ToString() => _name ?? base.ToString();
 }

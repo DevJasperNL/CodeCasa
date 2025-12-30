@@ -12,13 +12,28 @@ using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 {
+    /// <summary>
+    /// Factory for creating reactive nodes that dynamically switch between child nodes based on observable inputs.
+    /// </summary>
     public class ReactiveNodeFactory(IServiceProvider serviceProvider, IScheduler scheduler)
     {
+        /// <summary>
+        /// Creates a reactive node for a single light entity.
+        /// </summary>
+        /// <param name="lightEntity">The light entity to create the reactive node for.</param>
+        /// <param name="configure">An action to configure the reactive node.</param>
+        /// <returns>A configured reactive node for the specified light entity.</returns>
         public IPipelineNode<LightTransition> CreateReactiveNode(ILight lightEntity, Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
             return CreateReactiveNodes([lightEntity], configure)[lightEntity.Id];
         }
 
+        /// <summary>
+        /// Creates reactive nodes for multiple light entities.
+        /// </summary>
+        /// <param name="lightEntities">The light entities to create reactive nodes for.</param>
+        /// <param name="configure">An action to configure the reactive nodes.</param>
+        /// <returns>A dictionary mapping light entity IDs to their corresponding reactive nodes.</returns>
         internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes(IEnumerable<ILight> lightEntities, Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
             // Note: we simply assume that these are not groups.
@@ -142,10 +157,16 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         }
     }
 
+    /// <summary>
+    /// A pipeline that combines a reactive node with a reactive dimmer node for managing light transitions.
+    /// </summary>
     internal class ReactiveDimmerPipeline : Pipeline<LightTransition>
     {
         private readonly IRegisterInterface<ReactiveDimmerPipeline> _registerInterface;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReactiveDimmerPipeline"/> class.
+        /// </summary>
         public ReactiveDimmerPipeline(
             ReactiveNode reactiveNode, 
             ReactiveDimmerNode reactiveDimmerNode,
@@ -157,6 +178,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             RegisterNode(reactiveDimmerNode);
         }
 
+        /// <inheritdoc />
         public override ValueTask DisposeAsync()
         {
             _registerInterface.Unregister(this);
@@ -164,12 +186,25 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         }
     }
 
+    /// <summary>
+    /// Interface for managing registrations and tracking when the last item is unregistered.
+    /// </summary>
     internal interface IRegisterInterface<in T>
     {
+        /// <summary>
+        /// Registers an item.
+        /// </summary>
         void Register(T reference);
+
+        /// <summary>
+        /// Unregisters an item.
+        /// </summary>
         void Unregister(T reference);
     }
 
+    /// <summary>
+    /// Manages registration of items and notifies when the last item is unregistered.
+    /// </summary>
     internal sealed class RegistrationManager<T> : IRegisterInterface<T>, IDisposable
     {
         private readonly HashSet<T> _items = new();
@@ -177,8 +212,12 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         private readonly Subject<Unit> _lastUnregistered = new ();
         private bool _isDisposed;
 
+        /// <summary>
+        /// Gets an observable that emits when the last registered item is unregistered.
+        /// </summary>
         public IObservable<Unit> LastUnregistered => _lastUnregistered;
 
+        /// <inheritdoc />
         public void Register(T reference)
         {
             lock (_lock)
@@ -188,6 +227,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             }
         }
 
+        /// <inheritdoc />
         public void Unregister(T reference)
         {
             bool becameEmpty = false;
@@ -205,6 +245,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 _lastUnregistered.OnNext(Unit.Default);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             lock (_lock)

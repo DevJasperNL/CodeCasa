@@ -5,9 +5,9 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
-    public class ResettableTimeoutNode<T> : LightTransitionNode
-    {
-        public ResettableTimeoutNode(IPipelineNode<LightTransition> childNode, TimeSpan turnOffTime, IObservable<T> refreshObservable, IScheduler scheduler) : base(scheduler)
+    internal class ResettableTimeoutNode<T> : LightTransitionNode{
+        public ResettableTimeoutNode(IPipelineNode<LightTransition> childNode, TimeSpan turnOffTime,
+            IObservable<T> refreshObservable, IScheduler scheduler) : base(scheduler)
         {
             var serializedChild = childNode.OnNewOutput.Prepend(childNode.Output).ObserveOn(scheduler);
 
@@ -20,16 +20,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             serializedChild
                 .TakeUntil(serializedTurnOff)
-                .Subscribe(output =>
-                {
-                    Output = output;
-                });
+                .Subscribe(output => { Output = output; });
 
             serializedTurnOff
-                .Subscribe(_ =>
-                {
-                    ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition.Off());
-                });
+                .Subscribe(_ => { ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition.Off()); });
         }
     }
 }

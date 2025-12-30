@@ -4,19 +4,36 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 {
-    // todo: investigate why off is sent twice in a row
+    /// <summary>
+    /// Represents the context for dimming operations, containing the ordered output parameters of all dimmer nodes.
+    /// </summary>
+    /// <param name="dimmerNodeOutputParametersInOrder">An array of tuples containing entity IDs and their current light parameters, ordered for dimming operations.</param>
     public class DimmingContext(
         (string entityId, LightParameters? parametersAfterDim)[] dimmerNodeOutputParametersInOrder)
     {
+        /// <summary>
+        /// Gets the ordered output parameters of all dimmer nodes, used to coordinate dimming behavior across multiple lights.
+        /// </summary>
         public (string entityId, LightParameters? parametersAfterDim)[] DimmerNodeOutputParametersInOrder { get; } = dimmerNodeOutputParametersInOrder;
     }
 
+    /// <summary>
+    /// A light transition node that handles dimming and brightening operations in response to dimmer input.
+    /// </summary>
     internal class ReactiveDimmerNode : LightTransitionNode
     {
         private readonly int _minBrightness;
         private readonly int _brightnessStep;
         private int _dimSteps; // negative is dimming, positive is brightening.
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReactiveDimmerNode"/> class.
+        /// </summary>
+        /// <param name="reactiveNode">The reactive node to monitor for state changes.</param>
+        /// <param name="lightEntityId">The entity ID of the light this dimmer node controls.</param>
+        /// <param name="minBrightness">The minimum brightness level before the light turns off.</param>
+        /// <param name="brightnessStep">The step size for each dimming/brightening increment.</param>
+        /// <param name="scheduler">The scheduler used for timing operations.</param>
         public ReactiveDimmerNode(
             ReactiveNode reactiveNode,
             string lightEntityId,
@@ -32,14 +49,21 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             _brightnessStep = brightnessStep;
         }
 
+        /// <summary>
+        /// Gets the entity ID of the light this dimmer node controls.
+        /// </summary>
         public string LightEntityId { get; }
 
+        /// <summary>
+        /// Resets the dimming state back to pass-through mode.
+        /// </summary>
         public void Reset()
         {
             PassThrough = true;
             _dimSteps = 0;
         }
 
+        /// <inheritdoc />
         protected override void InputReceived(LightTransition? input)
         {
             if (input == null)
@@ -52,6 +76,10 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             Output = input with { LightParameters = input.LightParameters with { Brightness = newBrightness } };
         }
 
+        /// <summary>
+        /// Executes one step of dimming in response to dimmer input.
+        /// </summary>
+        /// <param name="context">The dimming context containing current light parameters.</param>
         public void DimStep(DimmingContext context)
         {
             if (!ShouldDim(context))
@@ -68,6 +96,10 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             ScheduleInterpolatedLightTransition();
         }
 
+        /// <summary>
+        /// Executes one step of brightening in response to dimmer input.
+        /// </summary>
+        /// <param name="context">The dimming context containing current light parameters.</param>
         public void BrightenStep(DimmingContext context)
         {
             if (!ShouldBrighten(context))

@@ -4,8 +4,16 @@ using CodeCasa.Abstractions;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
+    /// <summary>
+    /// A composite dimmer that combines multiple dimmers and emits true when any of them are actively dimming or brightening.
+    /// </summary>
     public class CompositeDimmer : IDimmer
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CompositeDimmer"/> class.
+        /// </summary>
+        /// <param name="dimmers">The collection of dimmers to combine. Must contain at least one dimmer.</param>
+        /// <exception cref="ArgumentException">Thrown when the dimmers collection is null or empty.</exception>
         public CompositeDimmer(IEnumerable<IDimmer> dimmers)
         {
             dimmers = dimmers.ToArray();
@@ -23,8 +31,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 .DistinctUntilChanged();
         }
 
+        /// <inheritdoc />
         public IObservable<bool> Dimming { get; }
 
+        /// <inheritdoc />
         public IObservable<bool> Brightening { get; }
     }
 }
