@@ -10,7 +10,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Factory for creating and configuring light transition pipelines.
     /// </summary>
     public class LightPipelineFactory(
-        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider, ReactiveNodeFactory reactiveNodeFactory, IScheduler scheduler)
+        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider, ReactiveNodeFactory reactiveNodeFactory)
     {
         /// <summary>
         /// Sets up a light pipeline for the specified light and configures it with the provided builder action.

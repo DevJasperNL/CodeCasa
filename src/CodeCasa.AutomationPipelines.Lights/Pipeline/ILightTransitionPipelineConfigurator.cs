@@ -5,6 +5,10 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
+/// <summary>
+/// Configures a light transition pipeline for controlling light behavior through layered logic nodes.
+/// Supports adding nodes, reactive nodes, dimmers, and conditional logic with When/Switch operators.
+/// </summary>
 public partial interface ILightTransitionPipelineConfigurator
 {
     /// <summary>

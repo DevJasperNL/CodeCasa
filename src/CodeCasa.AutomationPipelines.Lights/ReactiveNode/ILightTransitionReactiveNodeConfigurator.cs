@@ -4,6 +4,10 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
+/// <summary>
+/// Configures a light transition reactive node for controlling light behavior through reactive event handling.
+/// Supports adding reactive dimmers, uncoupled dimmers, dynamic node sources, and scoped configurations.
+/// </summary>
 public partial interface ILightTransitionReactiveNodeConfigurator
 {
     /// <summary>

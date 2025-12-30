@@ -4,7 +4,7 @@ using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Extensions
 {
-    public static class ObservableExtensions
+    internal static class ObservableExtensions
     {
         public static IObservable<Unit> ToPulsesWhenTrue(this IObservable<bool> source, TimeSpan timeBetweenPulses, IScheduler scheduler)
         {

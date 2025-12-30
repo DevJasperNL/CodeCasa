@@ -26,6 +26,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// Adds light parameters to the cycle. The cycle will advance to these parameters when the current state matches the previous entry in the cycle.
         /// </summary>
         /// <param name="lightParameters">The light parameters to add to the cycle.</param>
+        /// <param name="comparer">An optional equality comparer for determining if light parameters match. If null, the default equality comparison is used.</param>
         /// <returns>The configurator instance for method chaining.</returns>
         ILightTransitionCycleConfigurator Add(LightParameters lightParameters, IEqualityComparer<LightParameters>? comparer = null);
 
@@ -52,6 +53,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// Adds a light transition to the cycle. The cycle will advance to this transition when the current state matches the previous entry in the cycle.
         /// </summary>
         /// <param name="lightTransition">The light transition to add to the cycle.</param>
+        /// <param name="comparer">An optional equality comparer for determining if light parameters match. If null, the default equality comparison is used.</param>
         /// <returns>The configurator instance for method chaining.</returns>
         ILightTransitionCycleConfigurator Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null);
 
