@@ -46,21 +46,7 @@ public partial class CompositeLightTransitionReactiveNodeConfigurator(
 
     public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
     {
-        var options = new DimmerOptions();
-        dimOptions(options);
-
-        var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
-        var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
-
-        var configuratorsWithLightEntity = options.ValidateAndOrderMultipleLightEntityTypes(configurators).Select(kvp => (configurator: kvp.Value, lightId: kvp.Key)).ToArray();
-        var lightEntitiesInDimOrder = configuratorsWithLightEntity.Select(t => t.lightId).ToArray();
-        foreach (var containerAndLight in configuratorsWithLightEntity)
-        {
-            // Note: this is not strictly required, but I think it's neater and might prevent issues.
-            var lightEntitiesInDimOrderWithContainerInstance = lightEntitiesInDimOrder.Select(l => l == containerAndLight.lightId ? containerAndLight.lightId : l);
-            containerAndLight.configurator.AddDimPulses(options, lightEntitiesInDimOrderWithContainerInstance, dimPulses, brightenPulses);
-        }
-        return this;
+        throw new NotSupportedException();
     }
 
     public ILightTransitionReactiveNodeConfigurator AddNodeSource(IObservable<Func<ILightPipelineContext, IPipelineNode<LightTransition>?>> nodeFactorySource)
