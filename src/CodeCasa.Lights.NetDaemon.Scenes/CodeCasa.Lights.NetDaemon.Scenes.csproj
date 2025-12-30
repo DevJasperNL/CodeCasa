@@ -16,7 +16,6 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageIcon>ccnd_icon.png</PackageIcon>
     <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
-    <Version>1.7.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
