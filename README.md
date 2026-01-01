@@ -263,6 +263,103 @@ In this example:
 
 The output handler is called whenever the final result changes, keeping logic reactive and centralized.
 
+## CodeCasa.AutomationPipelines.Lights
+
+Light automation pipeline extensions applying the **AutomationPipelines** pattern specifically to light control logic.
+
+**Features include:**
+
+- **Composable Light Pipelines** – Chain light control nodes together to build sophisticated automation logic.
+- **Reactive Nodes** – Automatically respond to observable state changes (e.g., motion detection, time-based conditions).
+- **Conditional Logic** – Use `When()` and `Switch()` operators to apply light parameters based on boolean observables.
+- **Dimmer Integration** – Control brightness progression through dimmer devices within the pipeline.
+- **Light Groups** – Scope pipeline nodes to specific lights or light groups.
+- **Nested Pipelines** – Compose pipelines hierarchically for modular, maintainable light automation.
+
+### Overview
+
+This library extends the core `CodeCasa.AutomationPipelines` with light-specific pipeline nodes and configurators. Instead of writing conditional logic for individual lights, you can build declarative pipelines that automatically respond to changes in your environment.
+
+For example, a single pipeline can orchestrate multiple conditions—motion detection, time of day, presence—and translate them into appropriate light settings, all while remaining easy to read and modify.
+
+### Usage
+
+#### Basic Light Pipeline Setup
+
+Register the light pipeline services:
+
+```cs
+serviceCollection.AddLightPipelines();
+```
+
+Set up a light pipeline for a single light:
+
+```cs
+[NetDaemonApp]
+internal class LightAutomation
+{
+    public LightAutomation(LightPipelineFactory lightPipelineFactory, LightEntities lightEntities)
+    {
+        lightPipelineFactory.SetupLightPipeline(lightEntities.LivingRoomLight, pipeline =>
+        {
+            pipeline
+                .SetName("Living Room Automation")
+                .When(motionDetected, new LightParameters { Brightness = 255 })
+                .When(timeIsNight, LightSceneTemplates.NightLight)
+                .TurnOffWhen(nobodyHome);
+        });
+    }
+}
+```
+
+#### Controlling with Dimmers
+
+Add dimmer control to modulate brightness within the pipeline:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntities.KitchenLight, pipeline =>
+{
+    pipeline
+        .When(morningTime, LightSceneTemplates.Bright)
+        .AddDimmer(kitchenDimmer, dimOptions =>
+        {
+            dimOptions.MinBrightness = 50;
+            dimOptions.MaxBrightness = 255;
+        });
+});
+```
+
+#### Working with Light Groups
+
+Configure pipelines for multiple lights or light groups:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntities.AllBedroomLights, pipeline =>
+{
+    pipeline
+        .ForLights(new[] { "light.bedroom_main", "light.bedroom_accent" }, subPipeline =>
+        {
+            subPipeline
+                .When(bedtimeRoutine, LightSceneTemplates.NightLight)
+                .AddDimmer(bedroomDimmer);
+        })
+        .TurnOffWhen(allAsleep);
+});
+```
+
+### NetDaemon Integration
+
+For NetDaemon-based automations, use the `SetupLightPipeline` extension method:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntity, pipeline =>
+{
+    // Configure pipeline for NetDaemon light entity
+});
+```
+
+This adapts NetDaemon light entities to the pipeline framework automatically.
+
 ## CodeCasa.NetDaemon.Notifications.Phone
 
 This library provides the `PhoneNotificationEntity` class, making it easy to create, update, and manage phone notifications in Home Assistant.
