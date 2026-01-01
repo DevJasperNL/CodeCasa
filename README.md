@@ -4,7 +4,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/DevJasperNL/CodeCasa?label=Release)](https://github.com/DevJasperNL/CodeCasa/releases/latest)
 [![Build Status](https://github.com/DevJasperNL/CodeCasa/actions/workflows/ci-build-and-test.yml/badge.svg)](https://github.com/DevJasperNL/CodeCasa/actions/workflows/ci-build-and-test.yml)
 
-A collection of .NET libraries providing NetDaemon extensions alongside general purpose smart home automation utilities.
+A collection of .NET libraries providing [NetDaemon](https://github.com/net-daemon/netdaemon) extensions alongside general purpose smart home automation utilities.
 
 ## 📖 Table of Contents
 
@@ -36,9 +36,9 @@ A collection of .NET libraries providing NetDaemon extensions alongside general 
     - [Automatic Color Mode Detection](#automatic-color-mode-detection)
     - [Getting Current Light State](#getting-current-light-state)
     - [Working with Light Groups](#working-with-light-groups-1)
-- [CodeCasa.NetDaemon.Notifications.Phone](#codecasanetdaemonnotificationsphone)
+- [CodeCasa.Notifications.Phone.NetDaemon](#codecasanetdaemonnotificationsphone)
   - [Usage](#usage-3)
-- [CodeCasa.NetDaemon.Notifications.InputSelect](#codecasanetdaemonnotificationsinputselect)
+- [CodeCasa.Notifications.InputSelect.NetDaemon](#codecasanetdaemonnotificationsinputselect)
   - [Usage](#usage-4)
 - [CodeCasa.NetDaemon.RuntimeState](#codecasanetdaemonruntimestate)
   - [Runtime States](#runtime-states)
@@ -69,8 +69,8 @@ Package | Description
 Package | Description
 --- |---
 [CodeCasa.Lights.NetDaemon](#codecasalightsnetdaemon) | NetDaemon integration for light entities, enabling Home Assistant light control with `CodeCasa.Lights` abstractions.
-[CodeCasa.NetDaemon.Notifications.Phone](#codecasanetdaemonnotificationsphone) | This library provides the `PhoneNotificationEntity` class, making it easy to create, update, and manage phone notifications in Home Assistant.
-[CodeCasa.NetDaemon.Notifications.InputSelect](#codecasanetdaemonnotificationsinputselect) | This library helps you turn a Home Assistant Dropdown/InputSelect helper entity into a dynamic notifications list.
+[CodeCasa.Notifications.Phone.NetDaemon](#codecasanetdaemonnotificationsphone) | This library provides the `PhoneNotificationEntity` class, making it easy to create, update, and manage phone notifications in Home Assistant.
+[CodeCasa.Notifications.InputSelect.NetDaemon](#codecasanetdaemonnotificationsinputselect) | This library helps you turn a Home Assistant Dropdown/InputSelect helper entity into a dynamic notifications list.
 [CodeCasa.NetDaemon.RuntimeState](#codecasanetdaemonruntimestate) | This library provides the `NetDaemonRuntimeStateService`, which allows you to check and subscribe to the runtime state of `NetDaemon`.
 [CodeCasa.NetDaemon.TypedEntities](#codecasanetdaemontypedentities) | Strongly-typed wrappers for Home Assistant entities in `NetDaemon`.
 [CodeCasa.NetDaemon.Extensions.Observables](#codecasanetdaemonextensionsobservables) | Collection of extension methods meant to enhance NetDaemon entities with boolean observables allowing for a more intuitive coding experience.
@@ -367,7 +367,7 @@ lightPipelineFactory.SetupLightPipeline(lightEntity, pipeline =>
 
 This adapts NetDaemon light entities to the pipeline framework automatically.
 
-## CodeCasa.NetDaemon.Notifications.Phone
+## CodeCasa.Notifications.Phone.NetDaemon
 
 This library provides the `PhoneNotificationEntity` class, making it easy to create, update, and manage phone notifications in Home Assistant.
 
@@ -490,7 +490,7 @@ foreach (var light in flattened)
     light.ApplyTransition(LightSceneTemplates.Bright.AsTransition());
 }
 
-## CodeCasa.NetDaemon.Notifications.InputSelect
+## CodeCasa.Notifications.InputSelect.NetDaemon
 
 This library helps you turn a Home Assistant Dropdown/InputSelect helper entity into a dynamic notifications list.
 
