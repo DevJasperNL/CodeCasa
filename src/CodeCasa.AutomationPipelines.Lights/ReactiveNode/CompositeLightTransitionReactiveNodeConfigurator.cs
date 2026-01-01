@@ -55,8 +55,20 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator(
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
     {
-        // todo: support.
-        throw new NotSupportedException();
+        var options = new DimmerOptions();
+        dimOptions(options);
+
+        var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
+        var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
+
+        var configuratorsInOrder = options.ValidateAndOrderMultipleLightTypes(configurators).Select(kvp => kvp.Value).ToArray();
+        foreach (var configurator in configuratorsInOrder)
+        {
+            var lightEntitiesInDimOrder = configuratorsInOrder.Select(c => c.Light);
+            configurator.AddDimPulses(options, lightEntitiesInDimOrder, dimPulses, brightenPulses);
+        }
+        return this;
+
     }
 
     /// <inheritdoc/>
