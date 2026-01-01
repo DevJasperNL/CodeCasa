@@ -136,10 +136,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// <summary>
         /// Creates a scoped toggle configuration for multiple light entities.
         /// </summary>
-        /// <param name="lightEntities">The light entities to configure.</param>
+        /// <param name="lights">The light entities to configure.</param>
         /// <param name="configure">An action to configure the toggle for these lights.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionToggleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
     }
 }

@@ -92,9 +92,9 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Creates a scoped reactive node configuration for multiple light entities.
     /// </summary>
-    /// <param name="lightEntities">The light entities to configure.</param>
+    /// <param name="lights">The light entities to configure.</param>
     /// <param name="configure">An action to configure the reactive node for these lights.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lightEntities,
+    ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lights,
         Action<ILightTransitionReactiveNodeConfigurator> configure);
 }

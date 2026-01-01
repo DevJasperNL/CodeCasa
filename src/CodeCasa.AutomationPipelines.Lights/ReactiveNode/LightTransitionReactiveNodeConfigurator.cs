@@ -119,10 +119,10 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lightEntities,
+    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lights,
         Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
-        CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
+        CompositeHelper.ResolveGroupsAndValidateLightSupported(lights, Light.Id);
         return this;
     }
 }

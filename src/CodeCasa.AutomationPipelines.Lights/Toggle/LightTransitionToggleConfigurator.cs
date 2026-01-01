@@ -107,9 +107,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return this;
         }
 
-        public ILightTransitionToggleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+        public ILightTransitionToggleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
         {
-            CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
+            CompositeHelper.ResolveGroupsAndValidateLightSupported(lights, Light.Id);
             return this;
         }
 

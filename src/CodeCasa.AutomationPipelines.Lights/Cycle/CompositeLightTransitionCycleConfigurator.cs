@@ -121,9 +121,9 @@ internal class CompositeLightTransitionCycleConfigurator(
         return this;
     }
 
-    public ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+    public ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
-        var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lightEntities, activeConfigurators.Keys);
+        var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, activeConfigurators.Keys);
         return ForLights(lightIds, configure, excludedLightBehaviour);
     }
 }

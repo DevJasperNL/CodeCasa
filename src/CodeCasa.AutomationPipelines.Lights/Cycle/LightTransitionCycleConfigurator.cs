@@ -90,9 +90,9 @@ internal class LightTransitionCycleConfigurator(ILight light, IScheduler schedul
         return this;
     }
 
-    public ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+    public ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
-        CompositeHelper.ResolveGroupsAndValidateLightSupported(lightEntities, Light.Id);
+        CompositeHelper.ResolveGroupsAndValidateLightSupported(lights, Light.Id);
         return this;
     }
 }

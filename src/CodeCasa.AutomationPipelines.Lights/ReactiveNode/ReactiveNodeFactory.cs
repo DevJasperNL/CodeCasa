@@ -31,13 +31,13 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// <summary>
         /// Creates reactive nodes for multiple light entities.
         /// </summary>
-        /// <param name="lightEntities">The light entities to create reactive nodes for.</param>
+        /// <param name="lights">The light entities to create reactive nodes for.</param>
         /// <param name="configure">An action to configure the reactive nodes.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding reactive nodes.</returns>
-        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes(IEnumerable<ILight> lightEntities, Action<ILightTransitionReactiveNodeConfigurator> configure)
+        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes(IEnumerable<ILight> lights, Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
             // Note: we simply assume that these are not groups.
-            var lightArray = lightEntities.ToArray();
+            var lightArray = lights.ToArray();
             if (!lightArray.Any())
             {
                 return new Dictionary<string, IPipelineNode<LightTransition>>();
