@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.AutomationPipeline
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Lights.NetDaemon.Scenes", "src\CodeCasa.Lights.NetDaemon.Scenes\CodeCasa.Lights.NetDaemon.Scenes.csproj", "{AA5FEE82-9A79-4AA7-BC3E-4769638FF8A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.AutomationPipelines.Lights.Tests", "tests\CodeCasa.AutomationPipelines.Lights.Tests\CodeCasa.AutomationPipelines.Lights.Tests.csproj", "{96DB93C1-036A-436A-AF7A-AEC07243A929}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,10 @@ Global
 		{AA5FEE82-9A79-4AA7-BC3E-4769638FF8A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA5FEE82-9A79-4AA7-BC3E-4769638FF8A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA5FEE82-9A79-4AA7-BC3E-4769638FF8A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96DB93C1-036A-436A-AF7A-AEC07243A929}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DB93C1-036A-436A-AF7A-AEC07243A929}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96DB93C1-036A-436A-AF7A-AEC07243A929}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96DB93C1-036A-436A-AF7A-AEC07243A929}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,6 +122,7 @@ Global
 		{E2FA49AB-BFC2-4DDD-B743-F5AAB96F3FEC} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
 		{FA26C18B-24D0-4F3D-958C-A9BA61861C65} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
 		{5C7FB111-095B-F881-7268-4284370C8AAA} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
+		{96DB93C1-036A-436A-AF7A-AEC07243A929} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5AAE8D3A-9457-4676-8F57-B2D78594CCC7}

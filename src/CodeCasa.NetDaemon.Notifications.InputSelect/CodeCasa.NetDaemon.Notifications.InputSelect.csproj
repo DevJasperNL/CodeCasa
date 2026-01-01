@@ -36,11 +36,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>NetDaemon.Notifications.InputSelect.Tests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="NetDaemon.Notifications.InputSelect.Tests" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,13 +13,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
     public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<LightTransition>
     {
         private readonly Subject<LightTransition?> _newOutputSubject = new();
-        private LightTransition? _input;
         private LightParameters? _inputLightDestinationParameters;
         private DateTime? _inputStartOfTransition;
         private DateTime? _inputEndOfTransition;
         private LightTransition? _output;
         private bool _passThroughNextInput;
-        private bool _passThrough;
         private IDisposable? _scheduledAction;
 
         /// <summary>
@@ -33,29 +31,31 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         /// <inheritdoc />
         public LightTransition? Input
         {
-            get => _input;
+            get;
             set
             {
                 _scheduledAction?.Dispose(); // Always cancel scheduled actions when the input changes.
                 // We save additional information on the light transition that we can later use to continue the transition if it would be interrupted.
                 InputLightSourceParameters = _inputLightDestinationParameters;
-                _input = value;
+                field = value;
                 _inputLightDestinationParameters = value?.LightParameters;
                 var transitionTime = value?.TransitionTime;
                 _inputStartOfTransition = DateTime.UtcNow;
-                _inputEndOfTransition = transitionTime == null ? null : _inputStartOfTransition + transitionTime;
+                _inputEndOfTransition = _inputStartOfTransition + transitionTime;
 
                 if (_passThroughNextInput)
                 {
                     PassThrough = true;
                     return;
                 }
+
                 if (PassThrough)
                 {
-                    SetOutputInternal(_input);
+                    SetOutputInternal(field);
                     return;
                 }
-                InputReceived(_input);
+
+                InputReceived(field);
             }
         }
 
@@ -110,24 +110,25 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         /// </summary>
         public bool PassThrough
         {
-            get => _passThrough;
+            get;
             set
             {
                 // Always reset _passThroughNextInput when PassThrough is explicitly called.
                 _passThroughNextInput = false;
 
-                if (_passThrough == value)
+                if (field == value)
                 {
                     return;
                 }
 
                 _scheduledAction?.Dispose(); // Always cancel scheduled actions when the pass through value changes.
 
-                _passThrough = value;
-                if (_passThrough)
+                field = value;
+                if (field)
                 {
                     _scheduledAction = scheduler.ScheduleInterpolatedLightTransition(InputLightSourceParameters,
-                        _inputLightDestinationParameters, _inputStartOfTransition, _inputEndOfTransition, SetOutputInternal);
+                        _inputLightDestinationParameters, _inputStartOfTransition, _inputEndOfTransition,
+                        SetOutputInternal);
                 }
             }
         }

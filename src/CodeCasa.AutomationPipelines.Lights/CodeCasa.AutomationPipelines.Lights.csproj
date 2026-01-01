@@ -17,6 +17,10 @@
     <PackageIcon>cc_icon.png</PackageIcon>
     <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="CodeCasa.AutomationPipelines.Lights.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\LICENSE">
