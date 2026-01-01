@@ -4,7 +4,34 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>CodeCasa.Notifications.Lights</Title>
+    <Authors>Jasper Lammers</Authors>
+    <Company>DevJasper</Company>
+    <Description>Light notification system for CodeCasa, enabling visual alerts and notifications using smart lights.</Description>
+    <RepositoryUrl>https://github.com/DevJasperNL/CodeCasa</RepositoryUrl>
+    <PackageTags>Home Automation;Home Assistant;HA Integration;Smart Home;Automation;Lights;Light;Notification;Notifications;Alert;Alerts;C#;.NET;DotNet</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageId>CodeCasa.Notifications.Lights</PackageId>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageIcon>cc_icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\img\cc_icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CodeCasa.AutomationPipelines.Lights\CodeCasa.AutomationPipelines.Lights.csproj" />
