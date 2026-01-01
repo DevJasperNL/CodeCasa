@@ -1,9 +1,9 @@
 ﻿using System.Drawing;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CodeCasa.NetDaemon.Notifications.InputSelect.Helpers;
+using CodeCasa.Notifications.InputSelect.NetDaemon.Helpers;
 
-namespace CodeCasa.NetDaemon.Notifications.InputSelect.Config;
+namespace CodeCasa.Notifications.InputSelect.NetDaemon.Config;
 
 /// <summary>
 /// Default implementation of <see cref="IInputSelectNotificationConfig"/> provided by the library.

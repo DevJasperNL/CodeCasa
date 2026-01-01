@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.NetDaemon.Notifications.InputSelect.Helpers
+﻿namespace CodeCasa.Notifications.InputSelect.NetDaemon.Helpers
 {
     /// <summary>
     /// Provides helper methods for shortening text messages while preserving readability.

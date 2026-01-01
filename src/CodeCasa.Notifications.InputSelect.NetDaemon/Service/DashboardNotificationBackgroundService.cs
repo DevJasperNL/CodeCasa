@@ -1,13 +1,13 @@
 ﻿using System.Reactive.Concurrency;
-using CodeCasa.NetDaemon.Notifications.InputSelect.Config;
-using CodeCasa.NetDaemon.Notifications.InputSelect.Interact;
 using CodeCasa.NetDaemon.RuntimeState;
+using CodeCasa.Notifications.InputSelect.NetDaemon.Config;
+using CodeCasa.Notifications.InputSelect.NetDaemon.Interact;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NetDaemon.HassModel;
 using NetDaemon.HassModel.Entities;
 
-namespace CodeCasa.NetDaemon.Notifications.InputSelect.Service;
+namespace CodeCasa.Notifications.InputSelect.NetDaemon.Service;
 
 internal class DashboardNotificationBackgroundService(
     IServiceProvider serviceProvider,

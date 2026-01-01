@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.NetDaemon.Notifications.Phone.Config;
+﻿namespace CodeCasa.Notifications.Phone.NetDaemon.Config;
 
 /// <summary>
 /// Represents an action that can be performed directly from a notification (e.g., opening an app, URL, or executing a command).

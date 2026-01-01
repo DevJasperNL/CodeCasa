@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CodeCasa.NetDaemon.Notifications.InputSelect\CodeCasa.NetDaemon.Notifications.InputSelect.csproj" />
+    <ProjectReference Include="..\..\src\CodeCasa.Notifications.InputSelect.NetDaemon\CodeCasa.Notifications.InputSelect.NetDaemon.csproj" />
   </ItemGroup>
 
   <ItemGroup>

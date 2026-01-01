@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.NetDaemon.Notifications.Phone.Extensions;
+﻿namespace CodeCasa.Notifications.Phone.NetDaemon.Extensions;
 
 internal static class DateTimeExtensions
 {

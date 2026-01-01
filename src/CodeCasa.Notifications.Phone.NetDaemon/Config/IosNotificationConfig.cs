@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.NetDaemon.Notifications.Phone.Config;
+﻿namespace CodeCasa.Notifications.Phone.NetDaemon.Config;
 
 /// <summary>
 /// Configuration options specific to iOS notifications.

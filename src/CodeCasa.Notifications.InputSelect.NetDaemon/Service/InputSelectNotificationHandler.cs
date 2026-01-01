@@ -1,12 +1,12 @@
 ﻿using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Text.Json.Serialization;
-using CodeCasa.NetDaemon.Notifications.InputSelect.Config;
-using CodeCasa.NetDaemon.Notifications.InputSelect.Interact;
+using CodeCasa.Notifications.InputSelect.NetDaemon.Config;
+using CodeCasa.Notifications.InputSelect.NetDaemon.Interact;
 using NetDaemon.HassModel;
 using NetDaemon.HassModel.Entities;
 
-namespace CodeCasa.NetDaemon.Notifications.InputSelect.Service;
+namespace CodeCasa.Notifications.InputSelect.NetDaemon.Service;
 
 internal class InputSelectNotificationHandler : IDisposable
 {

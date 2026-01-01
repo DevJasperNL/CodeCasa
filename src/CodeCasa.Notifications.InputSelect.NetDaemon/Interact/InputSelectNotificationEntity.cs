@@ -1,7 +1,7 @@
 ﻿
-using CodeCasa.NetDaemon.Notifications.InputSelect.Config;
+using CodeCasa.Notifications.InputSelect.NetDaemon.Config;
 
-namespace CodeCasa.NetDaemon.Notifications.InputSelect.Interact
+namespace CodeCasa.Notifications.InputSelect.NetDaemon.Interact
 {
     /// <summary>
     /// Abstract base class that acts as a convenient wrapper around <see cref="IInputSelectNotificationEntity"/>.
