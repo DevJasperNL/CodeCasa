@@ -4,7 +4,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/DevJasperNL/CodeCasa?label=Release)](https://github.com/DevJasperNL/CodeCasa/releases/latest)
 [![Build Status](https://github.com/DevJasperNL/CodeCasa/actions/workflows/ci-build-and-test.yml/badge.svg)](https://github.com/DevJasperNL/CodeCasa/actions/workflows/ci-build-and-test.yml)
 
-A collection of .NET libraries providing NetDaemon extensions alongside general purpose smart home automation utilities.
+A collection of .NET libraries providing [NetDaemon](https://github.com/net-daemon/netdaemon) extensions alongside general purpose smart home automation utilities.
 
 ## 📖 Table of Contents
 
