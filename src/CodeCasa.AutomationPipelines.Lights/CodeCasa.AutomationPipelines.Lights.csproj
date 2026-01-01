@@ -19,6 +19,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <InternalsVisibleTo Include="CodeCasa.Notifications.Lights" />
     <InternalsVisibleTo Include="CodeCasa.AutomationPipelines.Lights.Tests" />
   </ItemGroup>
 
