@@ -22,22 +22,29 @@ A collection of .NET libraries providing NetDaemon extensions alongside general 
   - [Why use AutomationPipelines?](#why-use-automationpipelines)
   - [Real-World Usage](#real-world-usage)
   - [Example](#example)
-- [CodeCasa.Lights.NetDaemon](#codecasalightsnetdaemon)
+- [CodeCasa.AutomationPipelines.Lights](#codecasaautomationpipelineslights)
   - [Overview](#overview-1)
   - [Usage](#usage-1)
+    - [Basic Light Pipeline Setup](#basic-light-pipeline-setup)
+    - [Controlling with Dimmers](#controlling-with-dimmers)
+    - [Working with Light Groups](#working-with-light-groups)
+    - [NetDaemon Integration](#netdaemon-integration)
+- [CodeCasa.Lights.NetDaemon](#codecasalightsnetdaemon)
+  - [Overview](#overview-2)
+  - [Usage](#usage-2)
     - [Applying Transitions to NetDaemon Lights](#applying-transitions-to-netdaemon-lights)
     - [Automatic Color Mode Detection](#automatic-color-mode-detection)
     - [Getting Current Light State](#getting-current-light-state)
     - [Working with Light Groups](#working-with-light-groups-1)
 - [CodeCasa.NetDaemon.Notifications.Phone](#codecasanetdaemonnotificationsphone)
-  - [Usage](#usage-2)
-- [CodeCasa.NetDaemon.Notifications.InputSelect](#codecasanetdaemonnotificationsinputselect)
   - [Usage](#usage-3)
+- [CodeCasa.NetDaemon.Notifications.InputSelect](#codecasanetdaemonnotificationsinputselect)
+  - [Usage](#usage-4)
 - [CodeCasa.NetDaemon.RuntimeState](#codecasanetdaemonruntimestate)
   - [Runtime States](#runtime-states)
-  - [Usage](#usage-4)
-- [CodeCasa.NetDaemon.TypedEntities](#codecasanetdaemontypedentities)
   - [Usage](#usage-5)
+- [CodeCasa.NetDaemon.TypedEntities](#codecasanetdaemontypedentities)
+  - [Usage](#usage-6)
     - [Base Class (optional)](#base-class-optional)
     - [Concrete Wrapper Example](#concrete-wrapper-example)
     - [Another Example: PersonEntity](#another-example-personentity)
@@ -262,6 +269,103 @@ In this example:
 * The `CherryOnTopMessageNode` decorates the result with additional context.
 
 The output handler is called whenever the final result changes, keeping logic reactive and centralized.
+
+## CodeCasa.AutomationPipelines.Lights
+
+Light automation pipeline extensions applying the **AutomationPipelines** pattern specifically to light control logic.
+
+**Features include:**
+
+- **Composable Light Pipelines** – Chain light control nodes together to build sophisticated automation logic.
+- **Reactive Nodes** – Automatically respond to observable state changes (e.g., motion detection, time-based conditions).
+- **Conditional Logic** – Use `When()` and `Switch()` operators to apply light parameters based on boolean observables.
+- **Dimmer Integration** – Control brightness progression through dimmer devices within the pipeline.
+- **Light Groups** – Scope pipeline nodes to specific lights or light groups.
+- **Nested Pipelines** – Compose pipelines hierarchically for modular, maintainable light automation.
+
+### Overview
+
+This library extends the core `CodeCasa.AutomationPipelines` with light-specific pipeline nodes and configurators. Instead of writing conditional logic for individual lights, you can build declarative pipelines that automatically respond to changes in your environment.
+
+For example, a single pipeline can orchestrate multiple conditions—motion detection, time of day, presence—and translate them into appropriate light settings, all while remaining easy to read and modify.
+
+### Usage
+
+#### Basic Light Pipeline Setup
+
+Register the light pipeline services:
+
+```cs
+serviceCollection.AddLightPipelines();
+```
+
+Set up a light pipeline for a single light:
+
+```cs
+[NetDaemonApp]
+internal class LightAutomation
+{
+    public LightAutomation(LightPipelineFactory lightPipelineFactory, LightEntities lightEntities)
+    {
+        lightPipelineFactory.SetupLightPipeline(lightEntities.LivingRoomLight, pipeline =>
+        {
+            pipeline
+                .SetName("Living Room Automation")
+                .When(motionDetected, new LightParameters { Brightness = 255 })
+                .When(timeIsNight, LightSceneTemplates.NightLight)
+                .TurnOffWhen(nobodyHome);
+        });
+    }
+}
+```
+
+#### Controlling with Dimmers
+
+Add dimmer control to modulate brightness within the pipeline:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntities.KitchenLight, pipeline =>
+{
+    pipeline
+        .When(morningTime, LightSceneTemplates.Bright)
+        .AddDimmer(kitchenDimmer, dimOptions =>
+        {
+            dimOptions.MinBrightness = 50;
+            dimOptions.MaxBrightness = 255;
+        });
+});
+```
+
+#### Working with Light Groups
+
+Configure pipelines for multiple lights or light groups:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntities.AllBedroomLights, pipeline =>
+{
+    pipeline
+        .ForLights(new[] { "light.bedroom_main", "light.bedroom_accent" }, subPipeline =>
+        {
+            subPipeline
+                .When(bedtimeRoutine, LightSceneTemplates.NightLight)
+                .AddDimmer(bedroomDimmer);
+        })
+        .TurnOffWhen(allAsleep);
+});
+```
+
+### NetDaemon Integration
+
+For NetDaemon-based automations, use the `SetupLightPipeline` extension method:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntity, pipeline =>
+{
+    // Configure pipeline for NetDaemon light entity
+});
+```
+
+This adapts NetDaemon light entities to the pipeline framework automatically.
 
 ## CodeCasa.NetDaemon.Notifications.Phone
 
