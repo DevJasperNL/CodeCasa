@@ -40,9 +40,7 @@
   </ItemGroup>
   
   <ItemGroup>
-	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>CodeCasa.AutomationPipelines.Tests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="CodeCasa.AutomationPipelines.Tests" />
   </ItemGroup>
 
 </Project>
