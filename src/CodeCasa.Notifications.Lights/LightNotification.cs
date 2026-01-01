@@ -1,5 +1,10 @@
 ﻿namespace CodeCasa.Notifications.Lights
 {
+    /// <summary>
+    /// Represents a light notification.
+    /// </summary>
+    /// <param name="id">The unique identifier for the notification.</param>
+    /// <param name="disposable">The disposable object associated with the notification.</param>
     public class LightNotification(string id, IDisposable disposable) : IDisposable
     {
         /// <summary>

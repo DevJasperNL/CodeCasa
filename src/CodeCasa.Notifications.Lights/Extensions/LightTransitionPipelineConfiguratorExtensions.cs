@@ -7,8 +7,17 @@ using System.Reactive.Linq;
 
 namespace CodeCasa.Notifications.Lights.Extensions
 {
+    /// <summary>
+    /// Extension methods for configuring light transition pipelines with notifications.
+    /// </summary>
     public static class LightTransitionPipelineConfiguratorExtensions
     {
+        /// <summary>
+        /// Adds light notifications to the pipeline.
+        /// </summary>
+        /// <param name="configurator">The pipeline configurator.</param>
+        /// <param name="lightNotificationManagerContext">The context providing light notifications.</param>
+        /// <returns>The updated pipeline configurator.</returns>
         public static ILightTransitionPipelineConfigurator AddNotifications(
             this ILightTransitionPipelineConfigurator configurator, LightNotificationManagerContext lightNotificationManagerContext)
         {
