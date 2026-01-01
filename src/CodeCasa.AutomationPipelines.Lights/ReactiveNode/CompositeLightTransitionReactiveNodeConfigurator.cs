@@ -64,8 +64,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator(
         var configuratorsInOrder = options.ValidateAndOrderMultipleLightTypes(configurators).Select(kvp => kvp.Value).ToArray();
         foreach (var configurator in configuratorsInOrder)
         {
-            var lightEntitiesInDimOrder = configuratorsInOrder.Select(c => c.Light);
-            configurator.AddDimPulses(options, lightEntitiesInDimOrder, dimPulses, brightenPulses);
+            var lightsInDimOrder = configuratorsInOrder.Select(c => c.Light);
+            configurator.AddDimPulses(options, lightsInDimOrder, dimPulses, brightenPulses);
         }
         return this;
 
@@ -111,9 +111,9 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator(
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionReactiveNodeConfigurator> configure)
+    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionReactiveNodeConfigurator> configure)
     {
-        var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lightEntities, configurators.Keys);
+        var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, configurators.Keys);
         return ForLights(lightIds, configure);
     }
 }

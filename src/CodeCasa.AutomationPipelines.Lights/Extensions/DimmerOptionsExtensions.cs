@@ -4,10 +4,10 @@
     {
         public static void ValidateSingleLight(this DimmerOptions dimmerOptions, string lightId)
         {
-            var dimOrderLightEntitiesArray = dimmerOptions.DimOrderLightEntities?.ToArray();
-            if (dimOrderLightEntitiesArray != null && dimOrderLightEntitiesArray.Any())
+            var dimOrderLightsArray = dimmerOptions.DimOrderLights?.ToArray();
+            if (dimOrderLightsArray != null && dimOrderLightsArray.Any())
             {
-                var extraEntities = dimOrderLightEntitiesArray.Where(l => l != lightId).ToArray();
+                var extraEntities = dimOrderLightsArray.Where(l => l != lightId).ToArray();
                 if (extraEntities.Any())
                 {
                     throw new InvalidOperationException(
@@ -18,24 +18,24 @@
 
         public static OrderedDictionary<string, T> ValidateAndOrderMultipleLightTypes<T>(this DimmerOptions dimmerOptions, Dictionary<string, T> typesByLightIds)
         {
-            var dimOrderLightEntitiesArray = dimmerOptions.DimOrderLightEntities?.ToArray();
-            if (dimOrderLightEntitiesArray != null && dimOrderLightEntitiesArray.Any())
+            var dimOrderLightsArray = dimmerOptions.DimOrderLights?.ToArray();
+            if (dimOrderLightsArray != null && dimOrderLightsArray.Any())
             {
-                var missingEntities = typesByLightIds.Keys.Except(dimOrderLightEntitiesArray).ToArray();
+                var missingEntities = typesByLightIds.Keys.Except(dimOrderLightsArray).ToArray();
                 if (missingEntities.Any())
                 {
                     throw new InvalidOperationException(
                         $"When providing dim order, all entities should be provided. The following entities are missing: {string.Join(", ", missingEntities)}. Make sure to provide low level entities.");
                 }
 
-                var extraEntities = dimOrderLightEntitiesArray.Except(typesByLightIds.Keys).ToArray();
+                var extraEntities = dimOrderLightsArray.Except(typesByLightIds.Keys).ToArray();
                 if (extraEntities.Any())
                 {
                     throw new InvalidOperationException(
                         $"Pipeline does not contain the following entities: {string.Join(", ", extraEntities)}. Make sure to provide low level entities.");
                 }
 
-                return new OrderedDictionary<string, T>(dimOrderLightEntitiesArray
+                return new OrderedDictionary<string, T>(dimOrderLightsArray
                     .Select(e => new KeyValuePair<string, T>(e, typesByLightIds[e])));
             }
 

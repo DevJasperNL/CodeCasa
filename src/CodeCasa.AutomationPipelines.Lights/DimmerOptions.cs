@@ -25,19 +25,19 @@ public record DimmerOptions
     /// <summary>
     /// Gets or sets the collection of light IDs that define the order for dimming operations.
     /// </summary>
-    public IEnumerable<string>? DimOrderLightEntities { get; set; }
+    public IEnumerable<string>? DimOrderLights { get; set; }
 
     /// <summary>
     /// Sets the light order for dimming operations based on the provided collection of light entities.
     /// </summary>
-    /// <param name="lightEntities">The light entities that define the dimming order.</param>
-    public void SetLightOrder(IEnumerable<ILight> lightEntities) =>
-        DimOrderLightEntities = lightEntities.Select(l => l.Id).ToArray();
+    /// <param name="lights">The light entities that define the dimming order.</param>
+    public void SetLightOrder(IEnumerable<ILight> lights) =>
+        DimOrderLights = lights.Select(l => l.Id).ToArray();
 
     /// <summary>
     /// Sets the light order for dimming operations based on the provided light entities.
     /// </summary>
-    /// <param name="lightEntities">The light entities that define the dimming order.</param>
-    public void SetLightOrder(params ILight[] lightEntities) =>
-        DimOrderLightEntities = lightEntities.Select(l => l.Id).ToArray();
+    /// <param name="lights">The light entities that define the dimming order.</param>
+    public void SetLightOrder(params ILight[] lights) =>
+        DimOrderLights = lights.Select(l => l.Id).ToArray();
 }

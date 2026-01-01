@@ -43,13 +43,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <summary>
         /// Creates light pipelines for multiple light entities.
         /// </summary>
-        /// <param name="lightEntities">The light entities to create pipelines for.</param>
+        /// <param name="lights">The light entities to create pipelines for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
-        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines(IEnumerable<ILight> lightEntities, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines(IEnumerable<ILight> lights, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
         {
             // Note: we simply assume that these are not groups.
-            var lightArray = lightEntities.ToArray();
+            var lightArray = lights.ToArray();
             if (!lightArray.Any())
             {
                 return new Dictionary<string, IPipeline<LightTransition>>();

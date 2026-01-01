@@ -133,10 +133,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <summary>
         /// Creates a scoped cycle configuration for multiple light entities.
         /// </summary>
-        /// <param name="lightEntities">The light entities to configure.</param>
+        /// <param name="lights">The light entities to configure.</param>
         /// <param name="configure">An action to configure the cycle for these lights.</param>
         /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
+        ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None);
     }
 }

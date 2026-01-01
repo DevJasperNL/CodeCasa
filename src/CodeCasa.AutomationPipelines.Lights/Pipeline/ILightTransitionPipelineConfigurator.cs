@@ -89,8 +89,8 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <summary>
     /// Creates a scoped pipeline configuration for multiple light entities.
     /// </summary>
-    /// <param name="lightEntities">The light entities to configure.</param>
+    /// <param name="lights">The light entities to configure.</param>
     /// <param name="compositeNodeBuilder">An action to configure the pipeline for these lights.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lightEntities, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
+    ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder);
 }

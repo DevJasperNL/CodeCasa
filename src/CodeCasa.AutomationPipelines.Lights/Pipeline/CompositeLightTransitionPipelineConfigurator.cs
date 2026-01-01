@@ -106,10 +106,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lightEntities,
+        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lights,
             Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
         {
-            var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lightEntities, NodeContainers.Keys);
+            var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, NodeContainers.Keys);
             return ForLights(lightIds, compositeNodeBuilder);
         }
     }
