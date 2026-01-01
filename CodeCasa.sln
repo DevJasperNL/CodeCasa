@@ -11,11 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5BCD08C3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.RuntimeState", "src\CodeCasa.NetDaemon.RuntimeState\CodeCasa.NetDaemon.RuntimeState.csproj", "{44E8617B-1AF7-4029-916C-D5E72FE5E197}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.Notifications.Phone", "src\CodeCasa.NetDaemon.Notifications.Phone\CodeCasa.NetDaemon.Notifications.Phone.csproj", "{0D21F2B8-75BD-443A-A1C0-6EBF090FC6C7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Notifications.Phone.NetDaemon", "src\CodeCasa.Notifications.Phone.NetDaemon\CodeCasa.Notifications.Phone.NetDaemon.csproj", "{0D21F2B8-75BD-443A-A1C0-6EBF090FC6C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.Notifications.InputSelect", "src\CodeCasa.NetDaemon.Notifications.InputSelect\CodeCasa.NetDaemon.Notifications.InputSelect.csproj", "{804CB635-20DE-4BF6-A093-35D9C56513D6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Notifications.InputSelect.NetDaemon", "src\CodeCasa.Notifications.InputSelect.NetDaemon\CodeCasa.Notifications.InputSelect.NetDaemon.csproj", "{804CB635-20DE-4BF6-A093-35D9C56513D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.Notifications.InputSelect.Tests", "tests\CodeCasa.NetDaemon.Notifications.InputSelect.Tests\CodeCasa.NetDaemon.Notifications.InputSelect.Tests.csproj", "{E2FA49AB-BFC2-4DDD-B743-F5AAB96F3FEC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Notifications.InputSelect.NetDaemon.Tests", "tests\CodeCasa.Notifications.InputSelect.NetDaemon.Tests\CodeCasa.Notifications.InputSelect.NetDaemon.Tests.csproj", "{E2FA49AB-BFC2-4DDD-B743-F5AAB96F3FEC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.NetDaemon.TypedEntities", "src\CodeCasa.NetDaemon.TypedEntities\CodeCasa.NetDaemon.TypedEntities.csproj", "{0C413AAD-B55A-4C14-AA7D-1EB538695DA6}"
 EndProject
