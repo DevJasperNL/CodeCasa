@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<Title>CodeCasa.NetDaemon.Notifications.Phone</Title>
+	<Title>CodeCasa.Notifications.Phone.NetDaemon</Title>
     <Authors>Jasper Lammers</Authors>
     <Company>DevJasper</Company>
     <Description>This library provides the `PhoneNotificationEntity` class, making it easy to create, update, and manage phone notifications in Home Assistant.</Description>
@@ -12,7 +12,7 @@
     <PackageTags>NetDaemon;Home Automation;Home Assistant;HA Integration;Smart Home;Automation;SmartPhone;Phone;Notifications;Android;Apple;iPhone;Reactive Programming;Rx;Rx.NET;Reactive Extensions;Reactive;ReactiveX;Reactive Streams;Reactive Patterns;Reactive Utils;Observables;C#;.NET;DotNet;Extension Methods</PackageTags>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<PackageId>CodeCasa.NetDaemon.Notifications.Phone</PackageId>
+	<PackageId>CodeCasa.Notifications.Phone.NetDaemon</PackageId>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	<PackageIcon>ccnd_icon.png</PackageIcon>
 	<PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
