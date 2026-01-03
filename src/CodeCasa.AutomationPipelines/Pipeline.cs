@@ -7,6 +7,7 @@ namespace CodeCasa.AutomationPipelines;
 /// </summary>
 public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 {
+    private readonly Lock _lock = new();
     private readonly List<IPipelineNode<TState>> _nodes = new();
     private readonly ILogger<Pipeline<TState>>? _logger;
 
@@ -136,8 +137,12 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
             var destinationIndex = _nodes.Count;
             previousNode.OnNewOutput.Subscribe(output =>
             {
-                _logger?.LogTrace($"{LogPrefix}[Node {sourceIndex}] ({previousNode}) passed value [{output?.ToString() ?? "NULL"}] to [Node {destinationIndex}] ({node}).");
-                node.Input = output;
+                lock (_lock)
+                {
+                    _logger?.LogTrace(
+                        $"{LogPrefix}[Node {sourceIndex}] ({previousNode}) passed value [{output?.ToString() ?? "NULL"}] to [Node {destinationIndex}] ({node}).");
+                    node.Input = output;
+                }
             });
 
             _logger?.LogTrace($"{LogPrefix}Passing [Node {sourceIndex}] ({previousNode}) value [{previousNode.Output?.ToString() ?? "NULL"}] to [Node {destinationIndex}] ({node}).");
@@ -157,8 +162,12 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         var nodeIndex = _nodes.Count - 1;
         _subscription = node.OnNewOutput.Subscribe(o =>
         {
-            _logger?.LogTrace($"{LogPrefix}[Node {nodeIndex}] ({node}) passed value [{o?.ToString() ?? "NULL"}] to pipeline output.");
-            SetOutputAndCallActionWhenApplicable(o);
+            lock (_lock)
+            {
+                _logger?.LogTrace(
+                    $"{LogPrefix}[Node {nodeIndex}] ({node}) passed value [{o?.ToString() ?? "NULL"}] to pipeline output.");
+                SetOutputAndCallActionWhenApplicable(o);
+            }
         });
 
         var newOutput = node.Output;
