@@ -149,7 +149,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
                 .Callback<Guid>(id => disposedIds.Add(id));
 
             // Act
-            var node = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
+            _ = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
             {
                 config.On<int, LifecycleTrackingPipelineNode>(triggerSubject);
             });
@@ -158,15 +158,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             triggerSubject.OnNext(1);
 
             // Assert 1
-            Assert.AreEqual(1, createdIds.Count, "Should have created one node");
-            Assert.AreEqual(0, disposedIds.Count, "Should not have disposed any node yet");
+            Assert.HasCount(1, createdIds, "Should have created one node");
+            Assert.HasCount(0, disposedIds, "Should not have disposed any node yet");
 
             // Trigger 2
             triggerSubject.OnNext(2);
 
             // Assert 2
-            Assert.AreEqual(2, createdIds.Count, "Should have created second node");
-            Assert.AreEqual(1, disposedIds.Count, "Should have disposed one node");
+            Assert.HasCount(2, createdIds, "Should have created second node");
+            Assert.HasCount(1, disposedIds, "Should have disposed one node");
             Assert.AreEqual(createdIds[0], disposedIds[0], "Should have disposed the first node");
         }
 
@@ -251,7 +251,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
                 .Returns(_scopedServiceProviderMock.Object);
 
             // Act
-            var node = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
+            _ = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
             {
                 config.On<int, ScopedPipelineNode>(triggerSubject);
             });
@@ -332,8 +332,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             // Act
             var node = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
             {
-                config.On(triggerSubject, context => new FactoryNode<LightTransition>(input => 
-                    input with { LightParameters = new LightParameters { Brightness = 100 } }));
+                config.On(triggerSubject, _ => new FactoryNode<LightTransition>(input => input == null
+                    ? null
+                    : input with { LightParameters = new LightParameters { Brightness = 100 } }));
             });
 
             LightTransition? lastOutput = null;
@@ -351,7 +352,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
         public class ScopedPipelineNode : PipelineNode<LightTransition>
         {
-            public ScopedPipelineNode(IServiceProvider serviceProvider)
+            public ScopedPipelineNode()
             {
                 Output = new LightParameters { Brightness = 100 }.AsTransition();
             }
