@@ -55,6 +55,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
             _scopeFactoryMock = new Mock<IServiceScopeFactory>();
             _scopeMock = new Mock<IServiceScope>();
+            _scopeMock.As<IAsyncDisposable>();
             _scopedServiceProviderMock = new Mock<IServiceProvider>();
 
             _serviceProviderMock.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
@@ -68,6 +69,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
             _scopedServiceProviderMock.Setup(x => x.GetService(typeof(LightPipelineContextProvider)))
                 .Returns(_contextProvider);
+
+            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(IScheduler)))
+                .Returns(_scheduler);
         }
 
         [TestMethod]
