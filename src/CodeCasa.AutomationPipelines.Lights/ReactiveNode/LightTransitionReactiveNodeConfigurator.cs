@@ -1,12 +1,15 @@
-﻿using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using CodeCasa.Abstractions;
+﻿using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
+using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Xml.Linq;
+using CodeCasa.AutomationPipelines.Lights.Utils;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -99,7 +102,18 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator AddNodeSource(IObservable<Func<ILightPipelineContext, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
-        return AddNodeSource(nodeFactorySource.Select(f => f(new LightPipelineContext(serviceProvider, Light))));
+        return AddNodeSource(nodeFactorySource.Select(nodeFactory =>
+        {
+            var scope = serviceProvider.CreateScope();
+            var context = new LightPipelineContext(scope.ServiceProvider, Light);
+            var node = nodeFactory(context);
+            if (node != null)
+            {
+                return new ScopedNode<LightTransition>(scope, node);
+            }
+            scope.Dispose();
+            return null;
+        }));
     }
 
     /// <inheritdoc/>
