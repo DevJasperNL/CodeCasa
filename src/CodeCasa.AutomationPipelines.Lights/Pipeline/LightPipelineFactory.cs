@@ -68,12 +68,20 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             return configurators.ToDictionary(kvp => kvp.Key, kvp =>
             {
                 var conf = kvp.Value;
+                if (conf.Log ?? false)
+                {
+                    return new Pipeline<LightTransition>(
+                        conf.Name ?? conf.Light.Id,
+                        LightTransition.Off(),
+                        conf.Nodes,
+                        conf.Light.ApplyTransition,
+                        logger);
+                }
+
                 return (IPipeline<LightTransition>)new Pipeline<LightTransition>(
-                    conf.Name ?? conf.Light.Id,
                     LightTransition.Off(),
                     conf.Nodes,
-                    conf.Light.ApplyTransition,
-                    logger);
+                    conf.Light.ApplyTransition);
             });
         }
     }

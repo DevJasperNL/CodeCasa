@@ -3,6 +3,8 @@ using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -20,9 +22,16 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public Dictionary<string, LightTransitionPipelineConfigurator> NodeContainers { get; } = nodeContainers;
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator SetName(string name)
+        public ILightTransitionPipelineConfigurator EnableLogging(string? pipelineName = null)
         {
-            NodeContainers.Values.ForEach(b => b.SetName(name));
+            NodeContainers.Values.ForEach(b => b.EnableLogging(pipelineName));
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator DisableLogging()
+        {
+            NodeContainers.Values.ForEach(b => b.DisableLogging());
             return this;
         }
 
@@ -45,7 +54,16 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
             var nodes = reactiveNodeFactory.CreateReactiveNodes(NodeContainers.Select(nc => nc.Value.Light),
-                configure);
+                c =>
+                {
+                    var firstContainer = NodeContainers.Values.First();
+                    if (firstContainer.Log ?? false)
+                    {
+                        // If logging is enabled, enable it on the reactive node configurator by default.
+                        c.EnableLogging($"Reactive Node in {firstContainer.Name ?? "light group"}");
+                    }
+                    configure(c);
+                });
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(nodes[kvp.Key]));
             return this;
         }

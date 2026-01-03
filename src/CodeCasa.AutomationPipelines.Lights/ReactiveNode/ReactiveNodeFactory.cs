@@ -130,10 +130,14 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 
         private ReactiveNode CreateReactiveNode(LightTransitionReactiveNodeConfigurator reactiveNodeConfigurator)
         {
-            return new ReactiveNode(
-                reactiveNodeConfigurator.Name,
-                reactiveNodeConfigurator.NodeObservables.Merge(),
-                serviceProvider.GetRequiredService<ILogger<ReactiveNode>>());
+            if (reactiveNodeConfigurator.Log ?? false)
+            {
+                return new ReactiveNode(
+                    reactiveNodeConfigurator.Name,
+                    reactiveNodeConfigurator.NodeObservables.Merge(),
+                    serviceProvider.GetRequiredService<ILogger<ReactiveNode>>());
+            }
+            return new ReactiveNode(reactiveNodeConfigurator.NodeObservables.Merge());
         }
 
         private void SubscribeToPulses(
