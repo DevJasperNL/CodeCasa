@@ -7,8 +7,6 @@ using CodeCasa.Lights;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Xml.Linq;
-using CodeCasa.AutomationPipelines.Lights.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
@@ -30,14 +28,23 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     public ILight Light { get; } = light;
 
     internal string? Name { get; private set; }
+    internal bool? Log { get; private set; }
     internal List<IObservable<IPipelineNode<LightTransition>?>> NodeObservables { get; } = new();
     internal List<IDimmer> Dimmers { get; } = new();
     internal DimmerOptions DimmerOptions { get; private set; } = new ();
     
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator SetName(string name)
+    public ILightTransitionReactiveNodeConfigurator EnableLogging(string? name = null)
     {
         Name = name;
+        Log = true;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator DisableLogging()
+    {
+        Log = false;
         return this;
     }
 

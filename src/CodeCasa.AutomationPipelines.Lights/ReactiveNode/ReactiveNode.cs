@@ -23,6 +23,15 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// <summary>
     /// Initializes a new instance of the <see cref="ReactiveNode"/> class.
     /// </summary>
+    /// <param name="nodeObservable">An observable that emits the pipeline nodes to activate. Null values deactivate the current node.</param>
+    public ReactiveNode(IObservable<IPipelineNode<LightTransition>?> nodeObservable) :
+        this(null, nodeObservable, null!)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReactiveNode"/> class.
+    /// </summary>
     /// <param name="name">Optional name for the reactive node, used for logging purposes.</param>
     /// <param name="nodeObservable">An observable that emits the pipeline nodes to activate. Null values deactivate the current node.</param>
     /// <param name="logger">Optional logger for diagnostic information.</param>

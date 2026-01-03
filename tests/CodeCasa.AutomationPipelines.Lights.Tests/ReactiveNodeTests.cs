@@ -78,10 +78,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
         public void CreateNode()
         {
             // Act
-            var node = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
-            {
-                config.SetName("TestNode");
-            });
+            var node = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, _ => { });
 
             // Assert
             Assert.IsNotNull(node);

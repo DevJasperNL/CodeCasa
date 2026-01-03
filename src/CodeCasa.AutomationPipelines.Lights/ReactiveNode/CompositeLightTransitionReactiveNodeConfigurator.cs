@@ -20,9 +20,16 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator(
     : ILightTransitionReactiveNodeConfigurator
 {
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator SetName(string name)
+    public ILightTransitionReactiveNodeConfigurator EnableLogging(string? name = null)
     {
-        configurators.Values.ForEach(c => c.SetName(name));
+        configurators.Values.ForEach(b => b.EnableLogging(name));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator DisableLogging()
+    {
+        configurators.Values.ForEach(b => b.DisableLogging());
         return this;
     }
 

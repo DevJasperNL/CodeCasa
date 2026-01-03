@@ -12,11 +12,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 public partial interface ILightTransitionPipelineConfigurator
 {
     /// <summary>
-    /// Sets the name for the current pipeline configuration.
+    /// Enables logging for the pipeline configuration.
     /// </summary>
-    /// <param name="name">The name to assign to the pipeline.</param>
+    /// <param name="pipelineName">The optional name of the pipeline to include in logs.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator SetName(string name);
+    ILightTransitionPipelineConfigurator EnableLogging(string? pipelineName = null);
+
+    /// <summary>
+    /// Disables logging for the pipeline configuration.
+    /// </summary>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator DisableLogging();
 
     /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.

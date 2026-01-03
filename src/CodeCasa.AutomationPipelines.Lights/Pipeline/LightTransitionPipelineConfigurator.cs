@@ -21,6 +21,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         internal ILight Light { get; } = light;
         internal string? Name { get; private set; }
+        internal bool? Log { get; private set; }
 
         public IReadOnlyCollection<IPipelineNode<LightTransition>> Nodes => _nodes.AsReadOnly();
 
@@ -31,9 +32,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator SetName(string name)
+        public ILightTransitionPipelineConfigurator EnableLogging(string? pipelineName = null)
         {
-            Name = name;
+            Name = pipelineName;
+            Log = true;
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator DisableLogging()
+        {
+            Log = false;
             return this;
         }
 
@@ -66,7 +75,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator> configure)
         {
-            return AddNode(reactiveNodeFactory.CreateReactiveNode(Light, configure));
+            return AddNode(reactiveNodeFactory.CreateReactiveNode(Light, c =>
+            {
+                if (Log ?? false)
+                {
+                    // If logging is enabled, enable it on the reactive node configurator by default.
+                    c.EnableLogging($"Reactive Node in {Name ?? Light.Id}");
+                }
+                configure(c);
+            }));
         }
 
         /// <inheritdoc/>

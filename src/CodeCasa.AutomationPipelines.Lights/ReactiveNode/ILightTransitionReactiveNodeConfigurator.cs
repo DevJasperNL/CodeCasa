@@ -11,11 +11,17 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 public partial interface ILightTransitionReactiveNodeConfigurator
 {
     /// <summary>
-    /// Sets the name for the current reactive node configuration.
+    /// Enables logging for the reactive node configuration.
     /// </summary>
-    /// <param name="name">The name to assign to the reactive node.</param>
+    /// <param name="name">The optional name of the reactive node to include in logs.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator SetName(string name);
+    ILightTransitionReactiveNodeConfigurator EnableLogging(string? name = null);
+
+    /// <summary>
+    /// Disables logging for the reactive node configuration.
+    /// </summary>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator DisableLogging();
 
     /// <summary>
     /// Adds a reactive dimmer control that will be reset when the reactive node activates a new node.
