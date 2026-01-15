@@ -32,5 +32,9 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\CodeCasa.Abstractions\CodeCasa.Abstractions.csproj" />
+  </ItemGroup>
 
 </Project>
