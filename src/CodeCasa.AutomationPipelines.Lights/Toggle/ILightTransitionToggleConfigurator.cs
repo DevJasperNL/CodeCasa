@@ -6,6 +6,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
     /// <summary>
     /// Configurator for time-based toggle behavior. Quick consecutive triggers advance through all states sequentially.
     /// After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     public interface ILightTransitionToggleConfigurator
     {

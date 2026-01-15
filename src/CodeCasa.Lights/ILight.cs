@@ -1,4 +1,6 @@
-﻿namespace CodeCasa.Lights;
+﻿using CodeCasa.Abstractions;
+
+namespace CodeCasa.Lights;
 
 /// <summary>
 /// Represents a single light or group of lights.
@@ -26,4 +28,16 @@ public interface ILight
     /// </summary>
     /// <returns>An array of child lights, or an empty array if this light has no children.</returns>
     ILight[] GetChildren();
+
+    /// <summary>
+    /// Returns an observable that emits notifications when the state of the light changes.
+    /// </summary>
+    /// <returns>An <see cref="IObservable{T}"/> that emits <see cref="StateChange{ILight, LightParameters}"/> events.</returns>
+    IObservable<StateChange<ILight, LightParameters>> StateChanges();
+
+    /// <summary>
+    /// Returns an observable that emits the current state and then notifications when the state of the light changes.
+    /// </summary>
+    /// <returns>An <see cref="IObservable{T}"/> that emits <see cref="StateChange{ILight, LightParameters}"/> events.</returns>
+    IObservable<StateChange<ILight, LightParameters>> StateChangesWithCurrent();
 }

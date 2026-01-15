@@ -9,6 +9,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger that switches between the specified light parameters when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all parameter sets sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next parameters.</param>
@@ -20,6 +21,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger that switches between the specified light parameters when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all parameter sets sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next parameters.</param>
@@ -31,6 +33,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger that switches between the specified light transitions when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all transitions sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next transition.</param>
@@ -42,6 +45,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger that switches between the specified light transitions when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all transitions sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next transition.</param>
@@ -53,6 +57,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger that switches between nodes created by the specified factory functions when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all node factories sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next node.</param>
@@ -64,6 +69,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger that switches between nodes created by the specified factory functions when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all node factories sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next node.</param>
@@ -75,6 +81,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <summary>
     /// Adds a time-based toggle trigger configured by the specified <paramref name="configure"/> action when triggered by <paramref name="triggerObservable"/>.
     /// Quick consecutive triggers advance through all configured states sequentially. After a timeout period, the next trigger restarts from the beginning.
+    /// If the light is currently on, the first trigger will turn it off.
     /// </summary>
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
