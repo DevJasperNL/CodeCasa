@@ -25,25 +25,7 @@ namespace CodeCasa.Notifications.Lights.Extensions
         {
             return configurator.AddReactiveNode(c =>
             {
-                c.AddNodeSource(lightNotificationManagerContext.LightNotifications.Select(lnc =>
-                {
-                    if (lnc == null)
-                    {
-                        return new Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?>(_ => null);
-                    }
-
-                    if (lnc.NodeFactory != null)
-                    {
-                        return ctx => lnc.NodeFactory(ctx);
-                    }
-
-                    if (lnc.NodeType == null)
-                    {
-                        throw new InvalidOperationException("Both NodeFactory and NodeType are null.");
-                    }
-
-                    return ctx => (IPipelineNode<LightTransition>)ctx.ServiceProvider.CreateInstanceWithinContext(lnc.NodeType, ctx);
-                }));
+                c.AddNodeSource(lightNotificationManagerContext.LightNotifications.Select(lnc => lnc == null ? _ => null : lnc.CreateFactory<TLight>()));
             });
         }
     }

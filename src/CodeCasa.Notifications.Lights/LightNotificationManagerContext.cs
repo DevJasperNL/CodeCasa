@@ -9,7 +9,7 @@ namespace CodeCasa.Notifications.Lights
     /// </summary>
     public class LightNotificationManagerContext : IDisposable
     {
-        private readonly BehaviorSubject<LightNotificationConfig?> _subject = new(null);
+        private readonly BehaviorSubject<ILightNotificationConfig?> _subject = new(null);
         private readonly IDisposable _subscriptionDisposable;
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace CodeCasa.Notifications.Lights
         /// <summary>
         /// Gets an observable sequence of the current light notification configuration.
         /// </summary>
-        public IObservable<LightNotificationConfig?> LightNotifications => _subject.AsObservable();
+        public IObservable<ILightNotificationConfig?> LightNotifications => _subject.AsObservable();
 
         /// <inheritdoc />
         public void Dispose()

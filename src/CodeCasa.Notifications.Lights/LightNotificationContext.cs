@@ -48,7 +48,7 @@ namespace CodeCasa.Notifications.Lights
         /// <returns>The created or updated light notification.</returns>
         public LightNotification Notify<TNode>(string notificationId, int priority) where TNode : IPipelineNode<LightTransition>
         {
-            return lightNotificationManager.Notify(new LightNotificationConfig(typeof(TNode), priority), notificationId);
+            return lightNotificationManager.Notify(new NodeTypeLightNotificationConfig<TNode>(priority), notificationId);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="lightNotificationToReplace">The existing light notification to replace.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(LightNotification lightNotificationToReplace, Func<ILightPipelineContext<ILight>, IPipelineNode<LightTransition>> nodeFactory) => Notify(lightNotificationToReplace, nodeFactory, 0);
+        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify(lightNotificationToReplace, nodeFactory, 0);
 
         /// <summary>
         /// Notifies with a new light notification using a factory and specific priority, replacing an existing one.
@@ -66,7 +66,7 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <param name="priority">The priority of the notification.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(LightNotification lightNotificationToReplace, Func<ILightPipelineContext<ILight>, IPipelineNode<LightTransition>> nodeFactory, int priority)
+        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
         {
             return Notify(lightNotificationToReplace.Id, nodeFactory, priority);
         }
@@ -77,7 +77,7 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="notificationId">The unique identifier for the notification.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(string notificationId, Func<ILightPipelineContext<ILight>, IPipelineNode<LightTransition>> nodeFactory) => Notify(notificationId, nodeFactory, 0);
+        public LightNotification Notify<TLight>(string notificationId, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify(notificationId, nodeFactory, 0);
 
         /// <summary>
         /// Notifies with a new light notification using a factory, specific priority, and ID.
@@ -86,9 +86,9 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <param name="priority">The priority of the notification.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(string notificationId, Func<ILightPipelineContext<ILight>, IPipelineNode<LightTransition>> nodeFactory, int priority)
+        public LightNotification Notify<TLight>(string notificationId, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
         {
-            return lightNotificationManager.Notify(new LightNotificationConfig(nodeFactory, priority), notificationId);
+            return lightNotificationManager.Notify(new NodeFactoryLightNotificationConfig<TLight>(nodeFactory, priority), notificationId);
         }
 
         /// <summary>
