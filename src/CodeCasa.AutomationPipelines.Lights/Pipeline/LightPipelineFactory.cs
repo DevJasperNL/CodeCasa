@@ -14,14 +14,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <summary>
         /// Sets up a light pipeline for the specified light and configures it with the provided builder action.
         /// </summary>
+        /// <typeparam name="TLight">The specific type of light.</typeparam>
         /// <param name="light">The light to set up the pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>An async disposable representing the created pipeline(s) that can be disposed to clean up resources.</returns>
-        public IAsyncDisposable SetupLightPipeline(ILight light,
-            Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        public IAsyncDisposable SetupLightPipeline<TLight>(TLight light,
+            Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             var disposables = new CompositeAsyncDisposable();
-            var pipelines = CreateLightPipelines(light.Flatten(), pipelineBuilder);
+            var pipelines = CreateLightPipelines(light.Flatten().Cast<TLight>(), pipelineBuilder);
             foreach (var pipeline in pipelines.Values)
             {
                 disposables.Add(pipeline);
@@ -35,7 +36,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <param name="light">The light to create a pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A configured pipeline for controlling the specified light.</returns>
-        internal IPipeline<LightTransition> CreateLightPipeline(ILight light, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             return CreateLightPipelines([light], pipelineBuilder)[light.Id];
         }
@@ -46,7 +47,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <param name="lights">The light entities to create pipelines for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
-        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines(IEnumerable<ILight> lights, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IEnumerable<TLight> lights, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             // Note: we simply assume that these are not groups.
             var lightArray = lights.ToArray();
@@ -55,10 +56,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var configurators = lightArray.ToDictionary(l => l.Id, l => new LightTransitionPipelineConfigurator(serviceProvider, this, reactiveNodeFactory, l));
-            ILightTransitionPipelineConfigurator configurator = lightArray.Length == 1
+            var configurators = lightArray.ToDictionary(l => l.Id, l => new LightTransitionPipelineConfigurator<TLight>(serviceProvider, this, reactiveNodeFactory, l));
+            ILightTransitionPipelineConfigurator<TLight> configurator = lightArray.Length == 1
                 ? configurators[lightArray[0].Id]
-                : new CompositeLightTransitionPipelineConfigurator(
+                : new CompositeLightTransitionPipelineConfigurator<TLight>(
                     serviceProvider,
                     this,
                     reactiveNodeFactory,

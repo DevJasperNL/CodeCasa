@@ -7,7 +7,7 @@ namespace CodeCasa.Notifications.Lights.Config;
 /// <summary>
 /// Configuration for a light notification.
 /// </summary>
-public class LightNotificationConfig
+public class LightNotificationConfig<TLight> where TLight : ILight
 {
     /// <summary>
     /// Gets or sets the priority of the notification.
@@ -23,7 +23,7 @@ public class LightNotificationConfig
     /// <summary>
     /// Gets the factory function to create the pipeline node associated with the notification.
     /// </summary>
-    public Func<ILightPipelineContext, IPipelineNode<LightTransition>>? NodeFactory { get; }
+    public Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>? NodeFactory { get; }
 
     internal LightNotificationConfig(Type nodeType, int priority)
     {
@@ -31,7 +31,7 @@ public class LightNotificationConfig
         Priority = priority;
     }
 
-    internal LightNotificationConfig(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory, int priority)
+    internal LightNotificationConfig(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, int priority)
     {
         NodeFactory = nodeFactory;
         Priority = priority;

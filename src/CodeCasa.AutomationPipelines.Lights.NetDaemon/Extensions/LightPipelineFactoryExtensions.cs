@@ -1,4 +1,5 @@
 ﻿using CodeCasa.AutomationPipelines.Lights.Pipeline;
+using CodeCasa.Lights.NetDaemon;
 using CodeCasa.Lights.NetDaemon.Extensions;
 using NetDaemon.HassModel.Entities;
 
@@ -17,7 +18,7 @@ namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>An async disposable representing the created pipeline(s) that can be disposed to clean up resources.</returns>
         public static IAsyncDisposable SetupLightPipeline(this LightPipelineFactory lightPipelineFactory, ILightEntityCore lightEntity,
-            Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+            Action<ILightTransitionPipelineConfigurator<NetDaemonLight>> pipelineBuilder)
         {
             return lightPipelineFactory.SetupLightPipeline(lightEntity.AsLight(), pipelineBuilder);
         }

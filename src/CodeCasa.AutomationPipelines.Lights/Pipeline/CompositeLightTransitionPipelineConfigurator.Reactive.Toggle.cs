@@ -4,53 +4,53 @@ using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-internal partial class CompositeLightTransitionPipelineConfigurator
+internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 {
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         IEnumerable<LightParameters> lightParameters)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, lightParameters));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         params LightParameters[] lightParameters)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, lightParameters));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         IEnumerable<LightTransition> lightTransitions)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, lightTransitions));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         params LightTransition[] lightTransitions)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, lightTransitions));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
-        IEnumerable<Func<ILightPipelineContext, IPipelineNode<LightTransition>>> nodeFactories)
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        IEnumerable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>> nodeFactories)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, nodeFactories));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
-        params Func<ILightPipelineContext, IPipelineNode<LightTransition>>[] nodeFactories)
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        params Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>[] nodeFactories)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, nodeFactories));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
-        Action<ILightTransitionToggleConfigurator> configure)
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Action<ILightTransitionToggleConfigurator<TLight>> configure)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, configure));
     }

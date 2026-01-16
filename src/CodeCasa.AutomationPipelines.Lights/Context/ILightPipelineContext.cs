@@ -5,7 +5,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Context;
 /// <summary>
 /// Represents the context for a light pipeline, providing access to the service provider and the light being controlled.
 /// </summary>
-public interface ILightPipelineContext
+/// <typeparam name="TLight">The specific type of light being controlled, which must implement <see cref="ILight"/>.</typeparam>
+public interface ILightPipelineContext<out TLight> where TLight : ILight
 {
     /// <summary>
     /// Gets the service provider instance used to resolve dependencies in the pipeline.
@@ -15,5 +16,5 @@ public interface ILightPipelineContext
     /// <summary>
     /// Gets the light being controlled by the pipeline.
     /// </summary>
-    ILight Light { get; }
+    TLight Light { get; }
 }

@@ -8,12 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle;
 
-internal class CompositeLightTransitionCycleConfigurator(
-    Dictionary<string, LightTransitionCycleConfigurator> activeConfigurators, 
-    Dictionary<string, LightTransitionCycleConfigurator> inactiveConfigurators)
-    : ILightTransitionCycleConfigurator
+internal class CompositeLightTransitionCycleConfigurator<TLight>(
+    Dictionary<string, LightTransitionCycleConfigurator<TLight>> activeConfigurators, 
+    Dictionary<string, LightTransitionCycleConfigurator<TLight>> inactiveConfigurators)
+    : ILightTransitionCycleConfigurator<TLight>
+    where TLight : ILight
 {
-    public ILightTransitionCycleConfigurator AddOff()
+    public ILightTransitionCycleConfigurator<TLight> AddOff()
     {
         var matchesNodeState = () => activeConfigurators.Values.All(c => c.Light.IsOff());
         activeConfigurators.Values.ForEach(c => c.Add<TurnOffThenPassThroughNode>(_ => matchesNodeState()));
@@ -21,27 +22,27 @@ internal class CompositeLightTransitionCycleConfigurator(
         return this;
     }
 
-    public ILightTransitionCycleConfigurator AddOn()
+    public ILightTransitionCycleConfigurator<TLight> AddOn()
     {
         return Add(LightTransition.On());
     }
 
-    public ILightTransitionCycleConfigurator Add(LightParameters lightParameters, IEqualityComparer<LightParameters>? comparer = null)
+    public ILightTransitionCycleConfigurator<TLight> Add(LightParameters lightParameters, IEqualityComparer<LightParameters>? comparer = null)
     {
         return Add(lightParameters.AsTransition(), comparer);
     }
 
-    public ILightTransitionCycleConfigurator Add(Func<ILightPipelineContext, LightParameters?> lightParametersFactory, Func<ILightPipelineContext, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
     {
         return Add(c => lightParametersFactory(c)?.AsTransition(), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator Add(Func<ILightPipelineContext, LightTransition?, LightParameters?> lightParametersFactory, Func<ILightPipelineContext, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
     {
         return Add((c, t) => lightParametersFactory(c, t)?.AsTransition(), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
+    public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
     {
         comparer ??= EqualityComparer<LightParameters>.Default;
         return Add(
@@ -51,43 +52,43 @@ internal class CompositeLightTransitionCycleConfigurator(
                 lightTransition.LightParameters)));
     }
 
-    public ILightTransitionCycleConfigurator Add(Func<ILightPipelineContext, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
     {
         return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator Add(Func<ILightPipelineContext, LightTransition?, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
     {
         return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator Add<TNode>(Func<ILightPipelineContext, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
+    public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<ILightPipelineContext<TLight>, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
     {
         activeConfigurators.Values.ForEach(c => c.Add<TNode>(matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         return this;
     }
 
-    public ILightTransitionCycleConfigurator Add(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
     {
         activeConfigurators.Values.ForEach(c => c.Add(nodeFactory, matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         return this;
     }
 
-    public ILightTransitionCycleConfigurator AddPassThrough(Func<ILightPipelineContext, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
     {
         activeConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         return this;
     }
 
-    public ILightTransitionCycleConfigurator ForLight(string lightId, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
+    public ILightTransitionCycleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
 
-    public ILightTransitionCycleConfigurator ForLight(ILight light, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
+    public ILightTransitionCycleConfigurator<TLight> ForLight(TLight light, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
 
-    public ILightTransitionCycleConfigurator ForLights(IEnumerable<string> lightIds,
-        Action<ILightTransitionCycleConfigurator> configure,
+    public ILightTransitionCycleConfigurator<TLight> ForLights(IEnumerable<string> lightIds,
+        Action<ILightTransitionCycleConfigurator<TLight>> configure,
         ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
         var lightIdArray =
@@ -107,13 +108,13 @@ internal class CompositeLightTransitionCycleConfigurator(
                 return this;
             }
 
-            configure(new CompositeLightTransitionCycleConfigurator(
+            configure(new CompositeLightTransitionCycleConfigurator<TLight>(
                 activeConfigurators.Where(kvp => lightIdArray.Contains(kvp.Key))
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value), []));
             return this;
         }
 
-        configure(new CompositeLightTransitionCycleConfigurator(
+        configure(new CompositeLightTransitionCycleConfigurator<TLight>(
             activeConfigurators.Where(kvp => lightIdArray.Contains(kvp.Key))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
             activeConfigurators.Where(kvp => !lightIdArray.Contains(kvp.Key))
@@ -121,7 +122,7 @@ internal class CompositeLightTransitionCycleConfigurator(
         return this;
     }
 
-    public ILightTransitionCycleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionCycleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+    public ILightTransitionCycleConfigurator<TLight> ForLights(IEnumerable<TLight> lights, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
         var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, activeConfigurators.Keys);
         return ForLights(lightIds, configure, excludedLightBehaviour);

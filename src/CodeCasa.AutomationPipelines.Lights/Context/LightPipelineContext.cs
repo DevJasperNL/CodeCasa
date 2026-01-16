@@ -3,22 +3,12 @@
 namespace CodeCasa.AutomationPipelines.Lights.Context;
 
 /// <inheritdoc />
-public class LightPipelineContext : ILightPipelineContext
+public class LightPipelineContext<TLight>(IServiceProvider serviceProvider, TLight light) : ILightPipelineContext<TLight>
+    where TLight : ILight
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LightPipelineContext"/> class.
-    /// </summary>
-    /// <param name="serviceProvider">The service provider instance used to resolve dependencies in the pipeline.</param>
-    /// <param name="light">The light being controlled by the pipeline.</param>
-    internal LightPipelineContext(IServiceProvider serviceProvider, ILight light)
-    {
-        ServiceProvider = serviceProvider;
-        Light = light;
-    }
+    /// <inheritdoc />
+    public IServiceProvider ServiceProvider { get; } = serviceProvider;
 
     /// <inheritdoc />
-    public IServiceProvider ServiceProvider { get; }
-
-    /// <inheritdoc />
-    public ILight Light { get; }
+    public TLight Light { get; } = light;
 }

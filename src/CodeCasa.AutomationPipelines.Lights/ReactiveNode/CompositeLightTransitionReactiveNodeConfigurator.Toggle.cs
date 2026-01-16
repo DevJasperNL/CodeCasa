@@ -8,14 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
-internal partial class CompositeLightTransitionReactiveNodeConfigurator
+internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
 {
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
         => AddToggle(triggerObservable, lightParameters.ToArray());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         params LightParameters[] lightParameters)
     {
         return AddToggle(triggerObservable, configure =>
@@ -28,11 +28,11 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
         => AddToggle(triggerObservable, lightTransitions.ToArray());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         params LightTransition[] lightTransitions)
     {
         return AddToggle(triggerObservable, configure =>
@@ -45,11 +45,11 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<Func<ILightPipelineContext, IPipelineNode<LightTransition>>> nodeFactories)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>> nodeFactories)
         => AddToggle(triggerObservable, nodeFactories.ToArray());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, params Func<ILightPipelineContext, IPipelineNode<LightTransition>>[] nodeFactories)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, params Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>[] nodeFactories)
     {
         return AddToggle(triggerObservable, configure =>
         {
@@ -61,11 +61,11 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddToggle<T>(IObservable<T> triggerObservable, Action<ILightTransitionToggleConfigurator> configure)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, Action<ILightTransitionToggleConfigurator<TLight>> configure)
     {
         var toggleConfigurators = configurators.ToDictionary(kvp => kvp.Key,
-            kvp => new LightTransitionToggleConfigurator(kvp.Value.Light, scheduler));
-        var compositeCycleConfigurator = new CompositeLightTransitionToggleConfigurator(toggleConfigurators, []);
+            kvp => new LightTransitionToggleConfigurator<TLight>(kvp.Value.Light, scheduler));
+        var compositeCycleConfigurator = new CompositeLightTransitionToggleConfigurator<TLight>(toggleConfigurators, []);
         configure(compositeCycleConfigurator);
         configurators.ForEach(kvp => kvp.Value.AddNodeSource(triggerObservable.ToToggleObservable(
             () => configurators.Values.Any(c => c.Light.IsOn()),
@@ -75,7 +75,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator
                 return new Func<IPipelineNode<LightTransition>>(() =>
                 {
                     var serviceScope = serviceProvider.CreateScope();
-                    var context = new LightPipelineContext(serviceScope.ServiceProvider, kvp.Value.Light);
+                    var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider, kvp.Value.Light);
                     return new ScopedNode<LightTransition>(serviceScope, fact(context));
                 });
             }),

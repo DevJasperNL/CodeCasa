@@ -1,17 +1,19 @@
-﻿namespace CodeCasa.AutomationPipelines.Lights.Context
+﻿using CodeCasa.Lights;
+
+namespace CodeCasa.AutomationPipelines.Lights.Context
 {
     internal class LightPipelineContextProvider
     {
-        private ILightPipelineContext? _lightPipelineContext;
+        private ILightPipelineContext<ILight>? _lightPipelineContext;
 
-        public ILightPipelineContext GetLightPipelineContext()
+        public ILightPipelineContext<ILight> GetLightPipelineContext()
         {
             return _lightPipelineContext ?? throw new InvalidOperationException("Current context not set.");
         }
 
-        public void SetLightPipelineContext(ILightPipelineContext context)
+        public void SetLightPipelineContext<TLight>(ILightPipelineContext<TLight> context) where TLight : ILight
         {
-            _lightPipelineContext = context;
+            _lightPipelineContext = (ILightPipelineContext<ILight>)context;
         }
 
         public void ResetLight()

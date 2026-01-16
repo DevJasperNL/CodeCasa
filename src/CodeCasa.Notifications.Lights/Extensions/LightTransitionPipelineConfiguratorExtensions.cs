@@ -15,11 +15,13 @@ namespace CodeCasa.Notifications.Lights.Extensions
         /// <summary>
         /// Adds light notifications to the pipeline.
         /// </summary>
+        /// <typeparam name="TLight">The type of light being controlled.</typeparam>
         /// <param name="configurator">The pipeline configurator.</param>
         /// <param name="lightNotificationManagerContext">The context providing light notifications.</param>
         /// <returns>The updated pipeline configurator.</returns>
-        public static ILightTransitionPipelineConfigurator AddNotifications(
-            this ILightTransitionPipelineConfigurator configurator, LightNotificationManagerContext lightNotificationManagerContext)
+        public static ILightTransitionPipelineConfigurator<TLight> AddNotifications<TLight>(
+            this ILightTransitionPipelineConfigurator<TLight> configurator, LightNotificationManagerContext lightNotificationManagerContext)
+            where TLight : ILight
         {
             return configurator.AddReactiveNode(c =>
             {
@@ -27,12 +29,12 @@ namespace CodeCasa.Notifications.Lights.Extensions
                 {
                     if (lnc == null)
                     {
-                        return new Func<ILightPipelineContext, IPipelineNode<LightTransition>?>(_ => null);
+                        return new Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?>(_ => null);
                     }
 
                     if (lnc.NodeFactory != null)
                     {
-                        return lnc.NodeFactory;
+                        return ctx => lnc.NodeFactory(ctx);
                     }
 
                     if (lnc.NodeType == null)

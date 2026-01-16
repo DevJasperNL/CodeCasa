@@ -46,13 +46,13 @@ namespace CodeCasa.AutomationPipelines.Lights
             }
         }
 
-        public static string[] ResolveGroupsAndValidateLightsSupported(IEnumerable<ILight> lights, IEnumerable<string> supportedLightIds)
+        public static string[] ResolveGroupsAndValidateLightsSupported<TLight>(IEnumerable<TLight> lights, IEnumerable<string> supportedLightIds) where TLight : ILight
         {
             return ValidateLightsSupported(lights.SelectMany(le => le.Flatten()).Select(l => l.Id).Distinct(), supportedLightIds);
         }
 
 
-        public static void ResolveGroupsAndValidateLightSupported(IEnumerable<ILight> lights, string supportedLightId)
+        public static void ResolveGroupsAndValidateLightSupported<TLight>(IEnumerable<TLight> lights, string supportedLightId) where TLight : ILight
         {
             ValidateLightSupported(lights.SelectMany(le => le.Flatten()).Select(l => l.Id).Distinct(), supportedLightId);
         }

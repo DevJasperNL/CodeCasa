@@ -1,4 +1,6 @@
 using CodeCasa.AutomationPipelines.Lights.Cycle;
+using CodeCasa.Lights;
+using CodeCasa.Lights.NetDaemon;
 using CodeCasa.Lights.NetDaemon.Extensions;
 using NetDaemon.HassModel.Entities;
 
@@ -17,8 +19,8 @@ public static class LightTransitionCycleConfiguratorExtensions
     /// <param name="configure">An action to configure the cycle for this specific light.</param>
     /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    public static ILightTransitionCycleConfigurator ForLight(this ILightTransitionCycleConfigurator configurator,
-        ILightEntityCore lightEntity, Action<ILightTransitionCycleConfigurator> configure,
+    public static ILightTransitionCycleConfigurator<NetDaemonLight> ForLight(this ILightTransitionCycleConfigurator<NetDaemonLight> configurator,
+        ILightEntityCore lightEntity, Action<ILightTransitionCycleConfigurator<NetDaemonLight>> configure,
         ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
         return configurator.ForLight(lightEntity.AsLight(), configure, excludedLightBehaviour);
@@ -32,8 +34,8 @@ public static class LightTransitionCycleConfiguratorExtensions
     /// <param name="configure">An action to configure the cycle for these lights.</param>
     /// <param name="excludedLightBehaviour">Specifies the behavior for lights not included in this scoped configuration. Defaults to <see cref="ExcludedLightBehaviours.None"/>.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    public static ILightTransitionCycleConfigurator ForLights(this ILightTransitionCycleConfigurator configurator,
-        IEnumerable<ILightEntityCore> lightEntities, Action<ILightTransitionCycleConfigurator> configure,
+    public static ILightTransitionCycleConfigurator<NetDaemonLight> ForLights(this ILightTransitionCycleConfigurator<NetDaemonLight> configurator,
+        IEnumerable<ILightEntityCore> lightEntities, Action<ILightTransitionCycleConfigurator<NetDaemonLight>> configure,
         ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
     {
         return configurator.ForLights(lightEntities.Select(l => l.AsLight()), configure, excludedLightBehaviour);

@@ -177,9 +177,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             // Arrange
             var triggerSubject = new Subject<int>();
             
-            _serviceProviderMock.Setup(x => x.GetService(typeof(ILightPipelineContext)))
+            _serviceProviderMock.Setup(x => x.GetService(typeof(ILightPipelineContext<ILight>)))
                 .Returns(() => _contextProvider.GetLightPipelineContext());
-            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(ILightPipelineContext)))
+            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(ILightPipelineContext<ILight>)))
                 .Returns(() => _contextProvider.GetLightPipelineContext());
 
             // Act
@@ -232,7 +232,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
         public class ContextAwarePipelineNode : PipelineNode<LightTransition>
         {
-            public ContextAwarePipelineNode(ILightPipelineContext context)
+            public ContextAwarePipelineNode(ILightPipelineContext<ILight> context)
             {
                 if (context.Light.Id == "test_light")
                 {

@@ -7,98 +7,99 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Toggle
 {
-    internal class CompositeLightTransitionToggleConfigurator(
-        Dictionary<string, LightTransitionToggleConfigurator> activeConfigurators,
-        Dictionary<string, LightTransitionToggleConfigurator> inactiveConfigurators) : ILightTransitionToggleConfigurator
+    internal class CompositeLightTransitionToggleConfigurator<TLight>(
+        Dictionary<string, LightTransitionToggleConfigurator<TLight>> activeConfigurators,
+        Dictionary<string, LightTransitionToggleConfigurator<TLight>> inactiveConfigurators) : ILightTransitionToggleConfigurator<TLight>
+        where TLight : ILight
     {
-        public ILightTransitionToggleConfigurator SetToggleTimeout(TimeSpan timeout)
+        public ILightTransitionToggleConfigurator<TLight> SetToggleTimeout(TimeSpan timeout)
         {
             activeConfigurators.Values.ForEach(c => c.SetToggleTimeout(timeout));
             inactiveConfigurators.Values.ForEach(c => c.SetToggleTimeout(timeout));
             return this;
         }
 
-        public ILightTransitionToggleConfigurator IncludeOffInToggleCycle()
+        public ILightTransitionToggleConfigurator<TLight> IncludeOffInToggleCycle()
         {
             activeConfigurators.Values.ForEach(c => c.IncludeOffInToggleCycle());
             inactiveConfigurators.Values.ForEach(c => c.IncludeOffInToggleCycle());
             return this;
         }
 
-        public ILightTransitionToggleConfigurator ExcludeOffFromToggleCycle()
+        public ILightTransitionToggleConfigurator<TLight> ExcludeOffFromToggleCycle()
         {
             activeConfigurators.Values.ForEach(c => c.ExcludeOffFromToggleCycle());
             inactiveConfigurators.Values.ForEach(c => c.ExcludeOffFromToggleCycle());
             return this;
         }
 
-        public ILightTransitionToggleConfigurator AddOff()
+        public ILightTransitionToggleConfigurator<TLight> AddOff()
         {
             return Add<TurnOffThenPassThroughNode>();
         }
 
-        public ILightTransitionToggleConfigurator AddOn()
+        public ILightTransitionToggleConfigurator<TLight> AddOn()
         {
             return Add(LightTransition.On());
         }
 
-        public ILightTransitionToggleConfigurator Add(LightParameters lightParameters)
+        public ILightTransitionToggleConfigurator<TLight> Add(LightParameters lightParameters)
         {
             return Add(lightParameters.AsTransition());
         }
 
-        public ILightTransitionToggleConfigurator Add(Func<ILightPipelineContext, LightParameters?> lightParametersFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory)
         {
             return Add(c => lightParametersFactory(c)?.AsTransition());
         }
 
-        public ILightTransitionToggleConfigurator Add(Func<ILightPipelineContext, LightTransition?, LightParameters?> lightParametersFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory)
         {
             return Add((c, t) => lightParametersFactory(c, t)?.AsTransition());
         }
 
-        public ILightTransitionToggleConfigurator Add(LightTransition lightTransition)
+        public ILightTransitionToggleConfigurator<TLight> Add(LightTransition lightTransition)
         {
             return Add(_ => lightTransition);
         }
 
-        public ILightTransitionToggleConfigurator Add(Func<ILightPipelineContext, LightTransition?> lightTransitionFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory)
         {
             return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()));
         }
 
-        public ILightTransitionToggleConfigurator Add(Func<ILightPipelineContext, LightTransition?, LightTransition?> lightTransitionFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory)
         {
             return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)));
         }
 
-        public ILightTransitionToggleConfigurator Add<TNode>() where TNode : IPipelineNode<LightTransition>
+        public ILightTransitionToggleConfigurator<TLight> Add<TNode>() where TNode : IPipelineNode<LightTransition>
         {
             activeConfigurators.Values.ForEach(c => c.Add<TNode>());
             inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
             return this;
         }
 
-        public ILightTransitionToggleConfigurator Add(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
         {
             activeConfigurators.Values.ForEach(c => c.Add(nodeFactory));
             inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
             return this;
         }
 
-        public ILightTransitionToggleConfigurator AddPassThrough()
+        public ILightTransitionToggleConfigurator<TLight> AddPassThrough()
         {
             activeConfigurators.Values.ForEach(c => c.AddPassThrough());
             inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
             return this;
         }
 
-        public ILightTransitionToggleConfigurator ForLight(string lightId, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
+        public ILightTransitionToggleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
 
-        public ILightTransitionToggleConfigurator ForLight(ILight light, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
+        public ILightTransitionToggleConfigurator<TLight> ForLight(TLight light, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([light], configure, excludedLightBehaviour);
 
-        public ILightTransitionToggleConfigurator ForLights(IEnumerable<string> lightIds,
-            Action<ILightTransitionToggleConfigurator> configure,
+        public ILightTransitionToggleConfigurator<TLight> ForLights(IEnumerable<string> lightIds,
+            Action<ILightTransitionToggleConfigurator<TLight>> configure,
             ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
         {
             var lightIdsArray =
@@ -118,13 +119,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
                     return this;
                 }
 
-                configure(new CompositeLightTransitionToggleConfigurator(
+                configure(new CompositeLightTransitionToggleConfigurator<TLight>(
                     activeConfigurators.Where(kvp => lightIdsArray.Contains(kvp.Key))
                         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value), []));
                 return this;
             }
 
-            configure(new CompositeLightTransitionToggleConfigurator(
+            configure(new CompositeLightTransitionToggleConfigurator<TLight>(
                 activeConfigurators.Where(kvp => lightIdsArray.Contains(kvp.Key))
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 activeConfigurators.Where(kvp => !lightIdsArray.Contains(kvp.Key))
@@ -132,7 +133,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return this;
         }
 
-        public ILightTransitionToggleConfigurator ForLights(IEnumerable<ILight> lights, Action<ILightTransitionToggleConfigurator> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
+        public ILightTransitionToggleConfigurator<TLight> ForLights(IEnumerable<TLight> lights, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None)
         {
             var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, activeConfigurators.Keys);
             return ForLights(lightIds, configure, excludedLightBehaviour);
