@@ -41,6 +41,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.AutomationPipeline
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.Notifications.Lights", "src\CodeCasa.Notifications.Lights\CodeCasa.Notifications.Lights.csproj", "{B79CCDE0-2EB5-453B-B42C-B52014D8F3D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.DependencyInjection", "src\CodeCasa.DependencyInjection\CodeCasa.DependencyInjection.csproj", "{3A04216D-62D5-4C6E-83B0-77FDA0CAE181}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCasa.DependencyInjection.Tests", "tests\CodeCasa.DependencyInjection.Tests\CodeCasa.DependencyInjection.Tests.csproj", "{90E45B03-A4E1-4097-BC71-8E2B0791C01E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -119,6 +123,14 @@ Global
 		{B79CCDE0-2EB5-453B-B42C-B52014D8F3D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B79CCDE0-2EB5-453B-B42C-B52014D8F3D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B79CCDE0-2EB5-453B-B42C-B52014D8F3D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A04216D-62D5-4C6E-83B0-77FDA0CAE181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A04216D-62D5-4C6E-83B0-77FDA0CAE181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A04216D-62D5-4C6E-83B0-77FDA0CAE181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A04216D-62D5-4C6E-83B0-77FDA0CAE181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90E45B03-A4E1-4097-BC71-8E2B0791C01E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90E45B03-A4E1-4097-BC71-8E2B0791C01E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90E45B03-A4E1-4097-BC71-8E2B0791C01E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90E45B03-A4E1-4097-BC71-8E2B0791C01E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,6 +141,7 @@ Global
 		{FA26C18B-24D0-4F3D-958C-A9BA61861C65} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
 		{5C7FB111-095B-F881-7268-4284370C8AAA} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
 		{96DB93C1-036A-436A-AF7A-AEC07243A929} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
+		{90E45B03-A4E1-4097-BC71-8E2B0791C01E} = {5BCD08C3-3034-4D08-AC01-2AB6DFD67C33}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5AAE8D3A-9457-4676-8F57-B2D78594CCC7}
