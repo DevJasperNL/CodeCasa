@@ -1,8 +1,9 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
+﻿using CodeCasa.Abstractions;
+using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
-using CodeCasa.Abstractions;
 using CodeCasa.Lights;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -12,8 +13,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// </summary>
     internal partial class LightTransitionPipelineConfigurator<TLight>(
         IServiceProvider serviceProvider,
-        LightPipelineFactory lightPipelineFactory,
-        ReactiveNodeFactory reactiveNodeFactory,
         TLight light)
         : ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
     {
@@ -49,7 +48,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
-            _nodes.Add(serviceProvider.CreateInstanceWithinContext<TNode, TLight>(Light));
+            _nodes.Add(ActivatorUtilities.CreateInstance<TNode>(serviceProvider));
             return this;
         }
 
@@ -67,7 +66,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
         {
-            _nodes.Add(nodeFactory(new LightPipelineContext<TLight>(serviceProvider, Light)));
+            _nodes.Add(nodeFactory(new LightPipelineContext<TLight>(serviceProvider)));
             return this;
         }
 
@@ -75,7 +74,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
-            return AddNode(reactiveNodeFactory.CreateReactiveNode(Light, c =>
+            var factory = serviceProvider.GetRequiredService<ReactiveNodeFactory>();
+            return AddNode(factory.CreateReactiveNode(Light, c =>
             {
                 if (Log ?? false)
                 {
@@ -127,6 +127,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions) => AddNode(lightPipelineFactory.CreateLightPipeline(Light, pipelineNodeOptions));
+        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions) => 
+            AddNode(
+                serviceProvider.GetRequiredService<LightPipelineFactory>()
+                    .CreateLightPipeline(Light, pipelineNodeOptions));
     }
 }

@@ -1,9 +1,10 @@
-﻿using System.Reactive.Concurrency;
-using CodeCasa.AutomationPipelines.Lights.Context;
+﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reactive.Concurrency;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle;
 
@@ -62,7 +63,7 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
 
     public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<ILightPipelineContext<TLight>, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
     {
-        return Add(c => c.ServiceProvider.CreateInstanceWithinContext<TNode, TLight>(c), matchesNodeState);
+        return Add(c => ActivatorUtilities.CreateInstance<TNode>(c.ServiceProvider), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(IPipelineNode<LightTransition> node, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)

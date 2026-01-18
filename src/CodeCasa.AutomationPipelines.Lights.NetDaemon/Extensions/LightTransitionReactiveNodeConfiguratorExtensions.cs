@@ -1,5 +1,4 @@
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
-using CodeCasa.Lights;
 using CodeCasa.Lights.NetDaemon;
 using CodeCasa.Lights.NetDaemon.Extensions;
 using NetDaemon.HassModel.Entities;

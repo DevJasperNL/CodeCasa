@@ -74,8 +74,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             {
                 return new Func<IPipelineNode<LightTransition>>(() =>
                 {
-                    var serviceScope = serviceProvider.CreateScope();
-                    var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider, kvp.Value.Light);
+                    var serviceScope = kvp.Value.ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                    var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider);
                     return new ScopedNode<LightTransition>(serviceScope, fact(context));
                 });
             }),

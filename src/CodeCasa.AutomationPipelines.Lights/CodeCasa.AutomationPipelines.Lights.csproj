@@ -41,6 +41,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CodeCasa.Abstractions\CodeCasa.Abstractions.csproj" />
     <ProjectReference Include="..\CodeCasa.AutomationPipelines\CodeCasa.AutomationPipelines.csproj" />
+    <ProjectReference Include="..\CodeCasa.DependencyInjection\CodeCasa.DependencyInjection.csproj" />
     <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />
   </ItemGroup>
 

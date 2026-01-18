@@ -35,7 +35,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         where TNode : IPipelineNode<LightTransition> =>
         AddNodeSource(triggerObservable.Select(_ =>
             new Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?>(c =>
-                c.ServiceProvider.CreateInstanceWithinContext<TNode, TLight>(c))));
+                ActivatorUtilities.CreateInstance<TNode>(c.ServiceProvider))));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
@@ -43,10 +43,10 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         AddNodeSource(triggerObservable.Select(_ => nodeFactory));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator) => On(triggerObservable, c => lightPipelineFactory.CreateLightPipeline(c.Light, pipelineConfigurator));
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator) => On(triggerObservable, c => c.ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, pipelineConfigurator));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) => On(triggerObservable, c => reactiveNodeFactory.CreateReactiveNode(c.Light, configure));
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) => On(triggerObservable, c => c.ServiceProvider.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(light, configure));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> PassThroughOn<T>(IObservable<T> triggerObservable)

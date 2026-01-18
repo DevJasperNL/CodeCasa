@@ -1,7 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.AutomationPipelines.Lights.Utils;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -9,7 +13,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Factory for creating and configuring light transition pipelines.
     /// </summary>
     public class LightPipelineFactory(
-        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider, ReactiveNodeFactory reactiveNodeFactory)
+        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider)
     {
         /// <summary>
         /// Sets up a light pipeline for the specified light and configures it with the provided builder action.
@@ -56,34 +60,95 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var configurators = lightArray.ToDictionary(l => l.Id, l => new LightTransitionPipelineConfigurator<TLight>(serviceProvider, this, reactiveNodeFactory, l));
+            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightContextScope);
+            var configurators = 
+                lightArray.ToDictionary(l => l.Id,
+                    l =>
+                    {
+                        var sp = lightContextScopes[l.Id].ServiceProvider;
+                        // Note: we cant resolve LightTransitionPipelineConfigurator directly because it is not registered as a service.
+                        return new LightTransitionPipelineConfigurator<TLight>(sp, l);
+                    });
             ILightTransitionPipelineConfigurator<TLight> configurator = lightArray.Length == 1
                 ? configurators[lightArray[0].Id]
                 : new CompositeLightTransitionPipelineConfigurator<TLight>(
                     serviceProvider,
-                    this,
-                    reactiveNodeFactory,
+                    serviceProvider.GetRequiredService<LightPipelineFactory>(),
+                    serviceProvider.GetRequiredService<ReactiveNodeFactory>(),
                     configurators);
             pipelineBuilder(configurator);
 
             return configurators.ToDictionary(kvp => kvp.Key, kvp =>
             {
                 var conf = kvp.Value;
+                IPipeline<LightTransition> pipeline;
                 if (conf.Log ?? false)
                 {
-                    return new Pipeline<LightTransition>(
+                    pipeline= new Pipeline<LightTransition>(
                         conf.Name ?? conf.Light.Id,
                         LightTransition.Off(),
                         conf.Nodes,
                         conf.Light.ApplyTransition,
                         logger);
                 }
+                else
+                {
+                    pipeline = new Pipeline<LightTransition>(
+                        LightTransition.Off(),
+                        conf.Nodes,
+                        conf.Light.ApplyTransition);
+                }
 
-                return (IPipeline<LightTransition>)new Pipeline<LightTransition>(
-                    LightTransition.Off(),
-                    conf.Nodes,
-                    conf.Light.ApplyTransition);
+                return (IPipeline<LightTransition>)new ScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);
             });
+        }
+    }
+
+    public sealed class ScopedPipeline<TNode> : IPipeline<TNode>, IDisposable, IAsyncDisposable
+    {
+        private readonly IServiceScope _scope;
+
+        public IPipeline<TNode> Instance { get; }
+
+        public ScopedPipeline(IServiceScope scope, IPipeline<TNode> pipeline)
+        {
+            _scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            Instance = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
+        }
+
+        public void Dispose()
+        {
+            (Instance as IDisposable)?.Dispose();
+            _scope.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await Instance.DisposeOrDisposeAsync();
+            await _scope.DisposeOrDisposeAsync();
+        }
+
+        public TNode? Input { get; set; }
+        public TNode? Output { get; }
+        public IObservable<TNode?> OnNewOutput { get; }
+        public IPipeline<TNode> SetDefault(TNode state)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IPipeline<TNode> RegisterNode<TNode1>() where TNode1 : IPipelineNode<TNode>
+        {
+            throw new NotImplementedException();
+        }
+
+        public IPipeline<TNode> RegisterNode(IPipelineNode<TNode> node)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IPipeline<TNode> SetOutputHandler(Action<TNode> action, bool callActionDistinct = true)
+        {
+            throw new NotImplementedException();
         }
     }
 }

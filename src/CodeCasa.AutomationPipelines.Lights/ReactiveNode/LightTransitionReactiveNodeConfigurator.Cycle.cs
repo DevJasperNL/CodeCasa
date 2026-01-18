@@ -53,11 +53,11 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         {
             var factory = new Func<IPipelineNode<LightTransition>>(() =>
             {
-                var serviceScope = serviceProvider.CreateScope();
-                var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider, Light);
+                var serviceScope = ServiceProvider.CreateLightContextScope(Light);
+                var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider);
                 return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(context));
             });
-            var valueIsActiveFunc = () => tuple.matchesNodeState(new LightPipelineContext<TLight>(serviceProvider, Light));
+            var valueIsActiveFunc = () => tuple.matchesNodeState(new LightPipelineContext<TLight>(ServiceProvider));
             return (factory, valueIsActiveFunc);
         })));
         return this;

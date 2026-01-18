@@ -79,7 +79,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
 
         public ILightTransitionToggleConfigurator<TLight> Add<TNode>() where TNode : IPipelineNode<LightTransition>
         {
-            return Add(c => c.ServiceProvider.CreateInstanceWithinContext<TNode, TLight>(c));
+            return Add(c => ActivatorUtilities.CreateInstance<TNode>(c.ServiceProvider));
         }
 
         public ILightTransitionToggleConfigurator<TLight> Add(IPipelineNode<LightTransition> node)

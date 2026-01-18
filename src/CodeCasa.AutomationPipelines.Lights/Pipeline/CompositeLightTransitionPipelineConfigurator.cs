@@ -3,8 +3,6 @@ using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
-using System.Collections.Generic;
-using System.Xml.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {

@@ -2,10 +2,11 @@ using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Xml.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -75,7 +76,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> trueNodeFactory, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> falseNodeFactory) where TObservable : IObservable<bool>
     {
-        var observable = serviceProvider.CreateInstanceWithinContext<TObservable, TLight>(Light);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return Switch(observable, trueNodeFactory, falseNodeFactory);
     }
 
@@ -91,7 +92,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable, TTrueNode, TFalseNode>() where TObservable : IObservable<bool> where TTrueNode : IPipelineNode<LightTransition> where TFalseNode : IPipelineNode<LightTransition>
     {
-        var observable = serviceProvider.CreateInstanceWithinContext<TObservable, TLight>(Light);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return Switch<TTrueNode, TFalseNode>(observable);
     }
 
@@ -106,7 +107,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure, Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
     {
-        var observable = serviceProvider.CreateInstanceWithinContext<TObservable, TLight>(Light);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure);
     }
 
@@ -122,14 +123,18 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure, Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
     {
-        return Switch<TObservable>(c => lightPipelineFactory.CreateLightPipeline(c.Light, trueConfigure), c => lightPipelineFactory.CreateLightPipeline(c.Light, falseConfigure));
+        return Switch<TObservable>(
+            c => c.ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
+            c => c.ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
     {
-        return Switch(observable, c => lightPipelineFactory.CreateLightPipeline(c.Light, trueConfigure), c => lightPipelineFactory.CreateLightPipeline(c.Light, falseConfigure));
+        return Switch(observable, 
+            c => c.ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
+            c => c.ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
     }
 
     /// <inheritdoc/>

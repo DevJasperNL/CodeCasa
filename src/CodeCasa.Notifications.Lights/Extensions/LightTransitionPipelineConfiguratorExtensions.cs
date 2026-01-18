@@ -1,7 +1,4 @@
-﻿using CodeCasa.AutomationPipelines;
-using CodeCasa.AutomationPipelines.Lights.Context;
-using CodeCasa.AutomationPipelines.Lights.Extensions;
-using CodeCasa.AutomationPipelines.Lights.Pipeline;
+﻿using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using System.Reactive.Linq;
 

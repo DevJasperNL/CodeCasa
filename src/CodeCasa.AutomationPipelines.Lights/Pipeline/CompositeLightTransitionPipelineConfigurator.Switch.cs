@@ -130,6 +130,11 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure, Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
     {
+        /*
+         * For this implementation we can either instantiate the TObservable for each container and pass configure to them individual, breaking composite dimming behavior.
+         * Or we can create a single TObservable without light context.
+         * I decided to go with the latter to preserve composite dimming behavior.
+         */
         var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return AddPipelineSwitch(observable, trueConfigure, falseConfigure);
     }

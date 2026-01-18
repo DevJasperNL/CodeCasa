@@ -1,14 +1,16 @@
+using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Pipeline;
+using CodeCasa.AutomationPipelines.Lights.Utils;
+using CodeCasa.Lights;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using CodeCasa.AutomationPipelines.Lights.Extensions;
-using CodeCasa.AutomationPipelines.Lights.Nodes;
-using CodeCasa.AutomationPipelines.Lights.Pipeline;
-using CodeCasa.Lights;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 {
@@ -45,15 +47,21 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 return new Dictionary<string, IPipelineNode<LightTransition>>();
             }
 
-            var lightPipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-            var reactiveConfigurators = lightArray.ToDictionary(l => l.Id, l => new LightTransitionReactiveNodeConfigurator<TLight>(serviceProvider, lightPipelineFactory,
-                this, l, scheduler));
+            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightContextScope);
+            var reactiveConfigurators = 
+                lightArray.ToDictionary(l => l.Id, 
+                    l =>
+                    {
+                        var sp = lightContextScopes[l.Id].ServiceProvider;
+                        // Note: we cant resolve LightTransitionReactiveNodeConfigurator directly because it is not registered as a service.
+                        return new LightTransitionReactiveNodeConfigurator<TLight>(sp, l, sp.GetRequiredService<IScheduler>());
+                    });
             ILightTransitionReactiveNodeConfigurator<TLight> configurator = lightArray.Length == 1
                 ? reactiveConfigurators[lightArray[0].Id]
                 : new CompositeLightTransitionReactiveNodeConfigurator<TLight>(
-                    serviceProvider, 
-                    lightPipelineFactory,
-                    this,
+                    serviceProvider,
+                    serviceProvider.GetRequiredService<LightPipelineFactory>(),
+                    serviceProvider.GetRequiredService<ReactiveNodeFactory>(),
                     reactiveConfigurators,
                     scheduler);
             configure(configurator);
@@ -96,7 +104,9 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                     scheduler);
 
                 dimmerNodes.Add(light.Id, dimmerNode);
-                var innerPipeline = new ReactiveDimmerPipeline(reactiveNode, dimmerNode, registrationManager);
+                var innerPipeline = new ReactiveDimmerPipeline(
+                    lightContextScopes[light.Id], 
+                    reactiveNode, dimmerNode, registrationManager);
 
                 result.Add(light.Id, innerPipeline);
             }
@@ -168,16 +178,19 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
     /// </summary>
     internal class ReactiveDimmerPipeline : Pipeline<LightTransition>
     {
+        private readonly IServiceScope _scope;
         private readonly IRegisterInterface<ReactiveDimmerPipeline> _registerInterface;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReactiveDimmerPipeline"/> class.
         /// </summary>
         public ReactiveDimmerPipeline(
+            IServiceScope scope,
             ReactiveNode reactiveNode, 
             ReactiveDimmerNode reactiveDimmerNode,
             IRegisterInterface<ReactiveDimmerPipeline> registerInterface)
         {
+            _scope = scope;
             _registerInterface = registerInterface;
             _registerInterface.Register(this);
             RegisterNode(reactiveNode);
@@ -185,10 +198,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         }
 
         /// <inheritdoc />
-        public override ValueTask DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             _registerInterface.Unregister(this);
-            return base.DisposeAsync();
+            await base.DisposeAsync();
+            await _scope.DisposeOrDisposeAsync();
         }
     }
 

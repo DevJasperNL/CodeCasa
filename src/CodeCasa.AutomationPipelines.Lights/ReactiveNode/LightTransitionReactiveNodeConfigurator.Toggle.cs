@@ -5,6 +5,7 @@ using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -72,8 +73,8 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
             {
                 return new Func<IPipelineNode<LightTransition>>(() =>
                 {
-                    var serviceScope = serviceProvider.CreateScope();
-                    var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider, Light);
+                    var serviceScope = ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                    var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider);
                     return new ScopedNode<LightTransition>(serviceScope, fact(context));
                 });
             }),

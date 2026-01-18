@@ -17,11 +17,13 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// </summary>
 internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
     IServiceProvider serviceProvider,
-    LightPipelineFactory lightPipelineFactory,
-    ReactiveNodeFactory reactiveNodeFactory,
     TLight light, 
     IScheduler scheduler) : ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
+    /// <summary>
+    /// The service provider scoped to this light.
+    /// </summary>
+    public IServiceProvider ServiceProvider { get; } = serviceProvider;
     /// <summary>
     /// Gets the light associated with this configurator.
     /// </summary>
@@ -111,8 +113,8 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
     {
         return AddNodeSource(nodeFactorySource.Select(nodeFactory =>
         {
-            var scope = serviceProvider.CreateScope();
-            var context = new LightPipelineContext<TLight>(scope.ServiceProvider, Light);
+            var scope = ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
+            var context = new LightPipelineContext<TLight>(scope.ServiceProvider);
             var node = nodeFactory(context);
             if (node != null)
             {
