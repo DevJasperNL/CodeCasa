@@ -30,7 +30,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             _reactiveNodeFactory = new ReactiveNodeFactory(_serviceProviderMock.Object, _scheduler);
 
             var pipelineLoggerMock = new Mock<ILogger<Pipeline<LightTransition>>>();
-            var lightPipelineFactory = new LightPipelineFactory(pipelineLoggerMock.Object, _serviceProviderMock.Object, _reactiveNodeFactory);
+            var lightPipelineFactory = new LightPipelineFactory(pipelineLoggerMock.Object, _serviceProviderMock.Object);
 
             _serviceProviderMock.Setup(x => x.GetService(typeof(LightPipelineFactory)))
                 .Returns(lightPipelineFactory);
@@ -52,8 +52,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             _scopeMock.As<IAsyncDisposable>();
             _scopedServiceProviderMock = new Mock<IServiceProvider>();
 
+            var serviceProviderIsServiceMock = new Mock<IServiceProviderIsService>();
+            serviceProviderIsServiceMock.Setup(x => x.IsService(It.IsAny<Type>())).Returns(false);
+
             _serviceProviderMock.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
                 .Returns(_scopeFactoryMock.Object);
+
+            _serviceProviderMock.Setup(x => x.GetService(typeof(IServiceProviderIsService)))
+                .Returns(serviceProviderIsServiceMock.Object);
 
             _scopeFactoryMock.Setup(x => x.CreateScope())
                 .Returns(_scopeMock.Object);
@@ -63,6 +69,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
             _scopedServiceProviderMock.Setup(x => x.GetService(typeof(IScheduler)))
                 .Returns(_scheduler);
+
+            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
+                .Returns(_scopeFactoryMock.Object);
+
+            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(IServiceProviderIsService)))
+                .Returns(serviceProviderIsServiceMock.Object);
         }
 
         [TestMethod]
@@ -151,7 +163,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
             // Assert 1
             Assert.HasCount(1, createdIds, "Should have created one node");
-            Assert.HasCount(0, disposedIds, "Should not have disposed any node yet");
+            Assert.IsEmpty(disposedIds, "Should not have disposed any node yet");
 
             // Trigger 2
             triggerSubject.OnNext(2);
@@ -248,18 +260,20 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
                 config.On<int, ScopedPipelineNode>(triggerSubject);
             });
 
+            _scopeFactoryMock.Verify(x => x.CreateScope(), Times.Once, "Scope should be created on creating the reactive node.");
+
             // Trigger 1
             triggerSubject.OnNext(1);
 
             // Assert 1
-            _scopeFactoryMock.Verify(x => x.CreateScope(), Times.Once, "Scope should be created on trigger");
+            _scopeFactoryMock.Verify(x => x.CreateScope(), Times.Exactly(2), "New scope should be created on trigger");
             _scopeMock.As<IAsyncDisposable>().Verify(x => x.DisposeAsync(), Times.Never, "Scope should not be disposed yet");
 
             // Trigger 2
             triggerSubject.OnNext(2);
 
             // Assert 2
-            _scopeFactoryMock.Verify(x => x.CreateScope(), Times.Exactly(2), "New scope should be created on second trigger");
+            _scopeFactoryMock.Verify(x => x.CreateScope(), Times.Exactly(3), "New scope should be created on second trigger");
             _scopeMock.As<IAsyncDisposable>().Verify(x => x.DisposeAsync(), Times.Once, "Old scope should be disposed");
         }
 
