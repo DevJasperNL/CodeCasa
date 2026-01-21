@@ -122,7 +122,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         return Switch<TObservable>(
             s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
-            c => c.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
     }
 
     /// <inheritdoc/>
@@ -130,8 +130,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
     {
         return Switch(observable, 
-            c => c.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
-            c => c.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
     }
 
     /// <inheritdoc/>

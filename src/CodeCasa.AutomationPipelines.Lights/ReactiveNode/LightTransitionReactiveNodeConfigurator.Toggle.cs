@@ -69,11 +69,9 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
             () => new TurnOffThenPassThroughNode(),
             toggleConfigurator.NodeFactories.Select(fact =>
             {
-                return new Func<IPipelineNode<LightTransition>>(() =>
-                {
-                    var serviceScope = ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
-                    return new ScopedNode<LightTransition>(serviceScope, fact(serviceScope.ServiceProvider));
-                });
+                return new Func<IPipelineNode<LightTransition>>(() => 
+                    fact.CreateScopedNode(ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                    );
             }),
             toggleConfigurator.ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
             toggleConfigurator.IncludeOffValue));

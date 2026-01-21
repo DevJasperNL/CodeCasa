@@ -109,17 +109,9 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
-        return AddNodeSource(nodeFactorySource.Select(nodeFactory =>
-        {
-            var scope = ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
-            var node = nodeFactory(scope.ServiceProvider);
-            if (node != null)
-            {
-                return new ScopedNode<LightTransition>(scope, node);
-            }
-            scope.Dispose();
-            return null;
-        }));
+        return AddNodeSource(nodeFactorySource.Select(nodeFactory => 
+            nodeFactory.CreateScopedNodeOrNull(ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+            ));
     }
 
     /// <inheritdoc/>

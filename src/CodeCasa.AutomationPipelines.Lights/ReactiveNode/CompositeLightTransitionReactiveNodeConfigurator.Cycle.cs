@@ -51,11 +51,9 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
         configure(compositeCycleConfigurator);
         configurators.ForEach(kvp => kvp.Value.AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurators[kvp.Key].CycleNodeFactories.Select(tuple =>
         {
-            var factory = new Func<IPipelineNode<LightTransition>>(() =>
-            {
-                var serviceScope = kvp.Value.ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
-                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(serviceScope.ServiceProvider));
-            });
+            var factory = new Func<IPipelineNode<LightTransition>>(() => 
+                tuple.nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                );
             var valueIsActiveFunc = () => tuple.matchesNodeState(serviceProvider);
             return (factory, valueIsActiveFunc);
         }))));

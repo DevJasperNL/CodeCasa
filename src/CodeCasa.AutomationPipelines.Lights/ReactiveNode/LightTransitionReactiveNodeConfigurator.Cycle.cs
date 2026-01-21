@@ -49,11 +49,9 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         configure(cycleConfigurator);
         AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurator.CycleNodeFactories.Select(tuple =>
         {
-            var factory = new Func<IPipelineNode<LightTransition>>(() =>
-            {
-                var serviceScope = ServiceProvider.CreateLightContextScope(Light);
-                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(serviceScope.ServiceProvider));
-            });
+            var factory = new Func<IPipelineNode<LightTransition>>(() => 
+                tuple.nodeFactory.CreateScopedNode(ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                );
             var valueIsActiveFunc = () => tuple.matchesNodeState(ServiceProvider);
             return (factory, valueIsActiveFunc);
         })));
