@@ -1,8 +1,6 @@
-﻿using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
-using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -109,13 +107,12 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?>> nodeFactorySource)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
         return AddNodeSource(nodeFactorySource.Select(nodeFactory =>
         {
             var scope = ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
-            var context = new LightPipelineContext<TLight>(scope.ServiceProvider);
-            var node = nodeFactory(context);
+            var node = nodeFactory(scope.ServiceProvider);
             if (node != null)
             {
                 return new ScopedNode<LightTransition>(scope, node);

@@ -22,7 +22,7 @@ namespace CodeCasa.Notifications.Lights.Extensions
         {
             return configurator.AddReactiveNode(c =>
             {
-                c.AddNodeSource(lightNotificationManagerContext.LightNotifications.Select(lnc => lnc == null ? _ => null : lnc.CreateFactory<TLight>()));
+                c.AddNodeSource(lightNotificationManagerContext.LightNotifications.Select(lnc => lnc == null ? _ => null : lnc.CreateFactory()));
             });
         }
     }

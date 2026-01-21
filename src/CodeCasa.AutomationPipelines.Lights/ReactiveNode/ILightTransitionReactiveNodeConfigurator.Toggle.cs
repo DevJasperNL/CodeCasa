@@ -1,4 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
 
@@ -64,7 +63,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="nodeFactories">The collection of factory functions that create pipeline nodes.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
-        IEnumerable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>> nodeFactories);
+        IEnumerable<Func<IServiceProvider, IPipelineNode<LightTransition>>> nodeFactories);
 
     /// <summary>
     /// Adds a time-based toggle trigger that switches between nodes created by the specified factory functions when triggered by <paramref name="triggerObservable"/>.
@@ -76,7 +75,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="nodeFactories">The array of factory functions that create pipeline nodes.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
-        params Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>[] nodeFactories);
+        params Func<IServiceProvider, IPipelineNode<LightTransition>>[] nodeFactories);
 
     /// <summary>
     /// Adds a time-based toggle trigger configured by the specified <paramref name="configure"/> action when triggered by <paramref name="triggerObservable"/>.

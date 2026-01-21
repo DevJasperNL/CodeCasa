@@ -5,7 +5,6 @@ using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {

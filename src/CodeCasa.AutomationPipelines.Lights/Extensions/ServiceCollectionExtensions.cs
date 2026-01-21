@@ -1,7 +1,5 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
-using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Extensions;

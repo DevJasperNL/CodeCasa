@@ -1,9 +1,6 @@
-﻿using CodeCasa.AutomationPipelines;
-using CodeCasa.AutomationPipelines.Lights.Context;
-using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace CodeCasa.Notifications.Lights.Config;
 
@@ -26,8 +23,8 @@ public class NodeTypeLightNotificationConfig<TNode> : ILightNotificationConfig w
     }
 
     /// <inheritdoc/>
-    public Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?> CreateFactory<TLight>() where TLight : ILight
+    public Func<IServiceProvider, IPipelineNode<LightTransition>?> CreateFactory()
     {
-        return context => ActivatorUtilities.CreateInstance<TNode>(context.ServiceProvider);
+        return context => ActivatorUtilities.CreateInstance<TNode>(context);
     }
 }

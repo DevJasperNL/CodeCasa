@@ -1,5 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
-using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
@@ -13,7 +11,7 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
 {
     public TLight Light { get; } = light;
 
-    internal List<(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)> CycleNodeFactories
+    internal List<(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, Func<IServiceProvider, bool> matchesNodeState)> CycleNodeFactories
     {
         get;
     } = [];
@@ -33,12 +31,12 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
         return Add(lightParameters.AsTransition(), comparer);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(c => lightParametersFactory(c)?.AsTransition(), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add((c, t) => lightParametersFactory(c, t)?.AsTransition(), matchesNodeState);
     }
@@ -51,33 +49,33 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
             lightTransition.LightParameters));
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), scheduler), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<ILightPipelineContext<TLight>, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
+    public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<IServiceProvider, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
     {
-        return Add(c => ActivatorUtilities.CreateInstance<TNode>(c.ServiceProvider), matchesNodeState);
+        return Add(c => ActivatorUtilities.CreateInstance<TNode>(c), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(IPipelineNode<LightTransition> node, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(IPipelineNode<LightTransition> node, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(_ => node, matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         CycleNodeFactories.Add((nodeFactory, matchesNodeState));
         return this;
     }
 
-    public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(new PassThroughNode<LightTransition>(), matchesNodeState);
     }

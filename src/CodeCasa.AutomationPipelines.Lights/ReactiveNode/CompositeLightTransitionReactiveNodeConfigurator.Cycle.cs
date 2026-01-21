@@ -1,4 +1,3 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Cycle;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
@@ -55,10 +54,9 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             var factory = new Func<IPipelineNode<LightTransition>>(() =>
             {
                 var serviceScope = kvp.Value.ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
-                var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider);
-                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(context));
+                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(serviceScope.ServiceProvider));
             });
-            var valueIsActiveFunc = () => tuple.matchesNodeState(new LightPipelineContext<TLight>(serviceProvider));
+            var valueIsActiveFunc = () => tuple.matchesNodeState(serviceProvider);
             return (factory, valueIsActiveFunc);
         }))));
         return this;

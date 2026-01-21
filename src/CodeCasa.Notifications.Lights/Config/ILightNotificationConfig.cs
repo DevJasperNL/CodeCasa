@@ -1,5 +1,4 @@
-﻿using CodeCasa.AutomationPipelines;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.AutomationPipelines;
 using CodeCasa.Lights;
 
 namespace CodeCasa.Notifications.Lights.Config;
@@ -18,10 +17,9 @@ public interface ILightNotificationConfig
     /// <summary>
     /// Creates a factory function that produces a pipeline node for the specified light type.
     /// </summary>
-    /// <typeparam name="TLight">The type of light that implements <see cref="ILight"/>.</typeparam>
     /// <returns>
-    /// A factory function that takes a <see cref="ILightPipelineContext{TLight}"/> and returns
+    /// A factory function that takes a <see cref="IServiceProvider"/> and returns
     /// a <see cref="IPipelineNode{LightTransition}"/>, or <c>null</c> if the light type is not supported.
     /// </returns>
-    public Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?> CreateFactory<TLight>() where TLight : ILight;
+    public Func<IServiceProvider, IPipelineNode<LightTransition>?> CreateFactory();
 }

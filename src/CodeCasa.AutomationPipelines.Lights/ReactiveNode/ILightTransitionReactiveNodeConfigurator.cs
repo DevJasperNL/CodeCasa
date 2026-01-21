@@ -1,5 +1,4 @@
-﻿using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.Abstractions;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
@@ -66,7 +65,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight>
         AddNodeSource(
-            IObservable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?>>
+            IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>
                 nodeFactorySource);
 
     /// <summary>

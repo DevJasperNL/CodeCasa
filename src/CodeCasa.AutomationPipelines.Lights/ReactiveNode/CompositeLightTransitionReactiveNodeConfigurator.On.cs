@@ -1,5 +1,4 @@
 using System.Reactive.Concurrency;
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
@@ -15,16 +14,16 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
         => On(triggerObservable, lightParameters.AsTransition());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<ILightPipelineContext<TLight>, LightParameters> lightParametersFactory)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightParameters> lightParametersFactory)
         => On(triggerObservable, c => lightParametersFactory(c).AsTransition());
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, LightTransition lightTransition)
-        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransition, c.ServiceProvider.GetRequiredService<IScheduler>()));
+        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransition, c.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<ILightPipelineContext<TLight>, LightTransition> lightTransitionFactory)
-        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()));
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightTransition> lightTransitionFactory)
+        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T, TNode>(IObservable<T> triggerObservable) where TNode : IPipelineNode<LightTransition>
@@ -34,7 +33,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
         configurators.Values.ForEach(c => c.On(triggerObservable, nodeFactory));
         return this;

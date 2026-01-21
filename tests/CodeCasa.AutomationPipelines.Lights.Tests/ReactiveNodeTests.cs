@@ -7,7 +7,6 @@ using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Reactive.Subjects;
-using CodeCasa.AutomationPipelines.Lights.Context;
 using ReactiveNodeClass = CodeCasa.AutomationPipelines.Lights.ReactiveNode.ReactiveNode;
 
 namespace CodeCasa.AutomationPipelines.Lights.Tests
@@ -19,7 +18,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
         private IScheduler _scheduler = null!;
         private ReactiveNodeFactory _reactiveNodeFactory = null!;
         private Mock<ILight> _lightMock = null!;
-        private LightPipelineContextProvider _contextProvider = null!;
         private Mock<IServiceScopeFactory> _scopeFactoryMock = null!;
         private Mock<IServiceScope> _scopeMock = null!;
         private Mock<IServiceProvider> _scopedServiceProviderMock = null!;
@@ -49,10 +47,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             _lightMock.Setup(l => l.GetParameters()).Returns(new LightParameters());
             _lightMock.Setup(l => l.GetChildren()).Returns(Array.Empty<ILight>());
 
-            _contextProvider = new LightPipelineContextProvider();
-            _serviceProviderMock.Setup(x => x.GetService(typeof(LightPipelineContextProvider)))
-                .Returns(_contextProvider);
-
             _scopeFactoryMock = new Mock<IServiceScopeFactory>();
             _scopeMock = new Mock<IServiceScope>();
             _scopeMock.As<IAsyncDisposable>();
@@ -66,9 +60,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
             _scopeMock.Setup(x => x.ServiceProvider)
                 .Returns(_scopedServiceProviderMock.Object);
-
-            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(LightPipelineContextProvider)))
-                .Returns(_contextProvider);
 
             _scopedServiceProviderMock.Setup(x => x.GetService(typeof(IScheduler)))
                 .Returns(_scheduler);
@@ -177,10 +168,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             // Arrange
             var triggerSubject = new Subject<int>();
             
-            _serviceProviderMock.Setup(x => x.GetService(typeof(ILightPipelineContext<ILight>)))
-                .Returns(() => _contextProvider.GetLightPipelineContext());
-            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(ILightPipelineContext<ILight>)))
-                .Returns(() => _contextProvider.GetLightPipelineContext());
+            _serviceProviderMock.Setup(x => x.GetService(typeof(ILight)))
+                .Returns(_lightMock.Object);
+            _scopedServiceProviderMock.Setup(x => x.GetService(typeof(ILight)))
+                .Returns(_lightMock.Object);
 
             // Act
             var node = _reactiveNodeFactory.CreateReactiveNode(_lightMock.Object, config => 
@@ -232,9 +223,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
 
         public class ContextAwarePipelineNode : PipelineNode<LightTransition>
         {
-            public ContextAwarePipelineNode(ILightPipelineContext<ILight> context)
+            public ContextAwarePipelineNode(ILight light)
             {
-                if (context.Light.Id == "test_light")
+                if (light.Id == "test_light")
                 {
                     Output = new LightParameters { Brightness = 100 }.AsTransition();
                 }

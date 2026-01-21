@@ -1,6 +1,4 @@
-﻿using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
-using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,9 +62,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
+        public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
         {
-            _nodes.Add(nodeFactory(new LightPipelineContext<TLight>(serviceProvider)));
+            _nodes.Add(nodeFactory(serviceProvider));
             return this;
         }
 

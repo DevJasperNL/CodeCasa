@@ -1,4 +1,3 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 
@@ -24,7 +23,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
-        Func<ILightPipelineContext<TLight>, LightParameters> lightParametersFactory);
+        Func<IServiceProvider, LightParameters> lightParametersFactory);
 
     /// <summary>
     /// Registers a trigger that applies the given <paramref name="lightTransition"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -44,7 +43,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
-        Func<ILightPipelineContext<TLight>, LightTransition> lightTransitionFactory);
+        Func<IServiceProvider, LightTransition> lightTransitionFactory);
 
     /// <summary>
     /// Registers a trigger that activates a pipeline node of type <typeparamref name="TNode"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -65,7 +64,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="nodeFactory">A factory function that creates a pipeline node based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory);
+        Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory);
 
     /// <summary>
     /// Registers a trigger that activates a nested pipeline configured by <paramref name="pipelineConfigurator"/> when the <paramref name="triggerObservable"/> emits a value.

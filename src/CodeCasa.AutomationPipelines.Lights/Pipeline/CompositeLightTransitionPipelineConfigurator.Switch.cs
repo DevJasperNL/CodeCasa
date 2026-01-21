@@ -1,4 +1,3 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,16 +27,16 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<ILightPipelineContext<TLight>, LightParameters> trueLightParametersFactory,
-        Func<ILightPipelineContext<TLight>, LightParameters> falseLightParametersFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters> falseLightParametersFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.Switch<TObservable>(trueLightParametersFactory, falseLightParametersFactory));
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<ILightPipelineContext<TLight>, LightParameters> trueLightParametersFactory,
-        Func<ILightPipelineContext<TLight>, LightParameters> falseLightParametersFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
     {
         NodeContainers.Values.ForEach(b => b.Switch(observable, trueLightParametersFactory, falseLightParametersFactory));
         return this;
@@ -60,31 +59,31 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<ILightPipelineContext<TLight>, LightTransition> trueLightTransitionFactory,
-        Func<ILightPipelineContext<TLight>, LightTransition> falseLightTransitionFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition> falseLightTransitionFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.Switch<TObservable>(trueLightTransitionFactory, falseLightTransitionFactory));
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<ILightPipelineContext<TLight>, LightTransition> trueLightTransitionFactory,
-        Func<ILightPipelineContext<TLight>, LightTransition> falseLightTransitionFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
     {
         NodeContainers.Values.ForEach(b => b.Switch(observable, trueLightTransitionFactory, falseLightTransitionFactory));
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> trueNodeFactory, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> falseNodeFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory, Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.Switch<TObservable>(trueNodeFactory, falseNodeFactory));
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> trueNodeFactory,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> falseNodeFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory,
+        Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory)
     {
         NodeContainers.Values.ForEach(b => b.Switch(observable, trueNodeFactory, falseNodeFactory));
         return this;

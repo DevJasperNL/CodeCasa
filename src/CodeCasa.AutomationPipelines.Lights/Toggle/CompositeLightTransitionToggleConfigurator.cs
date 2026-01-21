@@ -1,5 +1,4 @@
-﻿using System.Reactive.Concurrency;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using System.Reactive.Concurrency;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
@@ -48,12 +47,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return Add(lightParameters.AsTransition());
         }
 
-        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory)
         {
             return Add(c => lightParametersFactory(c)?.AsTransition());
         }
 
-        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory)
         {
             return Add((c, t) => lightParametersFactory(c, t)?.AsTransition());
         }
@@ -63,12 +62,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return Add(_ => lightTransition);
         }
 
-        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
         {
-            return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()));
+            return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
         }
 
-        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory)
         {
             return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)));
         }
@@ -80,7 +79,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return this;
         }
 
-        public ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
+        public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
         {
             activeConfigurators.Values.ForEach(c => c.Add(nodeFactory));
             inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());

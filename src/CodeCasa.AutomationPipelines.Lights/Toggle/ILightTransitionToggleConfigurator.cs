@@ -1,4 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Toggle
@@ -54,7 +53,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </summary>
         /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory);
+        ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory);
 
         /// <summary>
         /// Adds light parameters created by a factory to the toggle sequence.
@@ -62,7 +61,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </summary>
         /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context and current transition.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory);
+        ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory);
 
         /// <summary>
         /// Adds a light transition to the toggle sequence. Quick consecutive triggers will advance through all added transitions.
@@ -76,7 +75,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </summary>
         /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory);
+        ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory);
 
         /// <summary>
         /// Adds a light transition created by a factory to the toggle sequence.
@@ -84,7 +83,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </summary>
         /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context and current transition.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory);
+        ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory);
 
         /// <summary>
         /// Adds a pipeline node of type <typeparamref name="TNode"/> to the toggle sequence.
@@ -100,7 +99,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </summary>
         /// <param name="nodeFactory">A factory function that creates a pipeline node based on the pipeline context.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionToggleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory);
+        ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory);
 
         /// <summary>
         /// Adds a pass-through state to the toggle sequence that maintains the current light state.

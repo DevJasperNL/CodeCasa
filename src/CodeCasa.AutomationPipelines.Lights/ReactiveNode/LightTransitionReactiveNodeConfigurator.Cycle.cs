@@ -1,9 +1,7 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Cycle;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -54,10 +52,9 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
             var factory = new Func<IPipelineNode<LightTransition>>(() =>
             {
                 var serviceScope = ServiceProvider.CreateLightContextScope(Light);
-                var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider);
-                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(context));
+                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(serviceScope.ServiceProvider));
             });
-            var valueIsActiveFunc = () => tuple.matchesNodeState(new LightPipelineContext<TLight>(ServiceProvider));
+            var valueIsActiveFunc = () => tuple.matchesNodeState(ServiceProvider);
             return (factory, valueIsActiveFunc);
         })));
         return this;

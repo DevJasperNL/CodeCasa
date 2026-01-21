@@ -1,5 +1,4 @@
 using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 
@@ -38,7 +37,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <param name="nodeFactory">A factory function that creates a pipeline node based on the light pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> AddNode(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory);
+    ILightTransitionPipelineConfigurator<TLight> AddNode(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory);
 
     /// <summary>
     /// Adds a reactive node to the pipeline configured by the specified <paramref name="configure"/> action.

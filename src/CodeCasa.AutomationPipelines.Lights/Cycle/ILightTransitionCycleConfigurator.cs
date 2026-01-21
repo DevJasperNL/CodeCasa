@@ -1,4 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle
@@ -38,7 +37,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context.</param>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState);
+        ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState);
 
         /// <summary>
         /// Adds light parameters created by a factory to the cycle, with a custom state matching function.
@@ -48,7 +47,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context and current transition.</param>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState);
+        ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState);
 
         /// <summary>
         /// Adds a light transition to the cycle. The cycle will advance to this transition when the current state matches the previous entry in the cycle.
@@ -65,7 +64,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context.</param>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState);
+        ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState);
 
         /// <summary>
         /// Adds a light transition created by a factory to the cycle, with a custom state matching function.
@@ -75,7 +74,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context and current transition.</param>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState);
+        ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState);
 
         /// <summary>
         /// Adds a pipeline node of type <typeparamref name="TNode"/> to the cycle, with a custom state matching function.
@@ -85,7 +84,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <typeparam name="TNode">The type of the pipeline node to add to the cycle.</typeparam>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<ILightPipelineContext<TLight>, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>;
+        ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<IServiceProvider, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>;
 
         /// <summary>
         /// Adds a pipeline node created by a factory to the cycle, with a custom state matching function.
@@ -94,7 +93,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <param name="nodeFactory">A factory function that creates a pipeline node based on the pipeline context.</param>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState);
+        ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, Func<IServiceProvider, bool> matchesNodeState);
 
         /// <summary>
         /// Adds a pass-through state to the cycle that maintains the current light state.
@@ -102,7 +101,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// </summary>
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
-        ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<ILightPipelineContext<TLight>, bool> matchesNodeState);
+        ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<IServiceProvider, bool> matchesNodeState);
 
         /// <summary>
         /// Creates a scoped cycle configuration for a specific light identified by its entity ID.

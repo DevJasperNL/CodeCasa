@@ -1,4 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
 
@@ -36,14 +35,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
-        IEnumerable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>> nodeFactories)
+        IEnumerable<Func<IServiceProvider, IPipelineNode<LightTransition>>> nodeFactories)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, nodeFactories));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
-        params Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>[] nodeFactories)
+        params Func<IServiceProvider, IPipelineNode<LightTransition>>[] nodeFactories)
     {
         return AddReactiveNode(c => c.AddToggle(triggerObservable, nodeFactories));
     }

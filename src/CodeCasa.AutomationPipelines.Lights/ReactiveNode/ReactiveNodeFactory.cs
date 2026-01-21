@@ -5,7 +5,6 @@ using CodeCasa.AutomationPipelines.Lights.Utils;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;

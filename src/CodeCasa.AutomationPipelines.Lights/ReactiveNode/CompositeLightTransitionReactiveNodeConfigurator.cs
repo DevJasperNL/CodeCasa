@@ -1,6 +1,5 @@
-﻿using System.Reactive.Concurrency;
+using System.Reactive.Concurrency;
 using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
@@ -80,7 +79,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>?>> nodeFactorySource)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
         configurators.Values.ForEach(c => c.AddNodeSource(nodeFactorySource));
         return this;

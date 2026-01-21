@@ -1,4 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
@@ -45,11 +44,11 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>> nodeFactories)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, IEnumerable<Func<IServiceProvider, IPipelineNode<LightTransition>>> nodeFactories)
         => AddToggle(triggerObservable, nodeFactories.ToArray());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, params Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>>[] nodeFactories)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, params Func<IServiceProvider, IPipelineNode<LightTransition>>[] nodeFactories)
     {
         return AddToggle(triggerObservable, configure =>
         {
@@ -75,8 +74,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
                 return new Func<IPipelineNode<LightTransition>>(() =>
                 {
                     var serviceScope = kvp.Value.ServiceProvider.CreateScope(); // Note: This service provider already has the light registered. We scope it further for node lifetime.
-                    var context = new LightPipelineContext<TLight>(serviceScope.ServiceProvider);
-                    return new ScopedNode<LightTransition>(serviceScope, fact(context));
+                    return new ScopedNode<LightTransition>(serviceScope, fact(serviceScope.ServiceProvider));
                 });
             }),
             toggleConfigurators[kvp.Key].ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),

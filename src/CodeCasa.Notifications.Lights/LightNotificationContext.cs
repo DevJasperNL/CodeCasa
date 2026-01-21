@@ -1,5 +1,4 @@
 using CodeCasa.AutomationPipelines;
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.Lights;
 using CodeCasa.Notifications.Lights.Config;
 
@@ -57,7 +56,7 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="lightNotificationToReplace">The existing light notification to replace.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify(lightNotificationToReplace, nodeFactory, 0);
+        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify<TLight>(lightNotificationToReplace, nodeFactory, 0);
 
         /// <summary>
         /// Notifies with a new light notification using a factory and specific priority, replacing an existing one.
@@ -66,9 +65,9 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <param name="priority">The priority of the notification.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
+        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
         {
-            return Notify(lightNotificationToReplace.Id, nodeFactory, priority);
+            return Notify<TLight>(lightNotificationToReplace.Id, nodeFactory, priority);
         }
 
         /// <summary>
@@ -77,7 +76,7 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="notificationId">The unique identifier for the notification.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify<TLight>(string notificationId, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify(notificationId, nodeFactory, 0);
+        public LightNotification Notify<TLight>(string notificationId, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify<TLight>(notificationId, nodeFactory, 0);
 
         /// <summary>
         /// Notifies with a new light notification using a factory, specific priority, and ID.
@@ -86,7 +85,7 @@ namespace CodeCasa.Notifications.Lights
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <param name="priority">The priority of the notification.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify<TLight>(string notificationId, Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
+        public LightNotification Notify<TLight>(string notificationId, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
         {
             return lightNotificationManager.Notify(new NodeFactoryLightNotificationConfig<TLight>(nodeFactory, priority), notificationId);
         }

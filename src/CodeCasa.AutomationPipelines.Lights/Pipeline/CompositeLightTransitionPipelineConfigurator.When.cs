@@ -1,4 +1,3 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +28,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<ILightPipelineContext<TLight>, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.When<TObservable>(lightParametersFactory));
         return this;
@@ -37,7 +36,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, LightParameters> lightParametersFactory)
+        Func<IServiceProvider, LightParameters> lightParametersFactory)
     {
         NodeContainers.Values.ForEach(b => b.When(observable, lightParametersFactory));
         return this;
@@ -61,7 +60,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<ILightPipelineContext<TLight>, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.When<TObservable>(lightTransitionFactory));
         return this;
@@ -69,7 +68,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, LightTransition> lightTransitionFactory)
+        Func<IServiceProvider, LightTransition> lightTransitionFactory)
     {
         NodeContainers.Values.ForEach(b => b.When(observable, lightTransitionFactory));
         return this;
@@ -77,7 +76,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
     {
         NodeContainers.Values.ForEach(b => b.When<TObservable>(nodeFactory));
         return this;
@@ -85,7 +84,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
+        Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
         NodeContainers.Values.ForEach(b => b.When(observable, nodeFactory));
         return this;

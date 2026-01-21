@@ -1,6 +1,6 @@
-﻿using CodeCasa.AutomationPipelines;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.AutomationPipelines;
 using CodeCasa.Lights;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.Notifications.Lights.Config;
 
@@ -16,31 +16,33 @@ public class NodeFactoryLightNotificationConfig<TLight> : ILightNotificationConf
     /// <summary>
     /// Gets the factory function used to create pipeline nodes for the specified light type.
     /// </summary>
-    public Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> NodeFactory { get; }
+    public Func<IServiceProvider, IPipelineNode<LightTransition>> NodeFactory { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NodeFactoryLightNotificationConfig{TLight}"/> class.
     /// </summary>
-    /// <param name="nodeFactory">The factory function that creates pipeline nodes from a light pipeline context.</param>
+    /// <param name="nodeFactory">The factory function that creates pipeline nodes from a service provider.</param>
     /// <param name="priority">The priority of the notification. Higher values indicate higher priority.</param>
-    internal NodeFactoryLightNotificationConfig(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, int priority)
+    internal NodeFactoryLightNotificationConfig(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority)
     {
         NodeFactory = nodeFactory;
         Priority = priority;
     }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// Returns <c>null</c> if <typeparamref name="TLight1"/> does not match <typeparamref name="TLight"/>,
-    /// as the factory is only compatible with the specific light type it was configured for.
-    /// </remarks>
-    public Func<ILightPipelineContext<TLight1>, IPipelineNode<LightTransition>?> CreateFactory<TLight1>() where TLight1 : ILight
+    public Func<IServiceProvider, IPipelineNode<LightTransition>?> CreateFactory()
     {
-        // Note: Types need to match to notify on this pipeline.
-        if (NodeFactory is Func<ILightPipelineContext<TLight1>, IPipelineNode<LightTransition>> matchedFactory)
+        return s =>
         {
-            return matchedFactory;
-        }
-        return _ => null;
+            var light = s.GetService<TLight>();
+            if (light == null)
+            {
+                // This can occur if the notification is applied to a pipeline with a different light type.
+                // If that occurs we return regardless of the node actually requiring the light.
+                return null;
+            }
+
+            return NodeFactory(s);
+        };
     }
 }

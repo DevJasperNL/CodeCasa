@@ -1,5 +1,4 @@
-﻿using System.Reactive.Concurrency;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using System.Reactive.Concurrency;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
@@ -32,12 +31,12 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
         return Add(lightParameters.AsTransition(), comparer);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(c => lightParametersFactory(c)?.AsTransition(), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightParameters?> lightParametersFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add((c, t) => lightParametersFactory(c, t)?.AsTransition(), matchesNodeState);
     }
@@ -52,31 +51,31 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
                 lightTransition.LightParameters)));
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()), matchesNodeState);
+        return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, LightTransition?, LightTransition?> lightTransitionFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<ILightPipelineContext<TLight>, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
+    public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<IServiceProvider, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
     {
         activeConfigurators.Values.ForEach(c => c.Add<TNode>(matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         return this;
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory, Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         activeConfigurators.Values.ForEach(c => c.Add(nodeFactory, matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         return this;
     }
 
-    public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<ILightPipelineContext<TLight>, bool> matchesNodeState)
+    public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<IServiceProvider, bool> matchesNodeState)
     {
         activeConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));

@@ -1,5 +1,3 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
-using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using System.Reactive.Concurrency;
@@ -27,14 +25,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<ILightPipelineContext<TLight>, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
     {
         return When<TObservable>(c => lightParametersFactory(c).AsTransition());
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, LightParameters> lightParametersFactory)
+        Func<IServiceProvider, LightParameters> lightParametersFactory)
     {
         return When(observable, c => lightParametersFactory(c).AsTransition());
     }
@@ -55,21 +53,21 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<ILightPipelineContext<TLight>, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
     {
-        return When<TObservable>(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()));
+        return When<TObservable>(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, LightTransition> lightTransitionFactory)
+        Func<IServiceProvider, LightTransition> lightTransitionFactory)
     {
-        return When(observable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.ServiceProvider.GetRequiredService<IScheduler>()));
+        return When(observable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
     {
         var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
         return When(observable, nodeFactory);
@@ -77,7 +75,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> nodeFactory)
+        Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
         return AddReactiveNode(c => c
             .On(observable.Where(x => x), nodeFactory)
@@ -121,16 +119,16 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator) where TObservable : IObservable<bool>
     {
         return When<TObservable>(c => 
-            c.ServiceProvider.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.ServiceProvider.GetRequiredService<TLight>(), pipelineConfigurator));
+            c.GetRequiredService<LightPipelineFactory>()
+                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator)
     {
         return When(observable, c => 
-            c.ServiceProvider.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.ServiceProvider.GetRequiredService<TLight>(), pipelineConfigurator));
+            c.GetRequiredService<LightPipelineFactory>()
+                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator));
     }
 
     /// <inheritdoc/>

@@ -1,4 +1,3 @@
-using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 
@@ -45,8 +44,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightParametersFactory">A factory function that creates light parameters for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(
-        Func<ILightPipelineContext<TLight>, LightParameters> trueLightParametersFactory,
-        Func<ILightPipelineContext<TLight>, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -59,8 +58,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightParametersFactory">A factory function that creates light parameters for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, LightParameters> trueLightParametersFactory,
-        Func<ILightPipelineContext<TLight>, LightParameters> falseLightParametersFactory);
+        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters> falseLightParametersFactory);
 
     /// <summary>
     /// Registers a node that switches between two light transitions based on a boolean observable.
@@ -101,8 +100,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightTransitionFactory">A factory function that creates a light transition for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(
-        Func<ILightPipelineContext<TLight>, LightTransition> trueLightTransitionFactory,
-        Func<ILightPipelineContext<TLight>, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -115,8 +114,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightTransitionFactory">A factory function that creates a light transition for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, LightTransition> trueLightTransitionFactory,
-        Func<ILightPipelineContext<TLight>, LightTransition> falseLightTransitionFactory);
+        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition> falseLightTransitionFactory);
 
     /// <summary>
     /// Registers a node that switches between two pipeline nodes created by factory functions based on a boolean observable.
@@ -130,8 +129,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseNodeFactory">A factory function that creates a pipeline node for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> trueNodeFactory,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> falseNodeFactory)
+        Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory,
+        Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -144,8 +143,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseNodeFactory">A factory function that creates a pipeline node for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> trueNodeFactory,
-        Func<ILightPipelineContext<TLight>, IPipelineNode<LightTransition>> falseNodeFactory);
+        Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory,
+        Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory);
 
     /// <summary>
     /// Registers a node that switches between two pipeline node types based on a boolean observable.
