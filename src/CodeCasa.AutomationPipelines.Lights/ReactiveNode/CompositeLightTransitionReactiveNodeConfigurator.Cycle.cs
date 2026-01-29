@@ -1,4 +1,3 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Cycle;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
@@ -7,14 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
-internal partial class CompositeLightTransitionReactiveNodeConfigurator
+internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
 {
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
         => AddCycle(triggerObservable, lightParameters.ToArray());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable,
         params LightParameters[] lightParameters)
     {
         return AddCycle(triggerObservable, configure =>
@@ -27,11 +26,11 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
         => AddCycle(triggerObservable, lightTransitions.ToArray());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable,
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable,
         params LightTransition[] lightTransitions)
     {
         return AddCycle(triggerObservable, configure =>
@@ -44,21 +43,18 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddCycle<T>(IObservable<T> triggerObservable, Action<ILightTransitionCycleConfigurator> configure)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, Action<ILightTransitionCycleConfigurator<TLight>> configure)
     {
         var cycleConfigurators = configurators.ToDictionary(kvp => kvp.Key,
-            kvp => new LightTransitionCycleConfigurator(kvp.Value.Light, scheduler));
-        var compositeCycleConfigurator = new CompositeLightTransitionCycleConfigurator(cycleConfigurators, []);
+            kvp => new LightTransitionCycleConfigurator<TLight>(kvp.Value.Light, scheduler));
+        var compositeCycleConfigurator = new CompositeLightTransitionCycleConfigurator<TLight>(cycleConfigurators, []);
         configure(compositeCycleConfigurator);
         configurators.ForEach(kvp => kvp.Value.AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurators[kvp.Key].CycleNodeFactories.Select(tuple =>
         {
-            var factory = new Func<IPipelineNode<LightTransition>>(() =>
-            {
-                var serviceScope = serviceProvider.CreateScope();
-                var context = new LightPipelineContext(serviceScope.ServiceProvider, kvp.Value.Light);
-                return new ScopedNode<LightTransition>(serviceScope, tuple.nodeFactory(context));
-            });
-            var valueIsActiveFunc = () => tuple.matchesNodeState(new LightPipelineContext(serviceProvider, kvp.Value.Light));
+            var factory = new Func<IPipelineNode<LightTransition>>(() => 
+                tuple.nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                );
+            var valueIsActiveFunc = () => tuple.matchesNodeState(serviceProvider);
             return (factory, valueIsActiveFunc);
         }))));
         return this;

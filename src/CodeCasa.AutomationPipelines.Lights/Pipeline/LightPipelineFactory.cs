@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -9,19 +11,20 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Factory for creating and configuring light transition pipelines.
     /// </summary>
     public class LightPipelineFactory(
-        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider, ReactiveNodeFactory reactiveNodeFactory)
+        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider)
     {
         /// <summary>
         /// Sets up a light pipeline for the specified light and configures it with the provided builder action.
         /// </summary>
+        /// <typeparam name="TLight">The specific type of light.</typeparam>
         /// <param name="light">The light to set up the pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>An async disposable representing the created pipeline(s) that can be disposed to clean up resources.</returns>
-        public IAsyncDisposable SetupLightPipeline(ILight light,
-            Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        public IAsyncDisposable SetupLightPipeline<TLight>(TLight light,
+            Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             var disposables = new CompositeAsyncDisposable();
-            var pipelines = CreateLightPipelines(light.Flatten(), pipelineBuilder);
+            var pipelines = CreateLightPipelines(light.Flatten().Cast<TLight>(), pipelineBuilder);
             foreach (var pipeline in pipelines.Values)
             {
                 disposables.Add(pipeline);
@@ -35,7 +38,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <param name="light">The light to create a pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A configured pipeline for controlling the specified light.</returns>
-        internal IPipeline<LightTransition> CreateLightPipeline(ILight light, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             return CreateLightPipelines([light], pipelineBuilder)[light.Id];
         }
@@ -46,7 +49,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <param name="lights">The light entities to create pipelines for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
-        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines(IEnumerable<ILight> lights, Action<ILightTransitionPipelineConfigurator> pipelineBuilder)
+        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IEnumerable<TLight> lights, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             // Note: we simply assume that these are not groups.
             var lightArray = lights.ToArray();
@@ -55,33 +58,46 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var configurators = lightArray.ToDictionary(l => l.Id, l => new LightTransitionPipelineConfigurator(serviceProvider, this, reactiveNodeFactory, l));
-            ILightTransitionPipelineConfigurator configurator = lightArray.Length == 1
+            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightContextScope);
+            var configurators = 
+                lightArray.ToDictionary(l => l.Id,
+                    l =>
+                    {
+                        var sp = lightContextScopes[l.Id].ServiceProvider;
+                        // Note: we cant resolve LightTransitionPipelineConfigurator directly because it is not registered as a service.
+                        return new LightTransitionPipelineConfigurator<TLight>(sp, l);
+                    });
+            ILightTransitionPipelineConfigurator<TLight> configurator = lightArray.Length == 1
                 ? configurators[lightArray[0].Id]
-                : new CompositeLightTransitionPipelineConfigurator(
+                : new CompositeLightTransitionPipelineConfigurator<TLight>(
                     serviceProvider,
-                    this,
-                    reactiveNodeFactory,
+                    serviceProvider.GetRequiredService<LightPipelineFactory>(),
+                    serviceProvider.GetRequiredService<ReactiveNodeFactory>(),
                     configurators);
             pipelineBuilder(configurator);
 
             return configurators.ToDictionary(kvp => kvp.Key, kvp =>
             {
                 var conf = kvp.Value;
+                IPipeline<LightTransition> pipeline;
                 if (conf.Log ?? false)
                 {
-                    return new Pipeline<LightTransition>(
+                    pipeline= new Pipeline<LightTransition>(
                         conf.Name ?? conf.Light.Id,
                         LightTransition.Off(),
                         conf.Nodes,
                         conf.Light.ApplyTransition,
                         logger);
                 }
+                else
+                {
+                    pipeline = new Pipeline<LightTransition>(
+                        LightTransition.Off(),
+                        conf.Nodes,
+                        conf.Light.ApplyTransition);
+                }
 
-                return (IPipeline<LightTransition>)new Pipeline<LightTransition>(
-                    LightTransition.Off(),
-                    conf.Nodes,
-                    conf.Light.ApplyTransition);
+                return (IPipeline<LightTransition>)new ServiceScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);
             });
         }
     }

@@ -1,5 +1,4 @@
-﻿using CodeCasa.AutomationPipelines;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.AutomationPipelines;
 using CodeCasa.Lights;
 using CodeCasa.Notifications.Lights.Config;
 
@@ -48,48 +47,90 @@ namespace CodeCasa.Notifications.Lights
         /// <returns>The created or updated light notification.</returns>
         public LightNotification Notify<TNode>(string notificationId, int priority) where TNode : IPipelineNode<LightTransition>
         {
-            return lightNotificationManager.Notify(new LightNotificationConfig(typeof(TNode), priority), notificationId);
+            return lightNotificationManager.Notify(new NodeTypeLightNotificationConfig<TNode>(priority), notificationId);
         }
 
         /// <summary>
         /// Notifies with a new light notification using a factory, replacing an existing one.
         /// </summary>
+        /// <typeparam name="TLight">The type of light to filter which lights show the notification.</typeparam>
         /// <param name="lightNotificationToReplace">The existing light notification to replace.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(LightNotification lightNotificationToReplace, Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory) => Notify(lightNotificationToReplace, nodeFactory, 0);
+        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify<TLight>(lightNotificationToReplace, nodeFactory, 0);
 
         /// <summary>
         /// Notifies with a new light notification using a factory and specific priority, replacing an existing one.
         /// </summary>
+        /// <typeparam name="TLight">The type of light to filter which lights show the notification.</typeparam>
         /// <param name="lightNotificationToReplace">The existing light notification to replace.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <param name="priority">The priority of the notification.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(LightNotification lightNotificationToReplace, Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory, int priority)
+        public LightNotification Notify<TLight>(LightNotification lightNotificationToReplace, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
         {
-            return Notify(lightNotificationToReplace.Id, nodeFactory, priority);
+            return Notify<TLight>(lightNotificationToReplace.Id, nodeFactory, priority);
         }
 
         /// <summary>
         /// Notifies with a new light notification using a factory and specific ID.
         /// </summary>
+        /// <typeparam name="TLight">The type of light to filter which lights show the notification.</typeparam>
         /// <param name="notificationId">The unique identifier for the notification.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(string notificationId, Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory) => Notify(notificationId, nodeFactory, 0);
+        public LightNotification Notify<TLight>(string notificationId, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TLight : ILight => Notify<TLight>(notificationId, nodeFactory, 0);
 
         /// <summary>
         /// Notifies with a new light notification using a factory, specific priority, and ID.
+        /// </summary>
+        /// <typeparam name="TLight">The type of light to filter which lights show the notification.</typeparam>
+        /// <param name="notificationId">The unique identifier for the notification.</param>
+        /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
+        /// <param name="priority">The priority of the notification.</param>
+        /// <returns>The created or updated light notification.</returns>
+        public LightNotification Notify<TLight>(string notificationId, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority) where TLight : ILight
+        {
+            return lightNotificationManager.Notify(new NodeFactoryLightNotificationConfig<TLight>(nodeFactory, priority), notificationId);
+        }
+
+        /// <summary>
+        /// Notifies with a new light notification using a factory, replacing an existing one.
+        /// The notification will be shown on all lights.
+        /// </summary>
+        /// <param name="lightNotificationToReplace">The existing light notification to replace.</param>
+        /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
+        /// <returns>The created or updated light notification.</returns>
+        public LightNotification Notify(LightNotification lightNotificationToReplace, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) => Notify<ILight>(lightNotificationToReplace, nodeFactory, 0);
+
+        /// <summary>
+        /// Notifies with a new light notification using a factory and specific priority, replacing an existing one.
+        /// The notification will be shown on all lights.
+        /// </summary>
+        /// <param name="lightNotificationToReplace">The existing light notification to replace.</param>
+        /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
+        /// <param name="priority">The priority of the notification.</param>
+        /// <returns>The created or updated light notification.</returns>
+        public LightNotification Notify(LightNotification lightNotificationToReplace, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority) => Notify<ILight>(lightNotificationToReplace, nodeFactory, priority);
+
+        /// <summary>
+        /// Notifies with a new light notification using a factory and specific ID.
+        /// The notification will be shown on all lights.
+        /// </summary>
+        /// <param name="notificationId">The unique identifier for the notification.</param>
+        /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
+        /// <returns>The created or updated light notification.</returns>
+        public LightNotification Notify(string notificationId, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) => Notify<ILight>(notificationId, nodeFactory, 0);
+
+        /// <summary>
+        /// Notifies with a new light notification using a factory, specific priority, and ID.
+        /// The notification will be shown on all lights.
         /// </summary>
         /// <param name="notificationId">The unique identifier for the notification.</param>
         /// <param name="nodeFactory">The factory function to create the pipeline node.</param>
         /// <param name="priority">The priority of the notification.</param>
         /// <returns>The created or updated light notification.</returns>
-        public LightNotification Notify(string notificationId, Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory, int priority)
-        {
-            return lightNotificationManager.Notify(new LightNotificationConfig(nodeFactory, priority), notificationId);
-        }
+        public LightNotification Notify(string notificationId, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, int priority) => Notify<ILight>(notificationId, nodeFactory, priority);
 
         /// <summary>
         /// Removes a specific light notification.

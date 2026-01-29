@@ -10,15 +10,15 @@ namespace CodeCasa.Notifications.Lights
     public class LightNotificationManager
     {
         private readonly Lock _lock = new();
-        private readonly BehaviorSubject<LightNotificationConfig?> _subject = new(null);
+        private readonly BehaviorSubject<ILightNotificationConfig?> _subject = new(null);
 
-        private readonly Dictionary<string, LightNotificationConfig> _activeNotifications = new();
+        private readonly Dictionary<string, ILightNotificationConfig> _activeNotifications = new();
 
         /// <summary>
         /// Gets an observable sequence of the current active light notification configuration.
         /// </summary>
         /// <returns>An observable that emits the current light notification configuration or null if none are active.</returns>
-        public IObservable<LightNotificationConfig?> LightNotifications()
+        public IObservable<ILightNotificationConfig?> LightNotifications()
         {
             lock (_lock)
             {
@@ -29,31 +29,31 @@ namespace CodeCasa.Notifications.Lights
         /// <summary>
         /// Notifies with a new light notification configuration, replacing an existing notification.
         /// </summary>
-        /// <param name="lightNotificationOptions">The configuration for the new notification.</param>
+        /// <param name="lightNotificationConfig">The configuration for the new notification.</param>
         /// <param name="lightNotificationToReplace">The existing notification to replace.</param>
         /// <returns>The created light notification.</returns>
-        public LightNotification Notify(LightNotificationConfig lightNotificationOptions, LightNotification lightNotificationToReplace)
+        public LightNotification Notify(ILightNotificationConfig lightNotificationConfig, LightNotification lightNotificationToReplace)
         {
-            return Notify(lightNotificationOptions, lightNotificationToReplace.Id);
+            return Notify(lightNotificationConfig, lightNotificationToReplace.Id);
         }
 
         /// <summary>
         /// Notifies with a new light notification configuration using a specific ID.
         /// </summary>
-        /// <param name="lightNotificationOptions">The configuration for the new notification.</param>
+        /// <param name="lightNotificationConfig">The configuration for the new notification.</param>
         /// <param name="id">The unique identifier for the notification.</param>
         /// <returns>The created light notification.</returns>
-        public LightNotification Notify(LightNotificationConfig lightNotificationOptions, string id)
+        public LightNotification Notify(ILightNotificationConfig lightNotificationConfig, string id)
         {
             lock (_lock)
             {
                 var highestPrio = _activeNotifications.Any() ? (int?)_activeNotifications.Values.Max(n => n.Priority) : null;
-                if (highestPrio == null || lightNotificationOptions.Priority >= highestPrio)
+                if (highestPrio == null || lightNotificationConfig.Priority >= highestPrio)
                 {
-                    _subject.OnNext(lightNotificationOptions);
+                    _subject.OnNext(lightNotificationConfig);
                 }
 
-                _activeNotifications[id] = lightNotificationOptions;
+                _activeNotifications[id] = lightNotificationConfig;
                 return new LightNotification(id, Disposable.Create(() => Remove(id)));
             }
         }

@@ -39,6 +39,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DependencyInjection.Composite" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CodeCasa.Abstractions\CodeCasa.Abstractions.csproj" />
     <ProjectReference Include="..\CodeCasa.AutomationPipelines\CodeCasa.AutomationPipelines.csproj" />
     <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />

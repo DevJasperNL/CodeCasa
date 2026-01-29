@@ -1,4 +1,4 @@
-﻿using System.Reactive.Concurrency;
+using System.Reactive.Concurrency;
 using CodeCasa.NetDaemon.RuntimeState;
 using CodeCasa.Notifications.InputSelect.NetDaemon.Config;
 using CodeCasa.Notifications.InputSelect.NetDaemon.Interact;

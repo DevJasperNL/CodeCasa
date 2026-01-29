@@ -1,10 +1,9 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
-public partial interface ILightTransitionReactiveNodeConfigurator
+public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
     /// <summary>
     /// Registers a trigger that applies the given <paramref name="lightParameters"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -13,7 +12,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the light parameter application.</param>
     /// <param name="lightParameters">The light parameters to apply when triggered.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         LightParameters lightParameters);
 
     /// <summary>
@@ -23,8 +22,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the light parameter application.</param>
     /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
-        Func<ILightPipelineContext, LightParameters> lightParametersFactory);
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, LightParameters> lightParametersFactory);
 
     /// <summary>
     /// Registers a trigger that applies the given <paramref name="lightTransition"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -33,7 +32,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the light transition application.</param>
     /// <param name="lightTransition">The light transition to apply when triggered.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         LightTransition lightTransition);
 
     /// <summary>
@@ -43,8 +42,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the light transition application.</param>
     /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
-        Func<ILightPipelineContext, LightTransition> lightTransitionFactory);
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, LightTransition> lightTransitionFactory);
 
     /// <summary>
     /// Registers a trigger that activates a pipeline node of type <typeparamref name="TNode"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -54,7 +53,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <typeparam name="TNode">The type of the pipeline node to resolve and activate.</typeparam>
     /// <param name="triggerObservable">The observable that triggers the node activation.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T, TNode>(IObservable<T> triggerObservable)
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T, TNode>(IObservable<T> triggerObservable)
         where TNode : IPipelineNode<LightTransition>;
 
     /// <summary>
@@ -64,8 +63,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the node activation.</param>
     /// <param name="nodeFactory">A factory function that creates a pipeline node based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
-        Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory);
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory);
 
     /// <summary>
     /// Registers a trigger that activates a nested pipeline configured by <paramref name="pipelineConfigurator"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -74,8 +73,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the pipeline activation.</param>
     /// <param name="pipelineConfigurator">An action to configure the nested pipeline.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable,
-        Action<ILightTransitionPipelineConfigurator> pipelineConfigurator);
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator);
 
     /// <summary>
     /// Registers a trigger that activates a nested reactive node configured by <paramref name="configure"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -84,8 +83,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <param name="triggerObservable">The observable that triggers the reactive node activation.</param>
     /// <param name="configure">An action to configure the nested reactive node.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator On<T>(IObservable<T> triggerObservable, 
-        Action<ILightTransitionReactiveNodeConfigurator> configure);
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, 
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure);
 
     /// <summary>
     /// Registers a pass-through trigger that allows the current input to pass through unchanged when the <paramref name="triggerObservable"/> emits a value.
@@ -94,7 +93,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers the pass-through behavior.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator PassThroughOn<T>(IObservable<T> triggerObservable);
+    ILightTransitionReactiveNodeConfigurator<TLight> PassThroughOn<T>(IObservable<T> triggerObservable);
 
     /// <summary>
     /// Registers a trigger that turns off the light when the <paramref name="triggerObservable"/> emits a value.
@@ -102,7 +101,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers turning off the light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator TurnOffWhen<T>(IObservable<T> triggerObservable);
+    ILightTransitionReactiveNodeConfigurator<TLight> TurnOffWhen<T>(IObservable<T> triggerObservable);
 
     /// <summary>
     /// Registers a trigger that turns on the light when the <paramref name="triggerObservable"/> emits a value.
@@ -110,5 +109,5 @@ public partial interface ILightTransitionReactiveNodeConfigurator
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers turning on the light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator TurnOnWhen<T>(IObservable<T> triggerObservable);
+    ILightTransitionReactiveNodeConfigurator<TLight> TurnOnWhen<T>(IObservable<T> triggerObservable);
 }

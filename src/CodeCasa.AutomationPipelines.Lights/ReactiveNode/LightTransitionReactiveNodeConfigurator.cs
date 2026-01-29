@@ -1,8 +1,6 @@
-﻿using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
-using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -15,17 +13,26 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// Configures a light transition reactive node for a single light.
 /// This configurator allows adding reactive dimmer controls, node sources, and scoped configurations for light automation.
 /// </summary>
-internal partial class LightTransitionReactiveNodeConfigurator(
-    IServiceProvider serviceProvider,
-    LightPipelineFactory lightPipelineFactory,
-    ReactiveNodeFactory reactiveNodeFactory,
-    ILight light, 
-    IScheduler scheduler) : ILightTransitionReactiveNodeConfigurator
+internal partial class LightTransitionReactiveNodeConfigurator<TLight>
+    : ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
+    private readonly IScheduler _scheduler;
+
+    /// <summary>
+    /// The service provider scoped to this light.
+    /// </summary>
+    public IServiceProvider ServiceProvider { get; }
     /// <summary>
     /// Gets the light associated with this configurator.
     /// </summary>
-    public ILight Light { get; } = light;
+    public TLight Light { get; }
+
+    public LightTransitionReactiveNodeConfigurator(IServiceProvider serviceProvider, TLight light, IScheduler scheduler)
+    {
+        ServiceProvider = serviceProvider;
+        Light = light;
+        _scheduler = scheduler;
+    }
 
     internal string? Name { get; private set; }
     internal bool? Log { get; private set; }
@@ -34,7 +41,7 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     internal DimmerOptions DimmerOptions { get; private set; } = new ();
     
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator EnableLogging(string? name = null)
+    public ILightTransitionReactiveNodeConfigurator<TLight> EnableLogging(string? name = null)
     {
         Name = name;
         Log = true;
@@ -42,41 +49,41 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator DisableLogging()
+    public ILightTransitionReactiveNodeConfigurator<TLight> DisableLogging()
     {
         Log = false;
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddReactiveDimmer(IDimmer dimmer)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddReactiveDimmer(IDimmer dimmer)
     {
         Dimmers.Add(dimmer);
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator SetReactiveDimmerOptions(DimmerOptions dimmerOptions)
+    public ILightTransitionReactiveNodeConfigurator<TLight> SetReactiveDimmerOptions(DimmerOptions dimmerOptions)
     {
         DimmerOptions = dimmerOptions;
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddUncoupledDimmer(IDimmer dimmer)
     {
         return AddUncoupledDimmer(dimmer, _ => { });
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
     {
         var options = new DimmerOptions();
         dimOptions(options);
         options.ValidateSingleLight(Light.Id);
 
-        var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
-        var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
+        var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, _scheduler);
+        var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, _scheduler);
 
         AddDimPulses(options, [Light], dimPulses, brightenPulses);
         return this;
@@ -86,13 +93,13 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     {
         var dimHelper = new DimHelper(Light, lightsInDimOrder, options.MinBrightness, options.BrightnessStep);
         AddNodeSource(dimPulses
-            .Select(_ => dimHelper.DimStep())
-            .Where(t => t != null)
-            .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, scheduler))));
+        .Select(_ => dimHelper.DimStep())
+        .Where(t => t != null)
+        .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, _scheduler))));
         AddNodeSource(brightenPulses
-            .Select(_ => dimHelper.BrightenStep())
-            .Where(t => t != null)
-            .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, scheduler))));
+        .Select(_ => dimHelper.BrightenStep())
+        .Where(t => t != null)
+        .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, _scheduler))));
     }
 
     /// <summary>
@@ -100,48 +107,39 @@ internal partial class LightTransitionReactiveNodeConfigurator(
     /// </summary>
     /// <param name="nodeSource">An observable that emits pipeline nodes.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    public ILightTransitionReactiveNodeConfigurator AddNodeSource(IObservable<IPipelineNode<LightTransition>?> nodeSource)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<IPipelineNode<LightTransition>?> nodeSource)
     {
         NodeObservables.Add(nodeSource);
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator AddNodeSource(IObservable<Func<ILightPipelineContext, IPipelineNode<LightTransition>?>> nodeFactorySource)
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
-        return AddNodeSource(nodeFactorySource.Select(nodeFactory =>
-        {
-            var scope = serviceProvider.CreateScope();
-            var context = new LightPipelineContext(scope.ServiceProvider, Light);
-            var node = nodeFactory(context);
-            if (node != null)
-            {
-                return new ScopedNode<LightTransition>(scope, node);
-            }
-            scope.Dispose();
-            return null;
-        }));
+        return AddNodeSource(nodeFactorySource.Select(nodeFactory => 
+            nodeFactory.CreateScopedNodeOrNull(ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+            ));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLight(string lightId,
-        Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([lightId], configure);
+    public ILightTransitionReactiveNodeConfigurator<TLight> ForLight(string lightId,
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) => ForLights([lightId], configure);
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLight(ILight light,
-        Action<ILightTransitionReactiveNodeConfigurator> configure) => ForLights([light], configure);
+    public ILightTransitionReactiveNodeConfigurator<TLight> ForLight(TLight light,
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) => ForLights([light], configure);
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<string> lightIds,
-        Action<ILightTransitionReactiveNodeConfigurator> configure)
+    public ILightTransitionReactiveNodeConfigurator<TLight> ForLights(IEnumerable<string> lightIds,
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
     {
         CompositeHelper.ValidateLightSupported(lightIds, Light.Id);
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator ForLights(IEnumerable<ILight> lights,
-        Action<ILightTransitionReactiveNodeConfigurator> configure)
+    public ILightTransitionReactiveNodeConfigurator<TLight> ForLights(IEnumerable<TLight> lights,
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
     {
         CompositeHelper.ResolveGroupsAndValidateLightSupported(lights, Light.Id);
         return this;

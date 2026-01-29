@@ -1,10 +1,9 @@
-﻿using CodeCasa.AutomationPipelines.Lights.Context;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-public partial interface ILightTransitionPipelineConfigurator
+public partial interface ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
 {
     /// <summary>
     /// Adds a toggle node that switches between the specified light parameters when triggered by <paramref name="triggerObservable"/>.
@@ -14,7 +13,7 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next parameters.</param>
     /// <param name="lightParameters">The collection of light parameters to toggle between.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         IEnumerable<LightParameters> lightParameters);
 
     /// <summary>
@@ -25,7 +24,7 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next parameters.</param>
     /// <param name="lightParameters">The array of light parameters to toggle between.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         params LightParameters[] lightParameters);
 
     /// <summary>
@@ -36,7 +35,7 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next transition.</param>
     /// <param name="lightTransitions">The collection of light transitions to toggle between.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         IEnumerable<LightTransition> lightTransitions);
 
     /// <summary>
@@ -47,7 +46,7 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next transition.</param>
     /// <param name="lightTransitions">The array of light transitions to toggle between.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         params LightTransition[] lightTransitions);
 
     /// <summary>
@@ -58,8 +57,8 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next node.</param>
     /// <param name="nodeFactories">The collection of factory functions that create pipeline nodes.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
-        IEnumerable<Func<ILightPipelineContext, IPipelineNode<LightTransition>>> nodeFactories);
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        IEnumerable<Func<IServiceProvider, IPipelineNode<LightTransition>>> nodeFactories);
 
     /// <summary>
     /// Adds a toggle node that switches between nodes created by the specified factory functions when triggered by <paramref name="triggerObservable"/>.
@@ -69,8 +68,8 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next node.</param>
     /// <param name="nodeFactories">The array of factory functions that create pipeline nodes.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
-        params Func<ILightPipelineContext, IPipelineNode<LightTransition>>[] nodeFactories);
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        params Func<IServiceProvider, IPipelineNode<LightTransition>>[] nodeFactories);
 
     /// <summary>
     /// Adds a toggle node configured by the specified <paramref name="configure"/> action when triggered by <paramref name="triggerObservable"/>.
@@ -80,6 +79,6 @@ public partial interface ILightTransitionPipelineConfigurator
     /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
     /// <param name="configure">An action to configure the toggle behavior.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator AddToggle<T>(IObservable<T> triggerObservable,
-        Action<ILightTransitionToggleConfigurator> configure);
+    ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Action<ILightTransitionToggleConfigurator<TLight>> configure);
 }

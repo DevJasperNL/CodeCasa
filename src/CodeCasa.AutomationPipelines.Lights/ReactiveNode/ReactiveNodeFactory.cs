@@ -1,14 +1,14 @@
-﻿using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 {
@@ -20,10 +20,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// <summary>
         /// Creates a reactive node for a single light.
         /// </summary>
+        /// <typeparam name="TLight">The type of light being controlled.</typeparam>
         /// <param name="light">The light to create the reactive node for.</param>
         /// <param name="configure">An action to configure the reactive node.</param>
         /// <returns>A configured reactive node for the specified light.</returns>
-        public IPipelineNode<LightTransition> CreateReactiveNode(ILight light, Action<ILightTransitionReactiveNodeConfigurator> configure)
+        public IPipelineNode<LightTransition> CreateReactiveNode<TLight>(TLight light, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TLight : ILight
         {
             return CreateReactiveNodes([light], configure)[light.Id];
         }
@@ -31,10 +32,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// <summary>
         /// Creates reactive nodes for multiple light entities.
         /// </summary>
+        /// <typeparam name="TLight">The type of light being controlled.</typeparam>
         /// <param name="lights">The light entities to create reactive nodes for.</param>
         /// <param name="configure">An action to configure the reactive nodes.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding reactive nodes.</returns>
-        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes(IEnumerable<ILight> lights, Action<ILightTransitionReactiveNodeConfigurator> configure)
+        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes<TLight>(IEnumerable<TLight> lights, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TLight : ILight
         {
             // Note: we simply assume that these are not groups.
             var lightArray = lights.ToArray();
@@ -43,15 +45,21 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 return new Dictionary<string, IPipelineNode<LightTransition>>();
             }
 
-            var lightPipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-            var reactiveConfigurators = lightArray.ToDictionary(l => l.Id, l => new LightTransitionReactiveNodeConfigurator(serviceProvider, lightPipelineFactory,
-                this, l, scheduler));
-            ILightTransitionReactiveNodeConfigurator configurator = lightArray.Length == 1
+            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightContextScope);
+            var reactiveConfigurators = 
+                lightArray.ToDictionary(l => l.Id, 
+                    l =>
+                    {
+                        var sp = lightContextScopes[l.Id].ServiceProvider;
+                        // Note: we cant resolve LightTransitionReactiveNodeConfigurator directly because it is not registered as a service.
+                        return new LightTransitionReactiveNodeConfigurator<TLight>(sp, l, sp.GetRequiredService<IScheduler>());
+                    });
+            ILightTransitionReactiveNodeConfigurator<TLight> configurator = lightArray.Length == 1
                 ? reactiveConfigurators[lightArray[0].Id]
-                : new CompositeLightTransitionReactiveNodeConfigurator(
-                    serviceProvider, 
-                    lightPipelineFactory,
-                    this,
+                : new CompositeLightTransitionReactiveNodeConfigurator<TLight>(
+                    serviceProvider,
+                    serviceProvider.GetRequiredService<LightPipelineFactory>(),
+                    serviceProvider.GetRequiredService<ReactiveNodeFactory>(),
                     reactiveConfigurators,
                     scheduler);
             configure(configurator);
@@ -71,7 +79,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             {
                 return lightArray.ToDictionary(l => l.Id, l =>
                 {
-                    var reactiveNode = CreateReactiveNode(reactiveConfigurators[l.Id]);
+                    var reactiveNode = CreateReactiveNodeInternal(reactiveConfigurators[l.Id]);
                     return (IPipelineNode<LightTransition>)reactiveNode;
                 });
             }
@@ -83,7 +91,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             foreach (var light in lightArray)
             {
                 var reactiveNodeConfigurator = reactiveConfigurators[light.Id];
-                var reactiveNode = CreateReactiveNode(reactiveNodeConfigurator);
+                var reactiveNode = CreateReactiveNodeInternal(reactiveNodeConfigurator);
                 var lightDimmerOptions = reactiveNodeConfigurator.DimmerOptions;
                 
                 var dimmerNode = new ReactiveDimmerNode(
@@ -94,7 +102,9 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                     scheduler);
 
                 dimmerNodes.Add(light.Id, dimmerNode);
-                var innerPipeline = new ReactiveDimmerPipeline(reactiveNode, dimmerNode, registrationManager);
+                var innerPipeline = new ReactiveDimmerPipeline(
+                    lightContextScopes[light.Id], 
+                    reactiveNode, dimmerNode, registrationManager);
 
                 result.Add(light.Id, innerPipeline);
             }
@@ -128,7 +138,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             return result;
         }
 
-        private ReactiveNode CreateReactiveNode(LightTransitionReactiveNodeConfigurator reactiveNodeConfigurator)
+        private ReactiveNode CreateReactiveNodeInternal<TLight>(LightTransitionReactiveNodeConfigurator<TLight> reactiveNodeConfigurator) where TLight : ILight
         {
             if (reactiveNodeConfigurator.Log ?? false)
             {
@@ -158,35 +168,6 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         {
             return new DimmingContext(orderedDimNodes
                 .Select(kvp => (kvp.Key, kvp.Value.Output?.LightParameters)).ToArray());
-        }
-    }
-
-    /// <summary>
-    /// A pipeline that combines a reactive node with a reactive dimmer node for managing light transitions.
-    /// </summary>
-    internal class ReactiveDimmerPipeline : Pipeline<LightTransition>
-    {
-        private readonly IRegisterInterface<ReactiveDimmerPipeline> _registerInterface;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReactiveDimmerPipeline"/> class.
-        /// </summary>
-        public ReactiveDimmerPipeline(
-            ReactiveNode reactiveNode, 
-            ReactiveDimmerNode reactiveDimmerNode,
-            IRegisterInterface<ReactiveDimmerPipeline> registerInterface)
-        {
-            _registerInterface = registerInterface;
-            _registerInterface.Register(this);
-            RegisterNode(reactiveNode);
-            RegisterNode(reactiveDimmerNode);
-        }
-
-        /// <inheritdoc />
-        public override ValueTask DisposeAsync()
-        {
-            _registerInterface.Unregister(this);
-            return base.DisposeAsync();
         }
     }
 

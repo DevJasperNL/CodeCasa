@@ -1,10 +1,7 @@
-﻿using CodeCasa.Abstractions;
-using CodeCasa.AutomationPipelines.Lights.Context;
+using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
-using System.Collections.Generic;
-using System.Xml.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -12,46 +9,46 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Configures light transition pipelines for multiple light entities as a composite.
     /// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
     /// </summary>
-    internal partial class CompositeLightTransitionPipelineConfigurator(
+    internal partial class CompositeLightTransitionPipelineConfigurator<TLight>(
         IServiceProvider serviceProvider,
         LightPipelineFactory lightPipelineFactory,
         ReactiveNodeFactory reactiveNodeFactory,
-        Dictionary<string, LightTransitionPipelineConfigurator> nodeContainers)
-        : ILightTransitionPipelineConfigurator
+        Dictionary<string, LightTransitionPipelineConfigurator<TLight>> nodeContainers)
+        : ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
     {
-        public Dictionary<string, LightTransitionPipelineConfigurator> NodeContainers { get; } = nodeContainers;
+        public Dictionary<string, LightTransitionPipelineConfigurator<TLight>> NodeContainers { get; } = nodeContainers;
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator EnableLogging(string? pipelineName = null)
+        public ILightTransitionPipelineConfigurator<TLight> EnableLogging(string? pipelineName = null)
         {
             NodeContainers.Values.ForEach(b => b.EnableLogging(pipelineName));
             return this;
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator DisableLogging()
+        public ILightTransitionPipelineConfigurator<TLight> DisableLogging()
         {
             NodeContainers.Values.ForEach(b => b.DisableLogging());
             return this;
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
+        public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
             NodeContainers.Values.ForEach(b => b.AddNode<TNode>());
             return this;
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator AddNode(Func<ILightPipelineContext, IPipelineNode<LightTransition>> nodeFactory)
+        public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
         {
             NodeContainers.Values.ForEach(b => b.AddNode(nodeFactory));
             return this;
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator AddReactiveNode(
-            Action<ILightTransitionReactiveNodeConfigurator> configure)
+        public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
+            Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
             var nodes = reactiveNodeFactory.CreateReactiveNodes(NodeContainers.Select(nc => nc.Value.Light),
                 c =>
@@ -69,7 +66,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator AddPipeline(Action<ILightTransitionPipelineConfigurator> pipelineNodeOptions)
+        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions)
         {
             var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light),
                 pipelineNodeOptions);
@@ -78,13 +75,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator AddDimmer(IDimmer dimmer)
+        public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer)
         {
             return AddDimmer(dimmer, _ => { });
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
+        public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
         {
             return AddReactiveNode(c =>
             {
@@ -93,16 +90,16 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator ForLight(string lightId,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([lightId], compositeNodeBuilder);
+        public ILightTransitionPipelineConfigurator<TLight> ForLight(string lightId,
+            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder) => ForLights([lightId], compositeNodeBuilder);
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator ForLight(ILight light,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
+        public ILightTransitionPipelineConfigurator<TLight> ForLight(TLight light,
+            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<string> lightIds,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
+        public ILightTransitionPipelineConfigurator<TLight> ForLights(IEnumerable<string> lightIds,
+            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
         {
             var lightIdsArray =
                 CompositeHelper.ValidateLightsSupported(lightIds, NodeContainers.Keys);
@@ -118,14 +115,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return this;
             }
 
-            compositeNodeBuilder(new CompositeLightTransitionPipelineConfigurator(serviceProvider, lightPipelineFactory, reactiveNodeFactory, NodeContainers
+            compositeNodeBuilder(new CompositeLightTransitionPipelineConfigurator<TLight>(serviceProvider, lightPipelineFactory, reactiveNodeFactory, NodeContainers
                     .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)));
             return this;
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator ForLights(IEnumerable<ILight> lights,
-            Action<ILightTransitionPipelineConfigurator> compositeNodeBuilder)
+        public ILightTransitionPipelineConfigurator<TLight> ForLights(IEnumerable<TLight> lights,
+            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
         {
             var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, NodeContainers.Keys);
             return ForLights(lightIds, compositeNodeBuilder);
