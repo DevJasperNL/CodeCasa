@@ -5,6 +5,9 @@ using System.Reactive.Concurrency;
 
 namespace CodeCasa.AutomationPipelines.Lights.Extensions;
 
+/// <summary>
+/// Extension methods for <see cref="IServiceProvider"/> to support light automation pipelines.
+/// </summary>
 public static class ServiceProviderExtensions
 {
     internal static IServiceScope CreateLightContextScope<TLight>(this IServiceProvider serviceProvider, TLight light) where TLight : ILight

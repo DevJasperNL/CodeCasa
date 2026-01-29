@@ -73,7 +73,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory, Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
         return Switch(observable, trueNodeFactory, falseNodeFactory);
     }
 
@@ -89,7 +89,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable, TTrueNode, TFalseNode>() where TObservable : IObservable<bool> where TTrueNode : IPipelineNode<LightTransition> where TFalseNode : IPipelineNode<LightTransition>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
         return Switch<TTrueNode, TFalseNode>(observable);
     }
 
@@ -104,7 +104,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure, Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
         return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure);
     }
 
@@ -121,8 +121,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure, Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
     {
         return Switch<TObservable>(
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, trueConfigure), 
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, falseConfigure));
     }
 
     /// <inheritdoc/>
@@ -130,8 +130,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
     {
         return Switch(observable, 
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, trueConfigure), 
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(light, falseConfigure));
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, trueConfigure), 
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, falseConfigure));
     }
 
     /// <inheritdoc/>

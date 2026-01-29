@@ -45,7 +45,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable,
         Action<ILightTransitionCycleConfigurator<TLight>> configure)
     {
-        var cycleConfigurator = new LightTransitionCycleConfigurator<TLight>(Light, scheduler);
+        var cycleConfigurator = new LightTransitionCycleConfigurator<TLight>(Light, _scheduler);
         configure(cycleConfigurator);
         AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurator.CycleNodeFactories.Select(tuple =>
         {

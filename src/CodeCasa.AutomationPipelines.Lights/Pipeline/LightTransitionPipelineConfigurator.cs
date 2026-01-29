@@ -9,14 +9,19 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Configures a light transition pipeline for a single light entity.
     /// This configurator allows adding pipeline nodes, reactive nodes, dimmers, and conditional logic to light automation.
     /// </summary>
-    internal partial class LightTransitionPipelineConfigurator<TLight>(
-        IServiceProvider serviceProvider,
-        TLight light)
+    internal partial class LightTransitionPipelineConfigurator<TLight>
         : ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly List<IPipelineNode<LightTransition>> _nodes = new();
 
-        internal TLight Light { get; } = light;
+        internal TLight Light { get; }
+
+        public LightTransitionPipelineConfigurator(IServiceProvider serviceProvider, TLight light)
+        {
+            _serviceProvider = serviceProvider;
+            Light = light;
+        }
         internal string? Name { get; private set; }
         internal bool? Log { get; private set; }
 
@@ -46,7 +51,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
-            _nodes.Add(ActivatorUtilities.CreateInstance<TNode>(serviceProvider));
+            _nodes.Add(ActivatorUtilities.CreateInstance<TNode>(_serviceProvider));
             return this;
         }
 
@@ -64,7 +69,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
         {
-            _nodes.Add(nodeFactory(serviceProvider));
+            _nodes.Add(nodeFactory(_serviceProvider));
             return this;
         }
 
@@ -72,7 +77,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
-            var factory = serviceProvider.GetRequiredService<ReactiveNodeFactory>();
+            var factory = _serviceProvider.GetRequiredService<ReactiveNodeFactory>();
             return AddNode(factory.CreateReactiveNode(Light, c =>
             {
                 if (Log ?? false)
@@ -125,9 +130,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions) => 
-            AddNode(
-                serviceProvider.GetRequiredService<LightPipelineFactory>()
-                    .CreateLightPipeline(Light, pipelineNodeOptions));
-    }
-}
+                public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions) => 
+                    AddNode(
+                        _serviceProvider.GetRequiredService<LightPipelineFactory>()
+                            .CreateLightPipeline(Light, pipelineNodeOptions));
+            }
+        }

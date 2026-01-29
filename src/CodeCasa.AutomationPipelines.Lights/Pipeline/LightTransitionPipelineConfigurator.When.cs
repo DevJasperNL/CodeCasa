@@ -69,7 +69,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
         Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
         return When(observable, nodeFactory);
     }
 
@@ -87,7 +87,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         where TObservable : IObservable<bool>
         where TNode : IPipelineNode<LightTransition>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
         return When<TNode>(observable);
     }
 
@@ -103,7 +103,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
         return AddReactiveNodeWhen(observable, configure);
     }
 

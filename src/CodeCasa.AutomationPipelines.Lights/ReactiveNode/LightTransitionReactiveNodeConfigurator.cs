@@ -13,19 +13,26 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// Configures a light transition reactive node for a single light.
 /// This configurator allows adding reactive dimmer controls, node sources, and scoped configurations for light automation.
 /// </summary>
-internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
-    IServiceProvider serviceProvider,
-    TLight light, 
-    IScheduler scheduler) : ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
+internal partial class LightTransitionReactiveNodeConfigurator<TLight>
+    : ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
+    private readonly IScheduler _scheduler;
+
     /// <summary>
     /// The service provider scoped to this light.
     /// </summary>
-    public IServiceProvider ServiceProvider { get; } = serviceProvider;
+    public IServiceProvider ServiceProvider { get; }
     /// <summary>
     /// Gets the light associated with this configurator.
     /// </summary>
-    public TLight Light { get; } = light;
+    public TLight Light { get; }
+
+    public LightTransitionReactiveNodeConfigurator(IServiceProvider serviceProvider, TLight light, IScheduler scheduler)
+    {
+        ServiceProvider = serviceProvider;
+        Light = light;
+        _scheduler = scheduler;
+    }
 
     internal string? Name { get; private set; }
     internal bool? Log { get; private set; }
@@ -75,8 +82,8 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
         dimOptions(options);
         options.ValidateSingleLight(Light.Id);
 
-        var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
-        var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, scheduler);
+        var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(options.TimeBetweenSteps, _scheduler);
+        var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(options.TimeBetweenSteps, _scheduler);
 
         AddDimPulses(options, [Light], dimPulses, brightenPulses);
         return this;
@@ -86,13 +93,13 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>(
     {
         var dimHelper = new DimHelper(Light, lightsInDimOrder, options.MinBrightness, options.BrightnessStep);
         AddNodeSource(dimPulses
-            .Select(_ => dimHelper.DimStep())
-            .Where(t => t != null)
-            .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, scheduler))));
+        .Select(_ => dimHelper.DimStep())
+        .Where(t => t != null)
+        .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, _scheduler))));
         AddNodeSource(brightenPulses
-            .Select(_ => dimHelper.BrightenStep())
-            .Where(t => t != null)
-            .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, scheduler))));
+        .Select(_ => dimHelper.BrightenStep())
+        .Where(t => t != null)
+        .Select(t => (IPipelineNode<LightTransition>)(t == LightTransition.Off() ? new TurnOffThenPassThroughNode() : new StaticLightTransitionNode(t, _scheduler))));
     }
 
     /// <summary>

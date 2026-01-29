@@ -62,7 +62,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable, Action<ILightTransitionToggleConfigurator<TLight>> configure)
     {
-        var toggleConfigurator = new LightTransitionToggleConfigurator<TLight>(Light, scheduler);
+        var toggleConfigurator = new LightTransitionToggleConfigurator<TLight>(Light, _scheduler);
         configure(toggleConfigurator);
         AddNodeSource(triggerObservable.ToToggleObservable(
             () => Light.IsOn(),
