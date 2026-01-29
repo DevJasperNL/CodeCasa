@@ -76,6 +76,23 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
         }
         return this;
 
+
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource<TNodeSource>()
+        where TNodeSource : IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>
+    {
+        configurators.Values.ForEach(c => c.AddNodeSource<TNodeSource>());
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(
+        Func<IServiceProvider, IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>> nodeFactorySourceFactory)
+    {
+        configurators.Values.ForEach(c => c.AddNodeSource(nodeFactorySourceFactory));
+        return this;
     }
 
     /// <inheritdoc/>
