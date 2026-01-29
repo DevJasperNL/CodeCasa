@@ -1,7 +1,6 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
-using CodeCasa.AutomationPipelines.Lights.Utils;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -169,39 +168,6 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         {
             return new DimmingContext(orderedDimNodes
                 .Select(kvp => (kvp.Key, kvp.Value.Output?.LightParameters)).ToArray());
-        }
-    }
-
-    /// <summary>
-    /// A pipeline that combines a reactive node with a reactive dimmer node for managing light transitions.
-    /// </summary>
-    internal class ReactiveDimmerPipeline : Pipeline<LightTransition>
-    {
-        private readonly IServiceScope _scope;
-        private readonly IRegisterInterface<ReactiveDimmerPipeline> _registerInterface;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReactiveDimmerPipeline"/> class.
-        /// </summary>
-        public ReactiveDimmerPipeline(
-            IServiceScope scope,
-            ReactiveNode reactiveNode, 
-            ReactiveDimmerNode reactiveDimmerNode,
-            IRegisterInterface<ReactiveDimmerPipeline> registerInterface)
-        {
-            _scope = scope;
-            _registerInterface = registerInterface;
-            _registerInterface.Register(this);
-            RegisterNode(reactiveNode);
-            RegisterNode(reactiveDimmerNode);
-        }
-
-        /// <inheritdoc />
-        public override async ValueTask DisposeAsync()
-        {
-            _registerInterface.Unregister(this);
-            await base.DisposeAsync();
-            await _scope.DisposeOrDisposeAsync();
         }
     }
 

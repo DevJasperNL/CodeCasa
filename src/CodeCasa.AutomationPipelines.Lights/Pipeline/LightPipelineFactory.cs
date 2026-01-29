@@ -1,6 +1,5 @@
 ﻿using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
-using CodeCasa.AutomationPipelines.Lights.Utils;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -98,56 +97,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                         conf.Light.ApplyTransition);
                 }
 
-                return (IPipeline<LightTransition>)new ScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);
+                return (IPipeline<LightTransition>)new ServiceScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);
             });
-        }
-    }
-
-    public sealed class ScopedPipeline<TNode> : IPipeline<TNode>, IDisposable, IAsyncDisposable
-    {
-        private readonly IServiceScope _scope;
-
-        public IPipeline<TNode> Instance { get; }
-
-        public ScopedPipeline(IServiceScope scope, IPipeline<TNode> pipeline)
-        {
-            _scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            Instance = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
-        }
-
-        public void Dispose()
-        {
-            (Instance as IDisposable)?.Dispose();
-            _scope.Dispose();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await Instance.DisposeOrDisposeAsync();
-            await _scope.DisposeOrDisposeAsync();
-        }
-
-        public TNode? Input { get; set; }
-        public TNode? Output { get; }
-        public IObservable<TNode?> OnNewOutput { get; }
-        public IPipeline<TNode> SetDefault(TNode state)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IPipeline<TNode> RegisterNode<TNode1>() where TNode1 : IPipelineNode<TNode>
-        {
-            throw new NotImplementedException();
-        }
-
-        public IPipeline<TNode> RegisterNode(IPipelineNode<TNode> node)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IPipeline<TNode> SetOutputHandler(Action<TNode> action, bool callActionDistinct = true)
-        {
-            throw new NotImplementedException();
         }
     }
 }
