@@ -58,6 +58,25 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     ILightTransitionReactiveNodeConfigurator<TLight> AddUncoupledDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions);
 
     /// <summary>
+    /// Adds a dynamic node source resolved from the service provider.
+    /// The node source type must implement <see cref="IObservable{T}"/> where T is a factory function for creating pipeline nodes.
+    /// Useful for reusable, class-based node sources registered in dependency injection.
+    /// </summary>
+    /// <typeparam name="TNodeSource">The type of the node source, which must be an observable that emits node factory functions.</typeparam>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource<TNodeSource>()
+        where TNodeSource : IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>;
+
+    /// <summary>
+    /// Adds a dynamic node source created by a factory function that receives the service provider.
+    /// Useful for extension methods that need to compose existing DI services to build the observable.
+    /// </summary>
+    /// <param name="nodeFactorySourceFactory">A factory function that receives the service provider and returns an observable that emits node factory functions.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(
+        Func<IServiceProvider, IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>> nodeFactorySourceFactory);
+
+    /// <summary>
     /// Adds a dynamic node source that activates a new node in the reactive node each time the observable emits a factory.
     /// The emitted factory is invoked to create and activate the new pipeline node.
     /// </summary>

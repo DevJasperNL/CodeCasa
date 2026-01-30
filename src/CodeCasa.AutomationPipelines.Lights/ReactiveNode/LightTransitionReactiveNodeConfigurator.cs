@@ -114,6 +114,20 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     }
 
     /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource<TNodeSource>()
+        where TNodeSource : IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>
+    {
+        return AddNodeSource(ActivatorUtilities.CreateInstance<TNodeSource>(ServiceProvider));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(
+        Func<IServiceProvider, IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>> nodeFactorySourceFactory)
+    {
+        return AddNodeSource(nodeFactorySourceFactory(ServiceProvider));
+    }
+
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
         return AddNodeSource(nodeFactorySource.Select(nodeFactory => 
