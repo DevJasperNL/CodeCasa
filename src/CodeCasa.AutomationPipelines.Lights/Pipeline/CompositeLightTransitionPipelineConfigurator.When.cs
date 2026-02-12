@@ -107,15 +107,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc />
-    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
-        /*
-         * For this implementation we can either instantiate the TObservable for each container and pass configure to them individual, breaking composite dimming behavior.
-         * Or we can create a single TObservable without light context.
-         * I decided to go with the latter to preserve composite dimming behavior.
-         */
         var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
-        return AddReactiveNodeWhen(observable, configure);
+        return AddReactiveNodeWhen(observable, configure, instantiationScope);
     }
 
     /// <inheritdoc />

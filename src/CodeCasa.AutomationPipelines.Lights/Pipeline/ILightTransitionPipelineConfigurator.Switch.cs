@@ -178,18 +178,21 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
 
     /// <summary>
     /// Registers a reactive node that switches between two configurations based on a boolean observable.
-    /// When the observable of type <typeparamref name="TObservable"/> emits <see langword="true"/>, 
-    /// the node is configured by <paramref name="trueConfigure"/>; when it emits <see langword="false"/>, 
+    /// When the observable of type <typeparamref name="TObservable"/> emits <see langword="true"/>,
+    /// the node is configured by <paramref name="trueConfigure"/>; when it emits <see langword="false"/>,
     /// the node is configured by <paramref name="falseConfigure"/>.
     /// The observable is resolved from the service provider.
     /// </summary>
     /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
     /// <param name="trueConfigure">An action to configure the reactive node for true values.</param>
     /// <param name="falseConfigure">An action to configure the reactive node for false values.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the reactive node. Use <see cref="InstantiationScope.Shared"/> to create the node once and reuse it for all switches (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new node each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, 
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
@@ -201,6 +204,9 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="observable">The observable that determines which configuration to apply.</param>
     /// <param name="trueConfigure">An action to configure the reactive node for true values.</param>
     /// <param name="falseConfigure">An action to configure the reactive node for false values.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the reactive node. Use <see cref="InstantiationScope.Shared"/> to create the node once and reuse it for all switches (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new node each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch(IObservable<bool> observable,
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
@@ -209,18 +215,21 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
 
     /// <summary>
     /// Registers a pipeline that switches between two configurations based on a boolean observable.
-    /// When the observable of type <typeparamref name="TObservable"/> emits <see langword="true"/>, 
-    /// the pipeline is configured by <paramref name="trueConfigure"/>; when it emits <see langword="false"/>, 
+    /// When the observable of type <typeparamref name="TObservable"/> emits <see langword="true"/>,
+    /// the pipeline is configured by <paramref name="trueConfigure"/>; when it emits <see langword="false"/>,
     /// the pipeline is configured by <paramref name="falseConfigure"/>.
     /// The observable is resolved from the service provider.
     /// </summary>
     /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
     /// <param name="trueConfigure">An action to configure the pipeline for true values.</param>
     /// <param name="falseConfigure">An action to configure the pipeline for false values.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the pipeline. Use <see cref="InstantiationScope.Shared"/> to create the pipeline once and reuse it for all switches (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new pipeline each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(
         Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, 
+        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
@@ -232,6 +241,9 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="observable">The observable that determines which configuration to apply.</param>
     /// <param name="trueConfigure">An action to configure the pipeline for true values.</param>
     /// <param name="falseConfigure">An action to configure the pipeline for false values.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the pipeline. Use <see cref="InstantiationScope.Shared"/> to create the pipeline once and reuse it for all switches (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new pipeline each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch(IObservable<bool> observable,
         Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,

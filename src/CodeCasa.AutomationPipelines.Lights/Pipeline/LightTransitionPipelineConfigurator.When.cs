@@ -102,10 +102,10 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
         var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
-        return AddReactiveNodeWhen(observable, configure);
+        return AddReactiveNodeWhen(observable, configure, instantiationScope);
     }
 
     /// <inheritdoc/>
