@@ -189,7 +189,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure)
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, 
+        InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -203,7 +204,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch(IObservable<bool> observable,
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure);
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a pipeline that switches between two configurations based on a boolean observable.
@@ -218,7 +220,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(
         Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
+        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, 
+        InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -232,7 +235,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch(IObservable<bool> observable,
         Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure);
+        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a node that turns the light on when the observable of type <typeparamref name="TObservable"/> 

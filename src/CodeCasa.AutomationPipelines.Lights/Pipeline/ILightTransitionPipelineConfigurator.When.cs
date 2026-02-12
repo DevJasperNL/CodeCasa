@@ -169,7 +169,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="configure">An action to configure the reactive node.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable,
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure);
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a pipeline configured by <paramref name="configure"/> when the observable of type 
@@ -181,7 +182,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="configure">An action to configure the nested pipeline.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen<TObservable>(
-        Action<ILightTransitionPipelineConfigurator<TLight>> configure)
+        Action<ILightTransitionPipelineConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -193,7 +195,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="configure">An action to configure the nested pipeline.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable,
-        Action<ILightTransitionPipelineConfigurator<TLight>> configure);
+        Action<ILightTransitionPipelineConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a node that turns off the light when the observable 

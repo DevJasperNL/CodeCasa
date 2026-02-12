@@ -40,9 +40,9 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, CompositeInstantiationScope instantiationScope = CompositeInstantiationScope.Shared)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        if (instantiationScope == CompositeInstantiationScope.Shared)
+        if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: we create the pipeline in composite context so all configuration is also applied in that context.
             var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.Light),
@@ -56,9 +56,9 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, CompositeInstantiationScope instantiationScope = CompositeInstantiationScope.Shared)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        if (instantiationScope == CompositeInstantiationScope.Shared)
+        if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: we create the pipeline in composite context so all configuration is also applied in that context.
             var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.Light),

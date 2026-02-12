@@ -73,14 +73,14 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="triggerObservable">The observable that triggers the pipeline activation.</param>
     /// <param name="pipelineConfigurator">An action to configure the nested pipeline.</param>
     /// <param name="instantiationScope">
-    /// Specifies where the nested pipeline is instantiated. Use <see cref="CompositeInstantiationScope.Shared"/> 
+    /// Specifies where the nested pipeline is instantiated. Use <see cref="InstantiationScope.Shared"/> 
     /// to create pipelines immediately in the composite context (shared across all lights), or 
-    /// <see cref="CompositeInstantiationScope.PerChild"/> to defer creation to individual child service scopes.
+    /// <see cref="InstantiationScope.PerChild"/> to defer creation to individual child service scopes.
     /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, 
-        CompositeInstantiationScope instantiationScope = CompositeInstantiationScope.Shared);
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a trigger that activates a nested reactive node configured by <paramref name="configure"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -89,14 +89,14 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="triggerObservable">The observable that triggers the reactive node activation.</param>
     /// <param name="configure">An action to configure the nested reactive node.</param>
     /// <param name="instantiationScope">
-    /// Specifies where the nested reactive node is instantiated. Use <see cref="CompositeInstantiationScope.Shared"/> 
+    /// Specifies where the nested reactive node is instantiated. Use <see cref="InstantiationScope.Shared"/> 
     /// to create nodes immediately in the composite context (shared across all lights), or 
-    /// <see cref="CompositeInstantiationScope.PerChild"/> to defer creation to individual child service scopes.
+    /// <see cref="InstantiationScope.PerChild"/> to defer creation to individual child service scopes.
     /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, 
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure,
-        CompositeInstantiationScope instantiationScope = CompositeInstantiationScope.Shared);
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a pass-through trigger that allows the current input to pass through unchanged when the <paramref name="triggerObservable"/> emits a value.

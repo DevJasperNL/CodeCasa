@@ -3,7 +3,7 @@
 /// <summary>
 /// Specifies the service provider scope in which composite child objects (pipelines, reactive nodes) are instantiated.
 /// </summary>
-public enum CompositeInstantiationScope
+public enum InstantiationScope
 {
     /// <summary>
     /// Objects are instantiated immediately in the shared composite context.
