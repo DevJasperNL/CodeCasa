@@ -51,7 +51,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             return this;
         }
 
-        configurators.Values.ForEach(c => c.On(triggerObservable, pipelineConfigurator));
+        configurators.Values.ForEach(c => c.On(triggerObservable, pipelineConfigurator, instantiationScope));
         return this;
     }
 
@@ -67,7 +67,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             return this;
         }
 
-        configurators.Values.ForEach(c => c.On(triggerObservable, configure));
+        configurators.Values.ForEach(c => c.On(triggerObservable, configure, instantiationScope));
         return this;
     }
 
