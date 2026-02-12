@@ -41,10 +41,10 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         AddNodeSource(triggerObservable.Select(_ => nodeFactory));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, CompositeAddBehavior _ = CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext) => On(triggerObservable, s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator));
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, CompositeInstantiationScope _ = CompositeInstantiationScope.Shared) => On(triggerObservable, s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, CompositeAddBehavior _ = CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext) => On(triggerObservable, s => s.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure));
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, CompositeInstantiationScope _ = CompositeInstantiationScope.Shared) => On(triggerObservable, s => s.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> PassThroughOn<T>(IObservable<T> triggerObservable)
