@@ -20,10 +20,10 @@ public enum InstantiationScope
     /// Objects are instantiated in individual child containers, each with its own light-specific service scope.
     /// </summary>
     /// <remarks>
-    /// When using this scope, a new instance is created each time the corresponding observable emits,
+    /// When using this scope, a new instance is created each time it is activated (usually when a corresponding observable emits true),
     /// and each light receives its own instance within its own service scope. The instance is disposed
     /// whenever it is replaced by a new node (e.g., when another trigger fires). This is useful when you
     /// need light-specific dependencies, isolated state per light, or fresh instances on each activation.
     /// </remarks>
-    PerChild,
+    PerChild
 }
