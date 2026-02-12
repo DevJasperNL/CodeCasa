@@ -2,7 +2,6 @@ using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
@@ -42,14 +41,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(LightTransition trueLightTransition,
         LightTransition falseLightTransition) where TObservable : IObservable<bool>
     {
-        return Switch<TObservable>(trueLightTransition, falseLightTransition);
+        return Switch<TObservable>(_ => trueLightTransition, _ => falseLightTransition);
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, LightTransition trueLightTransition,
         LightTransition falseLightTransition)
     {
-        return Switch(observable, trueLightTransition, falseLightTransition);
+        return Switch(observable, _ => trueLightTransition, _ => falseLightTransition);
     }
 
     /// <inheritdoc/>
