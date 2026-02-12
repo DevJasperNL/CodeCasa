@@ -155,9 +155,13 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
     /// <param name="configure">An action to configure the reactive node.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the reactive node. Use <see cref="InstantiationScope.Shared"/> to create the node once and reuse it for all activations (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new node each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen<TObservable>(
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -167,9 +171,13 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <param name="observable">The observable that determines when to apply the reactive node.</param>
     /// <param name="configure">An action to configure the reactive node.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the reactive node. Use <see cref="InstantiationScope.Shared"/> to create the node once and reuse it for all activations (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new node each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable,
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure);
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a pipeline configured by <paramref name="configure"/> when the observable of type 
@@ -179,9 +187,13 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
     /// <param name="configure">An action to configure the nested pipeline.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the pipeline. Use <see cref="InstantiationScope.Shared"/> to create the pipeline once and reuse it for all activations (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new pipeline each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen<TObservable>(
-        Action<ILightTransitionPipelineConfigurator<TLight>> configure)
+        Action<ILightTransitionPipelineConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -191,9 +203,13 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <param name="observable">The observable that determines when to apply the pipeline.</param>
     /// <param name="configure">An action to configure the nested pipeline.</param>
+    /// <param name="instantiationScope">
+    /// Specifies the instantiation scope for the pipeline. Use <see cref="InstantiationScope.Shared"/> to create the pipeline once and reuse it for all activations (lifetime matches the parent pipeline), or <see cref="InstantiationScope.PerChild"/> to create a new pipeline each time the observable emits true (disposed when replaced).
+    /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable,
-        Action<ILightTransitionPipelineConfigurator<TLight>> configure);
+        Action<ILightTransitionPipelineConfigurator<TLight>> configure,
+        InstantiationScope instantiationScope = InstantiationScope.Shared);
 
     /// <summary>
     /// Registers a node that turns off the light when the observable 

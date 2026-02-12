@@ -2,6 +2,7 @@ using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
@@ -102,36 +103,35 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure, Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure, Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
         var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
-        return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure);
+        return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure, instantiationScope);
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure)
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .On(observable.Where(x => x), trueConfigure)
-            .On(observable.Where(x => !x), falseConfigure));
+            .On(observable.Where(x => x), trueConfigure, instantiationScope)
+            .On(observable.Where(x => !x), falseConfigure, instantiationScope));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure, Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure, Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
-        return Switch<TObservable>(
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, trueConfigure), 
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, falseConfigure));
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        return AddPipelineSwitch(observable, trueConfigure, falseConfigure, instantiationScope);
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
-        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
+        Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        return Switch(observable, 
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, trueConfigure), 
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, falseConfigure));
+        return AddReactiveNode(c => c
+            .On(observable.Where(x => x), trueConfigure, instantiationScope)
+            .On(observable.Where(x => !x), falseConfigure, instantiationScope));
     }
 
     /// <inheritdoc/>
