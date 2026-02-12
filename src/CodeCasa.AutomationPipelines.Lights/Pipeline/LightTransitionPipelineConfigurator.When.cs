@@ -2,7 +2,6 @@ using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
