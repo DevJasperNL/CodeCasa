@@ -74,7 +74,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="pipelineConfigurator">An action to configure the nested pipeline.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
-        Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator);
+        Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, 
+        CompositeAddBehavior addBehavior = CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext);
 
     /// <summary>
     /// Registers a trigger that activates a nested reactive node configured by <paramref name="configure"/> when the <paramref name="triggerObservable"/> emits a value.
@@ -84,7 +85,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="configure">An action to configure the nested reactive node.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, 
-        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure);
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure,
+        CompositeAddBehavior addBehavior = CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext);
 
     /// <summary>
     /// Registers a pass-through trigger that allows the current input to pass through unchanged when the <paramref name="triggerObservable"/> emits a value.

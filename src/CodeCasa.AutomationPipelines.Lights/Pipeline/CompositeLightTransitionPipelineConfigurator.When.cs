@@ -121,7 +121,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
     {
-        // Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+        /*
+         * Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+         * This currently doesn't matter, but it seems like good practice to keep the context consistent for all nodes created within the configure action, and it also allows for more flexible future implementations of the composite pattern.
+         */
         return AddReactiveNode(c => c
             .On(observable.Where(x => x), configure)
             .PassThroughOn(observable.Where(x => !x)));
@@ -142,7 +145,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> configure)
     {
-        // Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+        /*
+         * Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+         * This currently doesn't matter, but it seems like good practice to keep the context consistent for all nodes created within the configure action, and it also allows for more flexible future implementations of the composite pattern.
+         */
         return AddReactiveNode(c => c
             .On(observable.Where(x => x), configure)
             .PassThroughOn(observable.Where(x => !x)));

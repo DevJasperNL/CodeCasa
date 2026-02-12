@@ -120,7 +120,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure)
     {
-        // Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+        /*
+         * Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+         * This currently doesn't matter, but it seems like good practice to keep the context consistent for all nodes created within the configure action, and it also allows for more flexible future implementations of the composite pattern.
+         */
         return AddReactiveNode(c => c
             .On(observable.Where(x => x), trueConfigure)
             .On(observable.Where(x => !x), falseConfigure));
@@ -142,10 +145,13 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
     {
-        // Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+        /*
+         * Note: we use CompositeLightTransitionPipelineConfigurator.AddReactiveNode so configure is also applied on the composite context.
+         * This currently doesn't matter, but it seems like good practice to keep the context consistent for all nodes created within the configure action, and it also allows for more flexible future implementations of the composite pattern.
+         */
         return AddReactiveNode(c => c
             .On(observable.Where(x => x), trueConfigure)
-            .On(observable.Where(x => x), falseConfigure));
+            .On(observable.Where(x => !x), falseConfigure));
     }
 
     /// <inheritdoc/>

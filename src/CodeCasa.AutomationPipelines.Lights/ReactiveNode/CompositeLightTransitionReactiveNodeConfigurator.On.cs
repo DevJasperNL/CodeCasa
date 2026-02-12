@@ -40,22 +40,34 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, CompositeAddBehavior addBehavior = CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext)
     {
-        // Note: we create the pipeline in composite context so all configuration is also applied in that context.
-        var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.Light),
-            pipelineConfigurator);
-        configurators.Values.ForEach(c => c.On(triggerObservable, _ => pipelines[c.Light.Id]));
+        if (addBehavior == CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext)
+        {
+            // Note: we create the pipeline in composite context so all configuration is also applied in that context.
+            var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.Light),
+                pipelineConfigurator);
+            configurators.Values.ForEach(c => c.On(triggerObservable, _ => pipelines[c.Light.Id]));
+            return this;
+        }
+
+        configurators.Values.ForEach(c => c.On(triggerObservable, pipelineConfigurator));
         return this;
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, CompositeAddBehavior addBehavior = CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext)
     {
-        // Note: we create the pipeline in composite context so all configuration is also applied in that context.
-        var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.Light),
-            configure);
-        configurators.Values.ForEach(c => c.On(triggerObservable, _ => nodes[c.Light.Id]));
+        if (addBehavior == CompositeAddBehavior.ImmediatelyInstantiateInCompositeContext)
+        {
+            // Note: we create the pipeline in composite context so all configuration is also applied in that context.
+            var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.Light),
+                configure);
+            configurators.Values.ForEach(c => c.On(triggerObservable, _ => nodes[c.Light.Id]));
+            return this;
+        }
+
+        configurators.Values.ForEach(c => c.On(triggerObservable, configure));
         return this;
     }
 
