@@ -108,7 +108,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
-            return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure);
+            return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure, instantiationScope);
         }
         NodeContainers.Values.ForEach(b => b.AddReactiveNodeSwitch<TObservable>(trueConfigure, falseConfigure, instantiationScope));
         return this;
@@ -129,7 +129,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             var observable = ActivatorUtilities.CreateInstance<TObservable>(serviceProvider);
-            return AddPipelineSwitch(observable, trueConfigure, falseConfigure);
+            return AddPipelineSwitch(observable, trueConfigure, falseConfigure, instantiationScope);
         }
         NodeContainers.Values.ForEach(b => b.AddPipelineSwitch<TObservable>(trueConfigure, falseConfigure, instantiationScope));
         return this;
