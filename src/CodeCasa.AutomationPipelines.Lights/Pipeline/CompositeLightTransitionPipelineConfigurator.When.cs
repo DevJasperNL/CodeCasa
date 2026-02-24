@@ -116,9 +116,13 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        return AddReactiveNode(c => c
-            .On(observable.Where(x => x), configure, instantiationScope)
-            .PassThroughOn(observable.Where(x => !x)));
+        return AddReactiveNode(c =>
+        {
+            c.SetLoggingContext(LogName, "Conditional", LoggingEnabled ?? false);
+            c
+                .On(observable.Where(x => x), configure.SetLoggingContext((IInternalLoggingContext)c), instantiationScope)
+                .PassThroughOn(observable.Where(x => !x));
+        });
     }
 
     /// <inheritdoc />
@@ -131,9 +135,13 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        return AddReactiveNode(c => c
-            .On(observable.Where(x => x), configure, instantiationScope)
-            .PassThroughOn(observable.Where(x => !x)));
+        return AddReactiveNode(c =>
+        {
+            c.SetLoggingContext(LogName, "Conditional", LoggingEnabled ?? false);
+            c
+                .On(observable.Where(x => x), configure.SetLoggingContext((IInternalLoggingContext)c), instantiationScope)
+                .PassThroughOn(observable.Where(x => !x));
+        });
     }
 
     /// <inheritdoc />

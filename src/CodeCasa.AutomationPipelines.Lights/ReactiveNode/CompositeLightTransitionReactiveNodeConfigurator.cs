@@ -1,8 +1,8 @@
-using System.Reactive.Concurrency;
 using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
+using System.Reactive.Concurrency;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -19,20 +19,6 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     : ILightTransitionReactiveNodeConfigurator<TLight>
     where TLight : ILight
 {
-    /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> EnableLogging(string? name = null)
-    {
-        configurators.Values.ForEach(b => b.EnableLogging(name));
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> DisableLogging()
-    {
-        configurators.Values.ForEach(b => b.DisableLogging());
-        return this;
-    }
-
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddReactiveDimmer(IDimmer dimmer)
     {

@@ -34,26 +34,9 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         _scheduler = scheduler;
     }
 
-    internal string? Name { get; private set; }
-    internal bool? Log { get; private set; }
     internal List<IObservable<IPipelineNode<LightTransition>?>> NodeObservables { get; } = new();
     internal List<IDimmer> Dimmers { get; } = new();
     internal DimmerOptions DimmerOptions { get; private set; } = new ();
-    
-    /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> EnableLogging(string? name = null)
-    {
-        Name = name;
-        Log = true;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> DisableLogging()
-    {
-        Log = false;
-        return this;
-    }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddReactiveDimmer(IDimmer dimmer)

@@ -80,10 +80,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             {
                 var conf = kvp.Value;
                 IPipeline<LightTransition> pipeline;
-                if (conf.Log ?? false)
+                if (conf.LoggingEnabled ?? false)
                 {
-                    pipeline= new Pipeline<LightTransition>(
-                        conf.Name ?? conf.Light.Id,
+                    pipeline = new Pipeline<LightTransition>(
+                        $"[{conf.Light.Id}] {conf.LogName}",
                         LightTransition.Off(),
                         conf.Nodes,
                         conf.Light.ApplyTransition,
