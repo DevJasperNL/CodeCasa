@@ -11,19 +11,6 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
     /// <summary>
-    /// Enables logging for the reactive node configuration.
-    /// </summary>
-    /// <param name="name">The optional name of the reactive node to include in logs.</param>
-    /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator<TLight> EnableLogging(string? name = null);
-
-    /// <summary>
-    /// Disables logging for the reactive node configuration.
-    /// </summary>
-    /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionReactiveNodeConfigurator<TLight> DisableLogging();
-
-    /// <summary>
     /// Adds a reactive dimmer control that will be reset when the reactive node activates a new node.
     /// Responds to dimmer events and adjusts light parameters accordingly.
     /// Multiple reactive dimmers can be added and will behave as a group.

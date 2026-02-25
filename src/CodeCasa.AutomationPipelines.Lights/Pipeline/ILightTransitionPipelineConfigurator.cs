@@ -12,19 +12,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 public partial interface ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
 {
     /// <summary>
-    /// Enables logging for the pipeline configuration.
-    /// </summary>
-    /// <param name="pipelineName">The optional name of the pipeline to include in logs.</param>
-    /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> EnableLogging(string? pipelineName = null);
-
-    /// <summary>
-    /// Disables logging for the pipeline configuration.
-    /// </summary>
-    /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> DisableLogging();
-
-    /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.
     /// The node is resolved from the service provider.
     /// </summary>
@@ -47,11 +34,11 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure);
 
     /// <summary>
-    /// Adds a nested pipeline to the current pipeline configured by the specified <paramref name="pipelineNodeOptions"/> action.
+    /// Adds a nested pipeline to the current pipeline configured by the specified <paramref name="configure"/> action.
     /// </summary>
-    /// <param name="pipelineNodeOptions">An action to configure the nested pipeline.</param>
+    /// <param name="configure">An action to configure the nested pipeline.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions);
+    ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> configure);
 
     /// <summary>
     /// Adds a dimmer control to the pipeline.

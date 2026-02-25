@@ -19,20 +19,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public Dictionary<string, LightTransitionPipelineConfigurator<TLight>> NodeContainers { get; } = nodeContainers;
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> EnableLogging(string? pipelineName = null)
-        {
-            NodeContainers.Values.ForEach(b => b.EnableLogging(pipelineName));
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> DisableLogging()
-        {
-            NodeContainers.Values.ForEach(b => b.DisableLogging());
-            return this;
-        }
-
-        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
             NodeContainers.Values.ForEach(b => b.AddNode<TNode>());
@@ -51,25 +37,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
             var nodes = reactiveNodeFactory.CreateReactiveNodes(NodeContainers.Select(nc => nc.Value.Light),
-                c =>
-                {
-                    var firstContainer = NodeContainers.Values.First();
-                    if (firstContainer.Log ?? false)
-                    {
-                        // If logging is enabled, enable it on the reactive node configurator by default.
-                        c.EnableLogging($"Reactive Node in {firstContainer.Name ?? "light group"}");
-                    }
-                    configure(c);
-                });
+                configure.SetLoggingContext(LogName, LoggingEnabled ?? false));
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(nodes[kvp.Key]));
             return this;
         }
 
         /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineNodeOptions)
+        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> configure)
         {
-            var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light),
-                pipelineNodeOptions);
+            var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light), configure.SetLoggingContext(LogName, LoggingEnabled ?? false));
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(pipelines[kvp.Key]));
             return this;
         }
@@ -83,10 +59,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
         {
-            return AddReactiveNode(c =>
-            {
-                c.AddUncoupledDimmer(dimmer, dimOptions);
-            });
+            return AddReactiveNode(c => c
+                .SetLoggingContext(LogName, "Dimmer", LoggingEnabled ?? false)
+                .AddUncoupledDimmer(dimmer, dimOptions));
         }
 
         /// <inheritdoc/>

@@ -140,10 +140,10 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 
         private ReactiveNode CreateReactiveNodeInternal<TLight>(LightTransitionReactiveNodeConfigurator<TLight> reactiveNodeConfigurator) where TLight : ILight
         {
-            if (reactiveNodeConfigurator.Log ?? false)
+            if (reactiveNodeConfigurator.LoggingEnabled ?? false)
             {
                 return new ReactiveNode(
-                    reactiveNodeConfigurator.Name,
+                    $"[{reactiveNodeConfigurator.Light.Id}] {reactiveNodeConfigurator.LogName}",
                     reactiveNodeConfigurator.NodeObservables.Merge(),
                     serviceProvider.GetRequiredService<ILogger<ReactiveNode>>());
             }

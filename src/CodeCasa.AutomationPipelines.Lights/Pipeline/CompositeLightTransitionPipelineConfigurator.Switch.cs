@@ -119,6 +119,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
             .On(observable.Where(x => x), trueConfigure, instantiationScope)
             .On(observable.Where(x => !x), falseConfigure, instantiationScope));
     }
@@ -140,8 +141,9 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .On(observable.Where(x => x), trueConfigure, instantiationScope)
-            .On(observable.Where(x => !x), falseConfigure, instantiationScope));
+            .SetLoggingContext(LogName, "Switch", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), trueConfigure.SetLoggingContext(c), instantiationScope)
+            .On(observable.Where(x => !x), falseConfigure.SetLoggingContext(c), instantiationScope));
     }
 
     /// <inheritdoc/>

@@ -1,3 +1,4 @@
+using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
@@ -46,11 +47,11 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner pipeline to avoid confusion.
-            var pipeline = ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator);
+            var pipeline = ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false));
             return On(triggerObservable, _ => pipeline);
         }
         return On(triggerObservable,
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator));
+            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
@@ -59,11 +60,11 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner node to avoid confusion.
-            var node = ServiceProvider.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure);
+            var node = ServiceProvider.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure.SetLoggingContext(LogName, LoggingEnabled ?? false));
             return On(triggerObservable, _ => node);
         }
         return On(triggerObservable,
-            s => s.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure));
+            s => s.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>

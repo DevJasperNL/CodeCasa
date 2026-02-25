@@ -1,3 +1,4 @@
+using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
@@ -82,6 +83,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory)
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Switch", LoggingEnabled ?? false)
             .On(observable.Where(x => x), trueNodeFactory)
             .On(observable.Where(x => !x), falseNodeFactory));
     }
@@ -97,6 +99,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TTrueNode, TFalseNode>(IObservable<bool> observable) where TTrueNode : IPipelineNode<LightTransition> where TFalseNode : IPipelineNode<LightTransition>
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Switch", LoggingEnabled ?? false)
             .On<bool, TTrueNode>(observable.Where(x => x))
             .On<bool, TFalseNode>(observable.Where(x => !x)));
     }
@@ -113,8 +116,9 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .On(observable.Where(x => x), trueConfigure, instantiationScope)
-            .On(observable.Where(x => !x), falseConfigure, instantiationScope));
+            .SetLoggingContext(LogName, "Switch", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), trueConfigure.SetLoggingContext(c), instantiationScope)
+            .On(observable.Where(x => !x), falseConfigure.SetLoggingContext(c), instantiationScope));
     }
 
     /// <inheritdoc/>
@@ -129,8 +133,9 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .On(observable.Where(x => x), trueConfigure, instantiationScope)
-            .On(observable.Where(x => !x), falseConfigure, instantiationScope));
+            .SetLoggingContext(LogName, "Switch", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), trueConfigure.SetLoggingContext(c), instantiationScope)
+            .On(observable.Where(x => !x), falseConfigure.SetLoggingContext(c), instantiationScope));
     }
 
     /// <inheritdoc/>

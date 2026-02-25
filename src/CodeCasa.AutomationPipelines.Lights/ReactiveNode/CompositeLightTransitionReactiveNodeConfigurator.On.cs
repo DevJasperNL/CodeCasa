@@ -46,12 +46,12 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
         {
             // Note: we create the pipeline in composite context so all configuration is also applied in that context.
             var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.Light),
-                pipelineConfigurator);
+                pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false));
             configurators.Values.ForEach(c => c.On(triggerObservable, _ => pipelines[c.Light.Id]));
             return this;
         }
 
-        configurators.Values.ForEach(c => c.On(triggerObservable, pipelineConfigurator, instantiationScope));
+        configurators.Values.ForEach(c => c.On(triggerObservable, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false), instantiationScope));
         return this;
     }
 
@@ -62,12 +62,12 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
         {
             // Note: we create the pipeline in composite context so all configuration is also applied in that context.
             var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.Light),
-                configure);
+                configure.SetLoggingContext(LogName, LoggingEnabled ?? false));
             configurators.Values.ForEach(c => c.On(triggerObservable, _ => nodes[c.Light.Id]));
             return this;
         }
 
-        configurators.Values.ForEach(c => c.On(triggerObservable, configure, instantiationScope));
+        configurators.Values.ForEach(c => c.On(triggerObservable, configure.SetLoggingContext(LogName, LoggingEnabled ?? false), instantiationScope));
         return this;
     }
 

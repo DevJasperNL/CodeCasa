@@ -4,6 +4,7 @@ using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using CodeCasa.AutomationPipelines.Lights.Extensions;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -78,6 +79,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Condition", LoggingEnabled ?? false)
             .On(observable.Where(x => x), nodeFactory)
             .PassThroughOn(observable.Where(x => !x)));
     }
@@ -96,6 +98,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         where TNode : IPipelineNode<LightTransition>
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Condition", LoggingEnabled ?? false)
             .On<bool, TNode>(observable.Where(x => x))
             .PassThroughOn(observable.Where(x => !x)));
     }
@@ -111,7 +114,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .On(observable.Where(x => x), configure, instantiationScope)
+            .SetLoggingContext(LogName, "Condition", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), configure.SetLoggingContext(c), instantiationScope)
             .PassThroughOn(observable.Where(x => !x)));
     }
 
@@ -121,12 +125,12 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner pipeline to avoid confusion.
-            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator);
+            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false));
             return When<TObservable>(_ => pipeline);
         }
         return When<TObservable>(c => 
             c.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator));
+                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
@@ -135,12 +139,12 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner pipeline to avoid confusion.
-            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator);
+            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false));
             return When(observable, _ => pipeline);
         }
         return When(observable, c => 
             c.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator));
+                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
