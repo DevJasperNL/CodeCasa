@@ -18,7 +18,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight> : IInternalLo
         _parentName = parentName;
     }
 
-    public void SetNameInternal(string name)
+    public void SetName(string name)
     {
         _name = name;
     }

@@ -79,6 +79,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Condition", LoggingEnabled ?? false)
             .On(observable.Where(x => x), nodeFactory)
             .PassThroughOn(observable.Where(x => !x)));
     }
@@ -97,6 +98,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         where TNode : IPipelineNode<LightTransition>
     {
         return AddReactiveNode(c => c
+            .SetLoggingContext(LogName, "Condition", LoggingEnabled ?? false)
             .On<bool, TNode>(observable.Where(x => x))
             .PassThroughOn(observable.Where(x => !x)));
     }
@@ -112,7 +114,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .On(observable.Where(x => x), configure, instantiationScope)
+            .SetLoggingContext(LogName, "Condition", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), configure.SetLoggingContext(c), instantiationScope)
             .PassThroughOn(observable.Where(x => !x)));
     }
 

@@ -1,4 +1,7 @@
 ﻿
+using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.Lights;
+
 namespace CodeCasa.AutomationPipelines.Lights.Extensions
 {
     internal static class ActionExtensions
@@ -20,10 +23,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
             };
         }
 
-        public static Action<T> SetLoggingContext<T>(
-            this Action<T> configure, IInternalLoggingContext parentLoggingContext)
+        public static Action<T> SetLoggingContext<T, TLight>(
+            this Action<T> configure, ILightTransitionReactiveNodeConfigurator<TLight> lightTransitionReactiveNodeConfigurator) where TLight : ILight
         {
-            return configure.SetLoggingContext(parentLoggingContext.LogName, parentLoggingContext.LoggingEnabled ?? false);
+            // Note: This method is used for convenience. As we use this internally only, we can assume that all implementations of ILightTransitionReactiveNodeConfigurator also implement IInternalLoggingContext.
+            var loggingContext = (IInternalLoggingContext)lightTransitionReactiveNodeConfigurator;
+            return configure.SetLoggingContext(loggingContext.LogName, loggingContext.LoggingEnabled ?? false);
         }
     }
 }

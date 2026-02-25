@@ -18,7 +18,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight> : IIntern
         _parentName = parentName;
     }
 
-    public void SetNameInternal(string name)
+    public void SetName(string name)
     {
         _name = name;
     }

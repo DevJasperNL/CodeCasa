@@ -85,7 +85,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
         {
-            return AddReactiveNode(c => { c.AddUncoupledDimmer(dimmer, dimOptions); });
+            return AddReactiveNode(c => { c
+                .SetLoggingContext(LogName, "Dimmer", LoggingEnabled ?? false)
+                .AddUncoupledDimmer(dimmer, dimOptions); });
         }
 
         /// <inheritdoc/>

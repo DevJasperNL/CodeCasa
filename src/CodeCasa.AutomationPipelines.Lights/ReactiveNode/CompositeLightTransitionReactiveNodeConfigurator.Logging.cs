@@ -22,10 +22,10 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight> 
         configurators.Values.ForEach(b => b.SetParentName(parentName));
     }
 
-    public void SetNameInternal(string name)
+    public void SetName(string name)
     {
         _name = name;
-        configurators.Values.ForEach(b => b.SetNameInternal(name));
+        configurators.Values.ForEach(b => b.SetName(name));
     }
 
     /// <inheritdoc/>
