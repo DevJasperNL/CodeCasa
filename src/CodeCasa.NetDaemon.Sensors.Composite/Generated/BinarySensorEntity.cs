@@ -1,0 +1,15 @@
+﻿using NetDaemon.HassModel;
+using NetDaemon.HassModel.Entities;
+
+namespace CodeCasa.NetDaemon.Sensors.Composite.Generated;
+
+internal partial record BinarySensorEntity : Entity<BinarySensorEntity, EntityState<BinarySensorAttributes>, BinarySensorAttributes>, IBinarySensorEntityCore
+{
+    public BinarySensorEntity(IHaContext haContext, string entityId) : base(haContext, entityId)
+    {
+    }
+
+    public BinarySensorEntity(IEntityCore entity) : base(entity)
+    {
+    }
+}

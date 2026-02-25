@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Title>CodeCasa.NetDaemon.Sensors.Composite</Title>
+    <PackageId>CodeCasa.NetDaemon.Sensors.Composite</PackageId>
+    <Authors>Jasper Lammers</Authors>
+    <Company>DevJasper</Company>
+    <Description>High-level composite sensor abstractions for NetDaemon, combining multiple Home Assistant entities into logical observables.</Description>
+    <RepositoryUrl>https://github.com/DevJasperNL/CodeCasa</RepositoryUrl>
+    <PackageTags>NetDaemon;Home Automation;Home Assistant;Smart Home;Motion;Illuminance;Reactive Programming;Rx;Rx.NET;Observables;C#;.NET 10;Composite Sensors</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageIcon>ccnd_icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/DevJasperNL/CodeCasa/releases</PackageReleaseNotes>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\img\ccnd_icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetDaemon.HassModel" Version="26.3.0" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeCasa.NetDaemon.Extensions.Observables\CodeCasa.NetDaemon.Extensions.Observables.csproj" />
+  </ItemGroup>
+
+</Project>
