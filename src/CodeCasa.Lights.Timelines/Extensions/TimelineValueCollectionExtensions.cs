@@ -7,6 +7,10 @@ using System.Reactive.Linq;
 
 namespace CodeCasa.Lights.Timelines.Extensions
 {
+    /// <summary>
+    /// Provides reactive extension methods for <see cref="Dictionary{TKey, TValue}"/> collections 
+    /// where the keys are <see cref="ITimeline"/> instances.
+    /// </summary>
     public static class TimelineValueCollectionExtensions
     {
         /// <summary>
