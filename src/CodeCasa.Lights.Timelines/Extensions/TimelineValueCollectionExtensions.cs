@@ -138,7 +138,7 @@ namespace CodeCasa.Lights.Timelines.Extensions
                 .Select(s => s.Value!);
         }
 
-        public sealed record Maybe<T>(bool HasValue, T? Value)
+        private sealed record Maybe<T>(bool HasValue, T? Value)
         {
             public static Maybe<T> None => new(false, default);
             public static Maybe<T> Some(T value) => new(true, value);
