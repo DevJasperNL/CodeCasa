@@ -125,10 +125,10 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner pipeline to avoid confusion.
-            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false));
+            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext($"{LogName}->Condition", LoggingEnabled ?? false));
             return When<TObservable>(_ => pipeline);
         }
-        return When<TObservable>(c => 
+        return When<TObservable>(c =>
             c.GetRequiredService<LightPipelineFactory>()
                 .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
@@ -139,10 +139,10 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         if (instantiationScope == InstantiationScope.Shared)
         {
             // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner pipeline to avoid confusion.
-            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false));
+            var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext($"{LogName}->Condition", LoggingEnabled ?? false));
             return When(observable, _ => pipeline);
         }
-        return When(observable, c => 
+        return When(observable, c =>
             c.GetRequiredService<LightPipelineFactory>()
                 .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
