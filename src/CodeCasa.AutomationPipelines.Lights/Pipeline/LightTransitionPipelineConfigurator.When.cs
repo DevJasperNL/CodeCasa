@@ -128,7 +128,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
             var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext($"{LogName}->Condition", LoggingEnabled ?? false));
             return When<TObservable>(_ => pipeline);
         }
-        return When<TObservable>(c => 
+        return When<TObservable>(c =>
             c.GetRequiredService<LightPipelineFactory>()
                 .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
@@ -142,7 +142,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
             var pipeline = _serviceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.SetLoggingContext($"{LogName}->Condition", LoggingEnabled ?? false));
             return When(observable, _ => pipeline);
         }
-        return When(observable, c => 
+        return When(observable, c =>
             c.GetRequiredService<LightPipelineFactory>()
                 .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.SetLoggingContext(LogName, LoggingEnabled ?? false)));
     }
