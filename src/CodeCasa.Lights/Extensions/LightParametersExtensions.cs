@@ -28,14 +28,14 @@ public static class LightParametersExtensions
         // If one of the parameters have a brightness of 0 and no color values, we copy the color values from the other parameters.
         if (fromLightParameters.Brightness == 0)
         {
-            if (fromLightParameters.ColorTemp == null && fromLightParameters.RgbColor == null)
+            if (fromLightParameters.ColorTempKelvin == null && fromLightParameters.RgbColor == null)
             {
                 fromLightParameters = toLightParameters with { Brightness = 0 };
             }
         }
         else if (toLightParameters.Brightness == 0)
         {
-            if (toLightParameters.ColorTemp == null && toLightParameters.RgbColor == null)
+            if (toLightParameters.ColorTempKelvin == null && toLightParameters.RgbColor == null)
             {
                 toLightParameters = fromLightParameters with { Brightness = 0 };
             }
@@ -59,19 +59,19 @@ public static class LightParametersExtensions
             };
         }
 
-        if (fromLightParameters.ColorTemp == null || toLightParameters.ColorTemp == null)
+        if (fromLightParameters.ColorTempKelvin == null || toLightParameters.ColorTempKelvin == null)
         {
-            throw new InvalidOperationException("Interpolation requires either RGB or ColorTemp value");
+            throw new InvalidOperationException("Interpolation requires either RGB or ColorTempKelvin value");
         }
 
-        var fromColorTemp = fromLightParameters.ColorTemp.Value;
-        var toColorTemp = toLightParameters.ColorTemp.Value;
+        var fromColorTemp = fromLightParameters.ColorTempKelvin.Value;
+        var toColorTemp = toLightParameters.ColorTempKelvin.Value;
         // Note: This blending is done in Mired, which can be blended linearly. If we ever want to do this using Kelvin, this is no longer the case, and the blending should convert first.
         var blendedTemp = (int)Math.Round(fromColorTemp + (toColorTemp - fromColorTemp) * progress);
 
         return result with
         {
-            ColorTemp = blendedTemp
+            ColorTempKelvin = blendedTemp
         };
     }
 
@@ -104,11 +104,11 @@ public static class LightParametersExtensions
         {
             return lightParameters.RgbColor.Value;
         }
-        if (lightParameters.ColorTemp == null)
+        if (lightParameters.ColorTempKelvin == null)
         {
-            throw new ArgumentException("Rgb color conversion requires either RGB or ColorTemp value");
+            throw new ArgumentException("Rgb color conversion requires either RGB or ColorTempKelvin value");
         }
 
-        return ColorConverter.KelvinToRgb(1000000.0 / Convert.ToDouble(lightParameters.ColorTemp));
+        return ColorConverter.KelvinToRgb(Convert.ToDouble(lightParameters.ColorTempKelvin));
     }
 }

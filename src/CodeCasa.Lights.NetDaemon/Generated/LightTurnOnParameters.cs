@@ -4,65 +4,16 @@ namespace CodeCasa.Lights.NetDaemon.Generated;
 
 internal record LightTurnOnParameters
 {
-    ///<summary>Duration it takes to get to next state.</summary>
     [JsonPropertyName("transition")]
     public double? Transition { get; init; }
 
-    ///<summary>The color in RGB format. A list of three integers between 0 and 255 representing the values of red, green, and blue. eg: [255, 100, 100]</summary>
+    ///<summary> eg: [255, 100, 100]</summary>
     [JsonPropertyName("rgb_color")]
     public IReadOnlyCollection<int>? RgbColor { get; init; }
 
-    ///<summary>Color temperature in Kelvin.</summary>
-    [JsonPropertyName("kelvin")]
-    public object? Kelvin { get; init; }
-
-    ///<summary>Number indicating the percentage of full brightness, where 0 turns the light off, 1 is the minimum brightness, and 100 is the maximum brightness.</summary>
-    [JsonPropertyName("brightness_pct")]
-    public double? BrightnessPct { get; init; }
-
-    ///<summary>Change brightness by a percentage.</summary>
-    [JsonPropertyName("brightness_step_pct")]
-    public double? BrightnessStepPct { get; init; }
-
-    ///<summary>Light effect.</summary>
-    [JsonPropertyName("effect")]
-    public string? Effect { get; init; }
-
-    ///<summary> eg: [255, 100, 100, 50]</summary>
-    [JsonPropertyName("rgbw_color")]
-    public object? RgbwColor { get; init; }
-
-    ///<summary> eg: [255, 100, 100, 50, 70]</summary>
-    [JsonPropertyName("rgbww_color")]
-    public object? RgbwwColor { get; init; }
-
-    [JsonPropertyName("color_name")]
-    public object? ColorName { get; init; }
-
-    ///<summary> eg: [300, 70]</summary>
-    [JsonPropertyName("hs_color")]
-    public object? HsColor { get; init; }
-
-    ///<summary> eg: [0.52, 0.43]</summary>
-    [JsonPropertyName("xy_color")]
-    public object? XyColor { get; init; }
-
-    [JsonPropertyName("color_temp")]
-    public object? ColorTemp { get; init; }
+    [JsonPropertyName("color_temp_kelvin")]
+    public object? ColorTempKelvin { get; init; }
 
     [JsonPropertyName("brightness")]
     public double? Brightness { get; init; }
-
-    [JsonPropertyName("brightness_step")]
-    public double? BrightnessStep { get; init; }
-
-    [JsonPropertyName("white")]
-    public object? White { get; init; }
-
-    ///<summary> eg: relax</summary>
-    [JsonPropertyName("profile")]
-    public string? Profile { get; init; }
-
-    [JsonPropertyName("flash")]
-    public object? Flash { get; init; }
 }

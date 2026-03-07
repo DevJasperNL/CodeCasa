@@ -216,7 +216,7 @@ public static class LightEntityCoreExtensions
         var actualParameters = lightEntity.GetLightParameters();
         return
             BrightnessEquals(actualParameters.Brightness, lightParameters.Brightness) &&
-            actualParameters.ColorTemp == lightParameters.ColorTemp;
+            actualParameters.ColorTempKelvin == lightParameters.ColorTempKelvin;
     }
 
     private static bool BrightnessEquals(double? brightness1, double? brightness2)
