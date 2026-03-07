@@ -11,7 +11,7 @@ internal static class LightTransitionExtensions
             Transition = lightTransition.TransitionTime?.TotalSeconds,
             Brightness = lightTransition.LightParameters.Brightness,
             RgbColor = lightTransition.LightParameters.RgbColor?.ToRgbCollection(),
-            ColorTemp = lightTransition.LightParameters.ColorTemp
+            ColorTempKelvin = lightTransition.LightParameters.ColorTempKelvin
         };
     }
 

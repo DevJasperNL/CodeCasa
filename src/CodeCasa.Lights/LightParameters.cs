@@ -20,9 +20,9 @@ public partial record LightParameters
     public Color? RgbColor { get; init; }
 
     /// <summary>
-    /// Gets the color temperature of the light in mireds, if applicable. This property is used when the light supports color temperature modes.
+    /// Gets the color temperature of the light in kelvin, if applicable. This property is used when the light supports color temperature modes.
     /// </summary>
-    public int? ColorTemp { get; init; }
+    public int? ColorTempKelvin { get; init; }
 
     /// <summary>
     /// Creates a <see cref="LightParameters"/> object representing an off state.
@@ -98,9 +98,9 @@ public partial record LightParameters
             {
                 sb.Append($"R,G,B: {RgbColor.Value.R},{RgbColor.Value.G},{RgbColor.Value.B}");
             }
-            else if (ColorTemp != null)
+            else if (ColorTempKelvin != null)
             {
-                sb.Append($"temperature {ColorTemp}");
+                sb.Append($"temperature {ColorTempKelvin}");
             }
 
             if (sb.Length == 0)

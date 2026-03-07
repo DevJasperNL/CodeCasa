@@ -17,7 +17,7 @@ namespace CodeCasa.Lights.NetDaemon.Extensions
             }
             if (string.Equals(lightAttributes.ColorMode, ColorModes.ColorTemp, StringComparison.OrdinalIgnoreCase))
             {
-                return new LightParameters { ColorTemp = (int?)lightAttributes.ColorTemp, Brightness = lightAttributes.Brightness };
+                return new LightParameters { ColorTempKelvin = (int?)lightAttributes.ColorTempKelvin, Brightness = lightAttributes.Brightness };
             }
             if (string.Equals(lightAttributes.ColorMode, ColorModes.Brightness, StringComparison.OrdinalIgnoreCase))
             {
