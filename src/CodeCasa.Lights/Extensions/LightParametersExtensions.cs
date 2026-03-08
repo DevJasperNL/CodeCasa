@@ -55,6 +55,7 @@ public static class LightParametersExtensions
 
             return result with
             {
+                ColorTempKelvin = null,
                 RgbColor = blendedColor
             };
         }
