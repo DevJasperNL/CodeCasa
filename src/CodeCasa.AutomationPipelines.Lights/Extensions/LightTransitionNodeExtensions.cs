@@ -13,33 +13,31 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
     public static class LightTransitionNodeExtensions
     {
         /// <summary>
-        /// Creates a timeout node that automatically turns off the light after the specified time span.
-        /// The timeout is not reset by any external events.
+        /// Wraps the pipeline node to automatically transition to an 'Off' state after a specified duration of inactivity.
         /// </summary>
-        /// <param name="node">The pipeline node to wrap with timeout behavior.</param>
-        /// <param name="timeSpan">The duration after which the light will turn off.</param>
-        /// <param name="scheduler">The scheduler to use for timing operations.</param>
-        /// <returns>A new pipeline node that wraps the original node with timeout behavior.</returns>
+        /// <param name="node">The source pipeline node.</param>
+        /// <param name="timeSpan">The duration to wait before turning off.</param>
+        /// <param name="scheduler">The scheduler used for timing operations.</param>
+        /// <returns>A new pipeline node that times out to 'Off'.</returns>
         public static IPipelineNode<LightTransition> TurnOffAfter(this IPipelineNode<LightTransition> node,
             TimeSpan timeSpan, IScheduler scheduler)
         {
-            return new ResettableTimeoutNode<Unit>(node, timeSpan, Observable.Empty<Unit>(), scheduler);
+            return new ResettableTimeoutNode(node, timeSpan, Observable.Empty<bool>(), scheduler);
         }
 
         /// <summary>
-        /// Creates a timeout node that automatically turns off the light after the specified time span.
-        /// The timeout can be reset when the observable emits a value.
+        /// Wraps the pipeline node to automatically transition to an 'Off' state after a specified duration of inactivity, 
+        /// with an optional observable to persist the current state and bypass the timeout.
         /// </summary>
-        /// <typeparam name="T">The type of values emitted by the reset timer observable.</typeparam>
-        /// <param name="node">The pipeline node to wrap with timeout behavior.</param>
-        /// <param name="timeSpan">The duration after which the light will turn off.</param>
-        /// <param name="resetTimerObservable">An observable that resets the timeout timer when it emits a value.</param>
-        /// <param name="scheduler">The scheduler to use for timing operations.</param>
-        /// <returns>A new pipeline node that wraps the original node with resettable timeout behavior.</returns>
-        public static IPipelineNode<LightTransition> TurnOffAfter<T>(this IPipelineNode<LightTransition> node,
-            TimeSpan timeSpan, IObservable<T> resetTimerObservable, IScheduler scheduler)
+        /// <param name="node">The source pipeline node.</param>
+        /// <param name="timeSpan">The duration to wait before turning off.</param>
+        /// <param name="persistObservable">An observable that, when true, prevents the timeout from triggering.</param>
+        /// <param name="scheduler">The scheduler used for timing operations.</param>
+        /// <returns>A new pipeline node that times out to 'Off' unless persistence is active.</returns>
+        public static IPipelineNode<LightTransition> TurnOffAfter(this IPipelineNode<LightTransition> node,
+            TimeSpan timeSpan, IObservable<bool> persistObservable, IScheduler scheduler)
         {
-            return new ResettableTimeoutNode<T>(node, timeSpan, resetTimerObservable, scheduler);
+            return new ResettableTimeoutNode(node, timeSpan, persistObservable, scheduler);
         }
     }
 }
