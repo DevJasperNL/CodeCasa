@@ -1,9 +1,11 @@
-﻿namespace CodeCasa.AutomationPipelines;
+﻿using System.Text.Json.Serialization;
+
+namespace CodeCasa.AutomationPipelines;
 
 /// <summary>
 /// Represents a node in a pipeline.
 /// </summary>
-public interface IPipelineNode<TState>
+public interface IPipelineNode<TState> : IAsyncDisposable
 {
     /// <summary>
     /// Sets the input state of the node. This will trigger the processing of the input.
@@ -18,5 +20,6 @@ public interface IPipelineNode<TState>
     /// <summary>
     /// Notifies when a new output is produced by the node.
     /// </summary>
+    [JsonIgnore]
     IObservable<TState?> OnNewOutput { get; }
 }

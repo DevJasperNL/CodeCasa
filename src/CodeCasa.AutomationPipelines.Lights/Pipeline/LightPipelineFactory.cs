@@ -38,7 +38,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <param name="light">The light to create a pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A configured pipeline for controlling the specified light.</returns>
-        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        public IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             return CreateLightPipelines([light], pipelineBuilder)[light.Id];
         }
@@ -79,22 +79,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             return configurators.ToDictionary(kvp => kvp.Key, kvp =>
             {
                 var conf = kvp.Value;
-                IPipeline<LightTransition> pipeline;
+                IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
+                    LightTransition.Off(),
+                    conf.Nodes,
+                    conf.Light.ApplyTransition);
                 if (conf.LoggingEnabled ?? false)
                 {
-                    pipeline = new Pipeline<LightTransition>(
-                        $"[{conf.Light.Id}] {conf.LogName}",
-                        LightTransition.Off(),
-                        conf.Nodes,
-                        conf.Light.ApplyTransition,
-                        logger);
-                }
-                else
-                {
-                    pipeline = new Pipeline<LightTransition>(
-                        LightTransition.Off(),
-                        conf.Nodes,
-                        conf.Light.ApplyTransition);
+                    var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.LogName}");
+                    pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
                 }
 
                 return (IPipeline<LightTransition>)new ServiceScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);

@@ -6,12 +6,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
     internal class ServiceScopedNode<TState>(IServiceScope serviceScope, IPipelineNode<TState> innerNode)
         : IPipelineNode<TState>, IAsyncDisposable
     {
-        public async ValueTask DisposeAsync()
-        {
-            await serviceScope.DisposeOrDisposeAsync();
-            await innerNode.DisposeOrDisposeAsync();
-        }
-
         public TState? Input
         {
             get => innerNode.Input;
@@ -22,5 +16,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         public IObservable<TState?> OnNewOutput => innerNode.OnNewOutput;
 
         public override string? ToString() => $"{innerNode} (scoped)";
+
+        public async ValueTask DisposeAsync()
+        {
+            await serviceScope.DisposeOrDisposeAsync();
+            await innerNode.DisposeOrDisposeAsync();
+        }
     }
 }

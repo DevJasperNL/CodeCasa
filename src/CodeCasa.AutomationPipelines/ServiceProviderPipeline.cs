@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines;
 
@@ -51,34 +50,6 @@ public class ServiceProviderPipeline<TState> : Pipeline<TState>
     /// <inheritdoc />
     public ServiceProviderPipeline(IServiceProvider serviceProvider, TState defaultState, params IPipelineNode<TState>[] nodes)
         : base(defaultState, nodes)
-    {
-        _serviceScope = serviceProvider.CreateScope();
-        _serviceProvider = _serviceScope.ServiceProvider;
-    }
-
-    /// <inheritdoc />
-    public ServiceProviderPipeline(IServiceProvider serviceProvider, string? name, ILogger<Pipeline<TState>> logger) : base(name, logger)
-    {
-        _serviceScope = serviceProvider.CreateScope();
-        _serviceProvider = _serviceScope.ServiceProvider;
-    }
-
-    /// <inheritdoc />
-    public ServiceProviderPipeline(IServiceProvider serviceProvider, string? name, IEnumerable<IPipelineNode<TState>> nodes, ILogger<Pipeline<TState>> logger)
-        : base(name, nodes, logger)
-    {
-        _serviceScope = serviceProvider.CreateScope();
-        _serviceProvider = _serviceScope.ServiceProvider;
-    }
-
-    /// <inheritdoc />
-    public ServiceProviderPipeline(
-        IServiceProvider serviceProvider,
-        string? name,
-        TState defaultState,
-        IEnumerable<IPipelineNode<TState>> nodes,
-        Action<TState> outputHandlerAction, ILogger<Pipeline<TState>> logger)
-        : base(name, defaultState, nodes, outputHandlerAction, logger)
     {
         _serviceScope = serviceProvider.CreateScope();
         _serviceProvider = _serviceScope.ServiceProvider;

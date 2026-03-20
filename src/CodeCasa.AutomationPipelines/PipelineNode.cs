@@ -13,7 +13,6 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
     private TState? _input;
     private TState? _output;
     private bool _passThroughNextInput;
-    private bool _passThrough;
 
     /// <inheritdoc />
     public IObservable<TState?> OnNewOutput => _newOutputSubject.AsObservable();
@@ -69,19 +68,19 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
     /// </summary>
     protected bool PassThrough
     {
-        get => _passThrough;
+        get;
         set
         {
             // Always reset _passThroughNextInput when PassThrough is explicitly called.
             _passThroughNextInput = false;
 
-            if (_passThrough == value)
+            if (field == value)
             {
                 return;
             }
-            
-            _passThrough = value;
-            if (_passThrough)
+
+            field = value;
+            if (field)
             {
                 SetOutputInternal(_input);
             }
@@ -120,4 +119,16 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
 
     /// <inheritdoc />
     public override string ToString() => GetType().Name;
+
+    /// <inheritdoc />
+    public virtual ValueTask DisposeAsync()
+    {
+        if (_newOutputSubject.IsDisposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+        _newOutputSubject.OnCompleted();
+        _newOutputSubject.Dispose();
+        return ValueTask.CompletedTask;
+    }
 }

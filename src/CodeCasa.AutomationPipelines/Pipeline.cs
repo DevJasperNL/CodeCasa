@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Xml.Linq;
 
 namespace CodeCasa.AutomationPipelines;
 
@@ -9,7 +11,7 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 {
     private readonly Lock _lock = new();
     private readonly List<IPipelineNode<TState>> _nodes = new();
-    private readonly ILogger<Pipeline<TState>>? _logger;
+    private readonly Subject<PipelineTelemetry<TState>> _telemetrySubject = new();
 
     private bool _callActionDistinct = true;
     private Action<TState>? _action;
@@ -27,16 +29,25 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     /// Initializes a new pipeline with the specified nodes.
     /// </summary>
     public Pipeline(IEnumerable<IPipelineNode<TState>> nodes)
-        : this(null, nodes, null!)
     {
+        foreach (var node in nodes)
+        {
+            RegisterNode(node);
+        }
     }
 
     /// <summary>
     /// Initializes a new pipeline with the specified default state, nodes, and output handler.
     /// </summary>
     public Pipeline(TState defaultState, IEnumerable<IPipelineNode<TState>> nodes, Action<TState> outputHandlerAction)
-        : this(null, defaultState, nodes, outputHandlerAction, null!)
     {
+        foreach (var node in nodes)
+        {
+            RegisterNode(node);
+        }
+
+        SetDefault(defaultState);
+        SetOutputHandler(outputHandlerAction);
     }
 
     /// <summary>
@@ -62,51 +73,12 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 
         SetDefault(defaultState);
     }
-    
-    /// <summary>
-    /// Initializes a new, empty pipeline with an optional name and logger.
-    /// </summary>
-    public Pipeline(string? name, ILogger<Pipeline<TState>> logger)
-    {
-        Name = name;
-        _logger = logger;
-    }
 
-    /// <summary>
-    /// Initializes a new pipeline with the specified nodes and an optional name and logger.
-    /// </summary>
-    public Pipeline(string? name, IEnumerable<IPipelineNode<TState>> nodes, ILogger<Pipeline<TState>> logger)
-    {
-        Name = name;
-        _logger = logger;
-        foreach (var node in nodes)
-        {
-            RegisterNode(node);
-        }
-    }
+    /// <inheritdoc />
+    public IReadOnlyCollection<IPipelineNode<TState>> Nodes => _nodes.AsReadOnly();
 
-    /// <summary>
-    /// Initializes a new pipeline with the specified default state, nodes, output handler, and an optional name and logger.
-    /// </summary>
-    public Pipeline(string? name, TState defaultState, IEnumerable<IPipelineNode<TState>> nodes, Action<TState> outputHandlerAction, ILogger<Pipeline<TState>> logger)
-    {
-        Name = name;
-        _logger = logger;
-        foreach (var node in nodes)
-        {
-            RegisterNode(node);
-        }
-
-        SetDefault(defaultState);
-        SetOutputHandler(outputHandlerAction);
-    }
-
-    /// <summary>
-    /// Name of the pipeline (used for logging).
-    /// </summary>
-    public string? Name { get; set; }
-
-    private string LogPrefix => Name == null ? "" : $"{Name}: ";
+    /// <inheritdoc />
+    public IObservable<PipelineTelemetry<TState>> Telemetry => _telemetrySubject.AsObservable();
 
     /// <inheritdoc />
     public IPipeline<TState> SetDefault(TState state)
@@ -126,8 +98,6 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     /// <inheritdoc />
     public IPipeline<TState> RegisterNode(IPipelineNode<TState> node)
     {
-        _logger?.LogTrace($"{LogPrefix}Registering [Node {_nodes.Count}] ({node}).");
-
         _subscription?.Dispose(); // Dispose old subscription if any.
         
         if (_nodes.Any())
@@ -139,13 +109,24 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
             {
                 lock (_lock)
                 {
-                    _logger?.LogTrace(
-                        $"{LogPrefix}[Node {sourceIndex}] ({previousNode}) passed value [{output?.ToString() ?? "NULL"}] to [Node {destinationIndex}] ({node}).");
+                    _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+                        sourceIndex,
+                        previousNode.ToString(),
+                        destinationIndex,
+                        node.ToString(),
+                        previousNode.Output
+                    ));
                     node.Input = output;
                 }
             });
 
-            _logger?.LogTrace($"{LogPrefix}Passing [Node {sourceIndex}] ({previousNode}) value [{previousNode.Output?.ToString() ?? "NULL"}] to [Node {destinationIndex}] ({node}).");
+            _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+                sourceIndex,
+                previousNode.ToString(),
+                destinationIndex,
+                node.ToString(),
+                previousNode.Output
+            ));
             node.Input = previousNode.Output;
         }
         else
@@ -164,14 +145,24 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         {
             lock (_lock)
             {
-                _logger?.LogTrace(
-                    $"{LogPrefix}[Node {nodeIndex}] ({node}) passed value [{o?.ToString() ?? "NULL"}] to pipeline output.");
+                _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+                    nodeIndex,
+                    node.ToString(),
+                    null, null,
+                    o
+                ));
+
                 SetOutputAndCallActionWhenApplicable(o);
             }
         });
 
         var newOutput = node.Output;
-        _logger?.LogTrace($"{LogPrefix}[Node {_nodes.Count - 1}] ({node}) registered and passed value [{newOutput?.ToString() ?? "NULL"}] to pipeline output.");
+        _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+            _nodes.Count - 1,
+            node.ToString(),
+            null, null,
+            newOutput
+        ));
         SetOutputAndCallActionWhenApplicable(newOutput);
 
         return this;
@@ -180,20 +171,11 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     /// <inheritdoc />
     public IPipeline<TState> SetOutputHandler(Action<TState> action, bool callActionDistinct = true)
     {
-        _logger?.LogTrace(callActionDistinct
-            ? $"{LogPrefix}Setting output handler."
-            : $"{LogPrefix}Setting output handler. Action calls with duplicate values are allowed.");
-
         _callActionDistinct = callActionDistinct;
         _action = action;
         if (Output != null)
         {
             _action(Output);
-            _logger?.LogDebug($"{LogPrefix}Action executed with current output [{Output?.ToString() ?? "NULL"}].");
-        }
-        else
-        {
-            _logger?.LogTrace($"{LogPrefix}No output value to execute.");
         }
 
         return this;
@@ -204,13 +186,20 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     {
         if (!_nodes.Any())
         {
-            _logger?.LogTrace($"{LogPrefix}Input set to [{state?.ToString() ?? "NULL"}]. No nodes registered, passing to pipeline output immediately.");
+            _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+                null, null, null, null,
+                Input
+            ));
             SetOutputAndCallActionWhenApplicable(Input);
             return;
         }
 
         var firstNode = _nodes.First();
-        _logger?.LogTrace($"{LogPrefix}Input set to [{state?.ToString() ?? "NULL"}]. Passing input to first [Node 0] ({firstNode}).");
+        _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+            null, null, 
+            0, firstNode.ToString(),
+            Input
+        ));
         firstNode.Input = Input;
     }
 
@@ -219,59 +208,36 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         var outputChanged = !EqualityComparer<TState>.Default.Equals(Output, output);
 
         Output = output;
-        if (_action == null)
+        if (_action == null || output == null)
         {
-            _logger?.LogTrace($"{LogPrefix}No action set to execute.");
             return;
         }
-        if (output == null)
-        {
-            _logger?.LogTrace($"{LogPrefix}No output value to execute.");
-            return;
-        }
-
         if (_callActionDistinct && !outputChanged)
         {
-            _logger?.LogTrace($"{LogPrefix}No action executed as output has not changed.");
             return;
         }
 
         // Note that _action will be called AFTER OnNewOutput.
         _action.Invoke(output);
-        _logger?.LogDebug($"{LogPrefix}Action executed with output [{Output?.ToString() ?? "NULL"}].");
     }
 
     /// <inheritdoc />
-    public virtual async ValueTask DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
-        if (_isDisposed) return;
+        if (_isDisposed)
+        {
+            return;
+        }
         _isDisposed = true;
+
+        await base.DisposeAsync();
+
+        _telemetrySubject.OnCompleted();
+        _telemetrySubject.Dispose();
 
         foreach (var node in _nodes)
         {
-            switch (node)
-            {
-                case IAsyncDisposable asyncDisposable:
-                    try
-                    {
-                        await asyncDisposable.DisposeAsync().ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.LogError(ex, $"{LogPrefix}Exception when trying to dispose {node}.");
-                    }
-                    break;
-                case IDisposable disposable:
-                    try
-                    {
-                        disposable.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.LogError(ex, $"{LogPrefix}Exception when trying to dispose {node}.");
-                    }
-                    break;
-            }
+            await node.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

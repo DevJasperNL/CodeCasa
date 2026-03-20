@@ -54,4 +54,8 @@ internal sealed class ServiceScopedPipeline<TNode>(IServiceScope scope, IPipelin
         _instance.SetOutputHandler(action, callActionDistinct);
         return this;
     }
+
+    public IReadOnlyCollection<IPipelineNode<TNode>> Nodes => _instance.Nodes;
+
+    public IObservable<PipelineTelemetry<TNode>> Telemetry => _instance.Telemetry;
 }
