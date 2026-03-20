@@ -20,6 +20,5 @@ public interface IPipelineNode<TState> : IAsyncDisposable
     /// <summary>
     /// Notifies when a new output is produced by the node.
     /// </summary>
-    [JsonIgnore]
     IObservable<TState?> OnNewOutput { get; }
 }
