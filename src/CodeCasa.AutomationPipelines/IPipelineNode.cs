@@ -1,9 +1,10 @@
-﻿namespace CodeCasa.AutomationPipelines;
+﻿
+namespace CodeCasa.AutomationPipelines;
 
 /// <summary>
 /// Represents a node in a pipeline.
 /// </summary>
-public interface IPipelineNode<TState>
+public interface IPipelineNode<TState> : IAsyncDisposable
 {
     /// <summary>
     /// Sets the input state of the node. This will trigger the processing of the input.

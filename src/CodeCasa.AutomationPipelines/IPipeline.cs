@@ -25,4 +25,14 @@ public interface IPipeline<TState> : IPipelineNode<TState>, IAsyncDisposable
     /// This method can be called at any time during the creation of the pipeline and will be called immediately if the pipeline has already produced an output.
     /// </summary>
     IPipeline<TState> SetOutputHandler(Action<TState> action, bool callActionDistinct = true);
+
+    /// <summary>
+    /// Gets the collection of nodes registered in the pipeline.
+    /// </summary>
+    IReadOnlyCollection<IPipelineNode<TState>> Nodes { get; }
+
+    /// <summary>
+    /// Gets an observable stream of telemetry events that occur during pipeline execution.
+    /// </summary>
+    IObservable<PipelineTelemetry<TState>> Telemetry { get; }
 }
