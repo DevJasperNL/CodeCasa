@@ -231,6 +231,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
             {
                 _tracker.Disposed(Id);
             }
+
+            public override ValueTask DisposeAsync()
+            {
+                _tracker.Disposed(Id);
+                return base.DisposeAsync();
+            }
         }
 
         public class ContextAwarePipelineNode : PipelineNode<LightTransition>
