@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Xml.Linq;
 
 namespace CodeCasa.AutomationPipelines;
 

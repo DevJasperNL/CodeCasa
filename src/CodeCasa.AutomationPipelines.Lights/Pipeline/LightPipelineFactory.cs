@@ -4,6 +4,7 @@ using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -89,7 +90,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                     pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
                 }
 
-                return (IPipeline<LightTransition>)new ServiceScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);
+                // Note: do now I did not explicitly handle child pipelines.
+                var subscriptions = conf.Observers.Select(o =>
+                    pipeline.Telemetry
+                        .Select(t => new LightTransitionPipelineTelemetry<TLight>(
+                            conf.Light, t.SourceNodeIndex, t.SourceNodeName, t.DestinationNodeIndex,
+                            t.DestinationNodeName, t.StateValue))
+                        .Subscribe(o)).ToArray();
+
+                return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
             });
         }
     }

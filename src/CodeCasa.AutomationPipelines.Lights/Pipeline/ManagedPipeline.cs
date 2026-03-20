@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-internal sealed class ServiceScopedPipeline<TNode>(IServiceScope scope, IPipeline<TNode> pipeline)
+internal sealed class ManagedPipeline<TNode>(IServiceScope scope, IPipeline<TNode> pipeline, IEnumerable<IDisposable> pipelineSubscriptions)
     : IPipeline<TNode>, IDisposable, IAsyncDisposable
 {
     private readonly IServiceScope _scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -11,12 +11,20 @@ internal sealed class ServiceScopedPipeline<TNode>(IServiceScope scope, IPipelin
 
     public void Dispose()
     {
+        foreach (var subscription in pipelineSubscriptions)
+        {
+            subscription.Dispose();
+        }
         (_instance as IDisposable)?.Dispose();
         _scope.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
+        foreach (var subscription in pipelineSubscriptions)
+        {
+            subscription.Dispose();
+        }
         await _instance.DisposeOrDisposeAsync();
         await _scope.DisposeOrDisposeAsync();
     }

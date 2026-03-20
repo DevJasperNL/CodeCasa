@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
-    internal class ServiceScopedNode<TState>(IServiceScope serviceScope, IPipelineNode<TState> innerNode)
+    internal class ManagedNode<TState>(IServiceScope serviceScope, IPipelineNode<TState> innerNode)
         : IPipelineNode<TState>, IAsyncDisposable
     {
         public TState? Input
