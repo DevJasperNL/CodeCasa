@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace CodeCasa.AutomationPipelines
+namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
-    public class PipelineLogger<TState>(ILogger<Pipeline<TState>>? logger, string? name)
+    internal class PipelineLogger<TState>(ILogger<Pipeline<TState>>? logger, string? name)
     {
         public void Log(PipelineTelemetry<TState> pipelineTelemetry)
         {
