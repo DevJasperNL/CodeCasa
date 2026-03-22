@@ -11,11 +11,13 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     private readonly Lock _lock = new();
     private readonly List<IPipelineNode<TState>> _nodes = new();
     private readonly Subject<PipelineTelemetry<TState>> _telemetrySubject = new();
+    private readonly List<IDisposable> _nestedPipelineSubscriptions = new();
 
     private bool _callActionDistinct = true;
     private Action<TState>? _action;
     private IDisposable? _subscription;
     private bool _isDisposed;
+    private string? _name;
 
     /// <summary>
     /// Initializes a new, empty pipeline with no nodes.
@@ -79,6 +81,18 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     /// <inheritdoc />
     public IObservable<PipelineTelemetry<TState>> Telemetry => _telemetrySubject.AsObservable();
 
+    /// <summary>
+    /// Sets an optional name for this pipeline, used in ToString() for telemetry and logging.
+    /// </summary>
+    public IPipeline<TState> SetName(string name)
+    {
+        _name = name;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public override string ToString() => _name ?? base.ToString() ?? GetType().Name;
+
     /// <inheritdoc />
     public IPipeline<TState> SetDefault(TState state)
     {
@@ -133,6 +147,19 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
             node.Input = Input;
         }
         _nodes.Add(node);
+
+        if (node is IPipeline<TState> nestedPipeline)
+        {
+            var nestedIndex = _nodes.Count - 1;
+            var nestedPipelineName = nestedPipeline.ToString() ?? string.Empty;
+            _nestedPipelineSubscriptions.Add(nestedPipeline.Telemetry.Subscribe(t =>
+            {
+                lock (_lock)
+                {
+                    _telemetrySubject.OnNext(t.WithParentPipeline(nestedIndex, nestedPipelineName));
+                }
+            }));
+        }
 
         /*
          * We register to the output of the node AFTER we passed the input of the previous node to it.
@@ -234,6 +261,10 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         _telemetrySubject.OnCompleted();
         _telemetrySubject.Dispose();
 
+        foreach (var subscription in _nestedPipelineSubscriptions)
+        {
+            subscription.Dispose();
+        }
         foreach (var node in _nodes)
         {
             await node.DisposeAsync().ConfigureAwait(false);
