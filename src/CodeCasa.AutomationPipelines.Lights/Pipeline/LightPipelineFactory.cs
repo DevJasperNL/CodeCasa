@@ -90,13 +90,21 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                     pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
                 }
 
-                // Note: do now I did not explicitly handle child pipelines.
-                var subscriptions = conf.Observers.Select(o =>
-                    pipeline.Telemetry
-                        .Select(t => new LightTransitionPipelineTelemetry<TLight>(
-                            conf.Light, t.SourceNodeIndex, t.SourceNodeName, t.DestinationNodeIndex,
-                            t.DestinationNodeName, t.StateValue))
-                        .Subscribe(o)).ToArray();
+                var telemetryStream = pipeline.Telemetry
+                    .Select(t => new LightTransitionPipelineTelemetry<TLight>(
+                        pipeline,
+                        conf.Light, t.SourceNodeIndex, t.SourceNodeName, t.DestinationNodeIndex,
+                        t.DestinationNodeName, t.StateValue))
+                    .Publish()
+                    .RefCount();
+                var subscriptions = conf.TelemetrySubscriptionFactories
+                    .Select(factory => factory(telemetryStream))
+                    .ToArray();
+
+                foreach (var completedCallback in conf.PipelineCompletedCallbacks)
+                {
+                    completedCallback(new LightTransitionPipelineCreatedEvent<TLight>(pipeline, conf.Light));
+                }
 
                 return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
             });

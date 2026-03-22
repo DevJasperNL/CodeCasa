@@ -9,22 +9,40 @@ public partial interface ILightTransitionPipelineConfigurator<TLight>
     /// <param name="observer">The observer that will receive telemetry data about state transitions.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     /// <remarks>
-    /// The lifetime of the subscription is connected to the lifetime of the pipeline.
+    /// The lifetime of the subscription is tied to the lifetime of the pipeline.
     /// When the pipeline is disposed, the subscription will automatically be terminated.
     /// </remarks>
-    ILightTransitionPipelineConfigurator<TLight> AddTelemetryObserver(
+    ILightTransitionPipelineConfigurator<TLight> AddTelemetrySubscriber(
         IObserver<LightTransitionPipelineTelemetry<TLight>> observer);
 
     /// <summary>
-    /// Adds a telemetry callback to observe state transitions within the light transition pipeline.
+    /// Adds a telemetry subscriber using an action callback to observe state transitions within the light transition pipeline.
+    /// The callback will be invoked for every state transition between pipeline nodes.
     /// </summary>
-    /// <param name="onNext">The action to execute whenever a new state transition notification is received.</param>
+    /// <param name="onNext">The callback action that will be invoked with telemetry data for each state transition.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     /// <remarks>
-    /// This is a convenience overload that wraps the provided <paramref name="onNext"/> action 
-    /// into an internal <see cref="IObserver{T}"/>. The subscription lifetime is tied 
-    /// to the lifetime of the pipeline.
+    /// The lifetime of the subscription is tied to the lifetime of the pipeline.
+    /// When the pipeline is disposed, the subscription will automatically be terminated.
     /// </remarks>
-    public ILightTransitionPipelineConfigurator<TLight> AddTelemetryObserver(
+    ILightTransitionPipelineConfigurator<TLight> AddTelemetrySubscriber(
         Action<LightTransitionPipelineTelemetry<TLight>> onNext);
+
+    /// <summary>
+    /// Adds a telemetry subscriber using a custom subscription factory to observe state transitions within the light transition pipeline.
+    /// This overload provides full control over subscription creation and management.
+    /// </summary>
+    /// <param name="subscriptionFactory">A factory function that receives the telemetry observable and returns a subscription.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    /// <remarks>
+    /// The lifetime of the subscription is tied to the lifetime of the pipeline.
+    /// When the pipeline is disposed, the subscription will automatically be terminated.
+    /// Use this overload when you need custom observable operators (e.g., filtering, throttling, buffering) before subscribing.
+    /// </remarks>
+    ILightTransitionPipelineConfigurator<TLight> ConfigureTelemetrySubscriber(
+        Func<IObservable<LightTransitionPipelineTelemetry<TLight>>, IDisposable> subscriptionFactory);
+
+    ILightTransitionPipelineConfigurator<TLight> OnCompleted(
+        Action<LightTransitionPipelineCreatedEvent<TLight>> callback);
+
 }
