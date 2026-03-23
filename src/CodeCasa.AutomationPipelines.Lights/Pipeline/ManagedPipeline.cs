@@ -29,6 +29,13 @@ internal sealed class ManagedPipeline<TNode>(IServiceScope scope, IPipeline<TNod
         await _scope.DisposeOrDisposeAsync();
     }
 
+    public Guid Id => pipeline.Id;
+    public string? Name
+    {
+        get => pipeline.Name;
+        set => pipeline.Name = value;
+    }
+
     public TNode? Input
     {
         get => _instance.Input;

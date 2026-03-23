@@ -83,10 +83,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
                     LightTransition.Off(),
                     conf.Nodes,
-                    conf.Light.ApplyTransition);
+                    conf.Light.ApplyTransition)
+                {
+                    Name = conf.Name
+                };
                 if (conf.LoggingEnabled ?? false)
                 {
-                    var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.LogName}");
+                    var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
                     pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
                 }
 

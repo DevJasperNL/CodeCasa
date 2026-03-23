@@ -17,7 +17,6 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private readonly string? _name;
     private readonly ILogger<ReactiveNode>? _logger;
     private readonly Subject<Unit> _nodeChangedSubject = new();
-    private IPipelineNode<LightTransition>? _activeNode;
     private IDisposable? _activeNodeSubscription;
 
     /// <summary>
@@ -61,6 +60,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
             });
     }
 
+    public IPipelineNode<LightTransition>? ActiveNode { get; private set; }
     private string LogPrefix => _name == null ? "" : $"{_name}: ";
 
     /// <summary>
@@ -71,15 +71,15 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// <inheritdoc />
     protected override void InputReceived(LightTransition? input)
     {
-        if (_activeNode == null)
+        if (ActiveNode == null)
         {
             return;
         }
         lock (_lock)
         {
-            if (_activeNode != null)
+            if (ActiveNode != null)
             {
-                _activeNode.Input = input;
+                ActiveNode.Input = input;
             }
         }
     }
@@ -87,23 +87,23 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private void DeactivateActiveNode()
     {
         _activeNodeSubscription?.Dispose();
-        if (_activeNode != null)
+        if (ActiveNode != null)
         {
-            _activeNode.Input = null;
-            _activeNode.DisposeOrDisposeAsync().GetAwaiter().GetResult();
+            ActiveNode.Input = null;
+            ActiveNode.DisposeOrDisposeAsync().GetAwaiter().GetResult();
         }
 
-        _activeNode = null;
+        ActiveNode = null;
         _activeNodeSubscription = null;
     }
 
     private void ActivateNode(IPipelineNode<LightTransition> node)
     {
         DeactivateActiveNode();
-        _activeNode = node;
+        ActiveNode = node;
         _logger?.LogTrace($"{LogPrefix}Activating {node}.");
         // todo: move after input setting?
-        _activeNodeSubscription = _activeNode.OnNewOutput.Subscribe(output =>
+        _activeNodeSubscription = ActiveNode.OnNewOutput.Subscribe(output =>
         {
             if (EqualityComparer<LightTransition>.Default.Equals(Output, output))
             {
@@ -117,10 +117,10 @@ public class ReactiveNode : PipelineNode<LightTransition>
                 }
             }
         });
-        _activeNode.Input = Input;
-        if (!EqualityComparer<LightTransition>.Default.Equals(Output, _activeNode.Output))
+        ActiveNode.Input = Input;
+        if (!EqualityComparer<LightTransition>.Default.Equals(Output, ActiveNode.Output))
         {
-            Output = _activeNode.Output;
+            Output = ActiveNode.Output;
         }
         PassThrough = false;
     }

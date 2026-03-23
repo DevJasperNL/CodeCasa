@@ -6,6 +6,8 @@ namespace CodeCasa.AutomationPipelines;
 /// </summary>
 public interface IPipelineNode<TState> : IAsyncDisposable
 {
+    Guid Id { get; }
+    string? Name { get; set; }
     /// <summary>
     /// Sets the input state of the node. This will trigger the processing of the input.
     /// </summary>

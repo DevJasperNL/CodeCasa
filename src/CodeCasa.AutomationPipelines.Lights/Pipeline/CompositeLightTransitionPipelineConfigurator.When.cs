@@ -117,8 +117,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Conditional", LoggingEnabled ?? false)
-            .On(observable.Where(x => x), configure.SetLoggingContext(c), instantiationScope)
+            .SetHierarchyContext(HierarchyPath, "Conditional", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), configure.ApplyHierarchySettings(c), instantiationScope)
             .PassThroughOn(observable.Where(x => !x)));
     }
 
@@ -133,8 +133,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Conditional", LoggingEnabled ?? false)
-            .On(observable.Where(x => x), configure.SetLoggingContext(c), instantiationScope)
+            .SetHierarchyContext(HierarchyPath, "Conditional", LoggingEnabled ?? false)
+            .On(observable.Where(x => x), configure.ApplyHierarchySettings(c), instantiationScope)
             .PassThroughOn(observable.Where(x => !x)));
     }
 

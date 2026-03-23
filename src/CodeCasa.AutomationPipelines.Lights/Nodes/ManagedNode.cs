@@ -6,6 +6,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
     internal class ManagedNode<TState>(IServiceScope serviceScope, IPipelineNode<TState> innerNode)
         : IPipelineNode<TState>, IAsyncDisposable
     {
+        public Guid Id => innerNode.Id;
+        public string? Name
+        {
+            get => innerNode.Name;
+            set => innerNode.Name = value;
+        }
+
         public TState? Input
         {
             get => innerNode.Input;

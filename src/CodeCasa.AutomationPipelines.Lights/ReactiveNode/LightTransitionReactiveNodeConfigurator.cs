@@ -18,6 +18,13 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
 {
     private readonly IScheduler _scheduler;
 
+    public LightTransitionReactiveNodeConfigurator(IServiceProvider serviceProvider, TLight light, IScheduler scheduler)
+    {
+        ServiceProvider = serviceProvider;
+        Light = light;
+        _scheduler = scheduler;
+    }
+
     /// <summary>
     /// The service provider scoped to this light.
     /// </summary>
@@ -26,17 +33,16 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     /// Gets the light associated with this configurator.
     /// </summary>
     public TLight Light { get; }
-
-    public LightTransitionReactiveNodeConfigurator(IServiceProvider serviceProvider, TLight light, IScheduler scheduler)
-    {
-        ServiceProvider = serviceProvider;
-        Light = light;
-        _scheduler = scheduler;
-    }
-
+    internal string? Name { get; set; }
     internal List<IObservable<IPipelineNode<LightTransition>?>> NodeObservables { get; } = new();
     internal List<IDimmer> Dimmers { get; } = new();
     internal DimmerOptions DimmerOptions { get; private set; } = new ();
+
+    ILightTransitionReactiveNodeConfigurator<TLight> ILightTransitionReactiveNodeConfigurator<TLight>.SetName(string name)
+    {
+        Name = name;
+        return this;
+    }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddReactiveDimmer(IDimmer dimmer)

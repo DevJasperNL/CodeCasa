@@ -1,11 +1,10 @@
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
-internal partial class LightTransitionReactiveNodeConfigurator<TLight> : IInternalLoggingContext
+internal partial class LightTransitionReactiveNodeConfigurator<TLight> : IPipelineHierarchyContext
 {
     private string? _parentName;
-    private string? _name;
 
-    public string LogName => _parentName == null ? _name ?? "Node" : $"{_parentName}->{_name ?? "Node"}";
+    public string HierarchyPath => _parentName == null ? Name ?? "Node" : $"{_parentName}->{Name ?? "Node"}";
     public bool? LoggingEnabled { get; private set; }
 
     public void EnableLoggingInternal()
@@ -20,13 +19,13 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight> : IIntern
 
     public void SetName(string name)
     {
-        _name = name;
+        Name = name;
     }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> EnableLogging(string? name = null)
     {
-        _name = name;
+        Name = name;
         LoggingEnabled = true;
         return this;
     }

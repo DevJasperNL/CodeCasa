@@ -18,6 +18,12 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
     public IObservable<TState?> OnNewOutput => _newOutputSubject.AsObservable();
 
     /// <inheritdoc />
+    public Guid Id { get; } = Guid.CreateVersion7();
+
+    /// <inheritdoc />
+    public string? Name { get; set; }
+
+    /// <inheritdoc />
     public TState? Input
     {
         get => _input;

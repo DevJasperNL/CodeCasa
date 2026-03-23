@@ -10,6 +10,8 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// <typeparam name="TLight">The specific type of light being controlled, which must implement <see cref="ILight"/>.</typeparam>
 public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
+    ILightTransitionReactiveNodeConfigurator<TLight> SetName(string name);
+
     /// <summary>
     /// Adds a reactive dimmer control that will be reset when the reactive node activates a new node.
     /// Responds to dimmer events and adjusts light parameters accordingly.

@@ -11,6 +11,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 /// <typeparam name="TLight">The specific type of light being controlled, which must implement <see cref="ILight"/>.</typeparam>
 public partial interface ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
 {
+    ILightTransitionPipelineConfigurator<TLight> SetName(string name);
+
     /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.
     /// The node is resolved from the service provider.
