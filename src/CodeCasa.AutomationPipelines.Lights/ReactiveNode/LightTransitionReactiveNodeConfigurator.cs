@@ -33,7 +33,8 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     /// Gets the light associated with this configurator.
     /// </summary>
     public TLight Light { get; }
-    internal string? Name { get; set; }
+
+    internal string? Name { get; set; } = "Reactive Node";
     internal List<IObservable<IPipelineNode<LightTransition>?>> NodeObservables { get; } = new();
     internal List<IDimmer> Dimmers { get; } = new();
     internal DimmerOptions DimmerOptions { get; private set; } = new ();

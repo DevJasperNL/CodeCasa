@@ -16,7 +16,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         private readonly IServiceProvider _serviceProvider;
         private readonly List<IPipelineNode<LightTransition>> _nodes = new();
 
-        internal string? Name { get; set; }
+        internal string? Name { get; set; } = "Pipeline";
         internal TLight Light { get; }
 
         public LightTransitionPipelineConfigurator(IServiceProvider serviceProvider, TLight light)

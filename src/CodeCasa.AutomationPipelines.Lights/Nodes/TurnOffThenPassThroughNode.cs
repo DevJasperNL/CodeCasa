@@ -23,6 +23,8 @@ public sealed class TurnOffThenPassThroughNode : PipelineNode<LightTransition>
     /// </remarks>
     public TurnOffThenPassThroughNode()
     {
+        Name = "Turn Off Then Pass Though Node";
+
         // Note: we cannot simply call ChangeOutputAndTurnOnPassThroughOnNextInput here, as the input will immediately be set when this node is added to the timeline.
         Output = LightTransition.Off();
     }

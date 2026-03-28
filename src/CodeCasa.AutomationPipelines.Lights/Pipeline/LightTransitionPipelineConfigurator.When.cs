@@ -114,7 +114,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
         return AddReactiveNode(c => c
-            .SetHierarchyContext(HierarchyPath, "Condition", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Conditional Reactive Node", LoggingEnabled ?? false)
             .On(observable.Where(x => x), configure.ApplyHierarchySettings(c), instantiationScope)
             .PassThroughOn(observable.Where(x => !x)));
     }

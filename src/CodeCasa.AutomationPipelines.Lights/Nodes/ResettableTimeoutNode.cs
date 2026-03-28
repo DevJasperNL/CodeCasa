@@ -15,6 +15,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         public ResettableTimeoutNode(IPipelineNode<LightTransition> childNode, TimeSpan turnOffTime,
             IObservable<bool> persistObservable, IScheduler scheduler) : base(scheduler)
         {
+            Name = $"{childNode.Name} (resets after timeout)";
+
             childNode.OnNewOutput
                 .Prepend(childNode.Output)
                 .ObserveOn(scheduler)
