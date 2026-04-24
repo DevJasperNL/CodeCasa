@@ -60,6 +60,9 @@ public class ReactiveNode : PipelineNode<LightTransition>
             });
     }
 
+    /// <summary>
+    /// Gets the currently active pipeline node, or <see langword="null"/> if no node is active.
+    /// </summary>
     public IPipelineNode<LightTransition>? ActiveNode { get; private set; }
     private string LogPrefix => _name == null ? "" : $"{_name}: ";
 
