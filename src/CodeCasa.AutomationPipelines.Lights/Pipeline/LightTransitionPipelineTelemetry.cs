@@ -7,6 +7,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Represents telemetry data for a state transition within a pipeline.
     /// </summary>
     /// <typeparam name="TLight">The light controlled by the pipeline.</typeparam>
+    /// <param name="Pipeline">The pipeline in which the state transition occurred.</param>
+    /// <param name="Light">The light controlled by the pipeline.</param>
     /// <param name="SourceNodeIndex">The index of the source node, or null if the state originates from pipeline input.</param>
     /// <param name="SourceNodeName">The name of the source node, or null if the state originates from pipeline input.</param>
     /// <param name="DestinationNodeIndex">The index of the destination node, or null if the state is being passed to pipeline output.</param>

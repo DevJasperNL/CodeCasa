@@ -11,6 +11,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 /// <typeparam name="TLight">The specific type of light being controlled, which must implement <see cref="ILight"/>.</typeparam>
 public partial interface ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
 {
+    /// <summary>
+    /// Sets the name of the pipeline, used for identification and logging purposes.
+    /// </summary>
+    /// <param name="name">The name to assign to the pipeline.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SetName(string name);
 
     /// <summary>

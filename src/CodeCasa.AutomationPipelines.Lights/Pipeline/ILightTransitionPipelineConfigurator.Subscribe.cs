@@ -42,6 +42,11 @@ public partial interface ILightTransitionPipelineConfigurator<TLight>
     ILightTransitionPipelineConfigurator<TLight> ConfigureTelemetrySubscriber(
         Func<IObservable<LightTransitionPipelineTelemetry<TLight>>, IDisposable> subscriptionFactory);
 
+    /// <summary>
+    /// Registers a callback to be invoked when the pipeline has been fully created.
+    /// </summary>
+    /// <param name="callback">The callback action invoked with the pipeline created event when the pipeline construction is complete.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> OnCompleted(
         Action<LightTransitionPipelineCreatedEvent<TLight>> callback);
 

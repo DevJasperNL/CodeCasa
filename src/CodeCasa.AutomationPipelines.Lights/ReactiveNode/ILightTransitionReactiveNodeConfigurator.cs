@@ -10,6 +10,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// <typeparam name="TLight">The specific type of light being controlled, which must implement <see cref="ILight"/>.</typeparam>
 public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
+    /// <summary>
+    /// Sets the name of the reactive node, used for identification and logging purposes.
+    /// </summary>
+    /// <param name="name">The name to assign to the reactive node.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> SetName(string name);
 
     /// <summary>
