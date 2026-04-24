@@ -173,7 +173,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         public override string ToString() => GetType().Name;
 
         /// <inheritdoc />
-        public ValueTask DisposeAsync()
+        public virtual ValueTask DisposeAsync()
         {
             if (_newOutputSubject.IsDisposed)
             {
