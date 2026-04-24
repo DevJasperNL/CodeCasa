@@ -6,10 +6,17 @@ namespace CodeCasa.AutomationPipelines;
 /// </summary>
 public interface IPipelineNode<TState> : IAsyncDisposable
 {
+    /// <summary>
+    /// Gets the unique identifier of the node.
+    /// </summary>
     Guid Id { get; }
+
+    /// <summary>
+    /// Gets or sets the optional name of the node, used for identification and logging purposes.
+    /// </summary>
     string? Name { get; set; }
     /// <summary>
-    /// Sets the input state of the node. This will trigger the processing of the input.
+    /// Gets or sets the input state of the node. This will trigger the processing of the input.
     /// </summary>
     TState? Input { get; set; }
 
