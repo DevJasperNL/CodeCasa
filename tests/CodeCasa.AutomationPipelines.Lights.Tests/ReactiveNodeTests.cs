@@ -218,7 +218,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Tests
         public class LifecycleTrackingPipelineNode : PipelineNode<LightTransition>, IDisposable
         {
             private readonly ILifecycleTracker _tracker;
-            public Guid Id { get; } = Guid.NewGuid();
 
             public LifecycleTrackingPipelineNode(ILifecycleTracker tracker)
             {
