@@ -2,12 +2,11 @@ using CodeCasa.AutomationPipelines.Lights.Extensions;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-internal partial class CompositeLightTransitionPipelineConfigurator<TLight> : IInternalLoggingContext
+internal partial class CompositeLightTransitionPipelineConfigurator<TLight> : IPipelineHierarchyContext
 {
     private string? _parentName;
-    private string? _name;
 
-    public string LogName => _parentName == null ? _name ?? "Pipeline" : $"{_parentName}->{_name ?? "Pipeline"}";
+    public string HierarchyPath => _parentName == null ? _name ?? "Pipeline" : $"{_parentName}->{_name ?? "Pipeline"}";
     public bool? LoggingEnabled { get; private set; }
 
     public void EnableLoggingInternal()

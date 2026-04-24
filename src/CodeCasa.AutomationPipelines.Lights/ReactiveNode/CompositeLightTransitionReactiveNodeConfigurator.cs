@@ -19,6 +19,14 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     : ILightTransitionReactiveNodeConfigurator<TLight>
     where TLight : ILight
 {
+    private string? _name;
+
+    ILightTransitionReactiveNodeConfigurator<TLight> ILightTransitionReactiveNodeConfigurator<TLight>.SetName(string name)
+    {
+        _name = name;
+        return this;
+    }
+
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddReactiveDimmer(IDimmer dimmer)
     {

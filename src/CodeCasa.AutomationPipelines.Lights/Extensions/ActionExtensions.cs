@@ -6,12 +6,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
 {
     internal static class ActionExtensions
     {
-        public static Action<T> SetLoggingContext<T>(
+        public static Action<T> ApplyHierarchySettings<T>(
             this Action<T> configure, string parentName, bool enableLogging)
         {
             return c =>
             {
-                if (c is IInternalLoggingContext loggingContext)
+                if (c is IPipelineHierarchyContext loggingContext)
                 {
                     loggingContext.SetParentName(parentName);
                     if (enableLogging)
@@ -23,12 +23,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
             };
         }
 
-        public static Action<T> SetLoggingContext<T, TLight>(
+        public static Action<T> ApplyHierarchySettings<T, TLight>(
             this Action<T> configure, ILightTransitionReactiveNodeConfigurator<TLight> lightTransitionReactiveNodeConfigurator) where TLight : ILight
         {
             // Note: This method is used for convenience. As we use this internally only, we can assume that all implementations of ILightTransitionReactiveNodeConfigurator also implement IInternalLoggingContext.
-            var loggingContext = (IInternalLoggingContext)lightTransitionReactiveNodeConfigurator;
-            return configure.SetLoggingContext(loggingContext.LogName, loggingContext.LoggingEnabled ?? false);
+            var loggingContext = (IPipelineHierarchyContext)lightTransitionReactiveNodeConfigurator;
+            return configure.ApplyHierarchySettings(loggingContext.HierarchyPath, loggingContext.LoggingEnabled ?? false);
         }
     }
 }

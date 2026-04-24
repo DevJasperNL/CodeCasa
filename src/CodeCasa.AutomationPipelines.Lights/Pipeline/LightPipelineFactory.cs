@@ -4,6 +4,7 @@ using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -82,14 +83,33 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
                     LightTransition.Off(),
                     conf.Nodes,
-                    conf.Light.ApplyTransition);
+                    conf.Light.ApplyTransition)
+                {
+                    Name = conf.Name
+                };
                 if (conf.LoggingEnabled ?? false)
                 {
-                    var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.LogName}");
+                    var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
                     pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
                 }
 
-                return (IPipeline<LightTransition>)new ServiceScopedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline);
+                var telemetryStream = pipeline.Telemetry
+                    .Select(t => new LightTransitionPipelineTelemetry<TLight>(
+                        pipeline,
+                        conf.Light, t.SourceNodeIndex, t.SourceNodeName, t.DestinationNodeIndex,
+                        t.DestinationNodeName, t.StateValue))
+                    .Publish()
+                    .RefCount();
+                var subscriptions = conf.TelemetrySubscriptionFactories
+                    .Select(factory => factory(telemetryStream))
+                    .ToArray();
+
+                foreach (var completedCallback in conf.PipelineCompletedCallbacks)
+                {
+                    completedCallback(new LightTransitionPipelineCreatedEvent<TLight>(pipeline, conf.Light));
+                }
+
+                return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
             });
         }
     }

@@ -11,6 +11,13 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where TLight : ILight
 {
     /// <summary>
+    /// Sets the name of the reactive node, used for identification and logging purposes.
+    /// </summary>
+    /// <param name="name">The name to assign to the reactive node.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> SetName(string name);
+
+    /// <summary>
     /// Adds a reactive dimmer control that will be reset when the reactive node activates a new node.
     /// Responds to dimmer events and adjusts light parameters accordingly.
     /// Multiple reactive dimmers can be added and will behave as a group.

@@ -16,6 +16,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         private readonly IServiceProvider _serviceProvider;
         private readonly List<IPipelineNode<LightTransition>> _nodes = new();
 
+        internal string? Name { get; set; } = "Pipeline";
         internal TLight Light { get; }
 
         public LightTransitionPipelineConfigurator(IServiceProvider serviceProvider, TLight light)
@@ -32,6 +33,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure)
         {
             throw new NotImplementedException();
+        }
+
+        ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
+        {
+            Name = name;
+            return this;
         }
 
         /// <inheritdoc/>
@@ -66,7 +73,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
             var factory = _serviceProvider.GetRequiredService<ReactiveNodeFactory>();
-            return AddNode(factory.CreateReactiveNode(Light, configure.SetLoggingContext(LogName, LoggingEnabled ?? false)));
+            return AddNode(factory.CreateReactiveNode(Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
         }
 
         /// <inheritdoc/>
@@ -74,7 +81,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionPipelineConfigurator<TLight>> configure) =>
             AddNode(
                 _serviceProvider.GetRequiredService<LightPipelineFactory>()
-                    .CreateLightPipeline(Light, configure.SetLoggingContext(LogName, LoggingEnabled ?? false)));
+                    .CreateLightPipeline(Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
 
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer)
@@ -86,7 +93,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
         {
             return AddReactiveNode(c => { c
-                .SetLoggingContext(LogName, "Dimmer", LoggingEnabled ?? false)
+                .SetHierarchyContext(HierarchyPath, "Dimmer", LoggingEnabled ?? false)
                 .AddUncoupledDimmer(dimmer, dimOptions); });
         }
 

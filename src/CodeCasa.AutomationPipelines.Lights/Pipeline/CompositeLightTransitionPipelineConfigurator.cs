@@ -18,6 +18,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     {
         public Dictionary<string, LightTransitionPipelineConfigurator<TLight>> NodeContainers { get; } = nodeContainers;
 
+        private string? _name;
+
+        ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
+        {
+            _name = name;
+            return this;
+        }
+
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
@@ -37,7 +45,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
             var nodes = reactiveNodeFactory.CreateReactiveNodes(NodeContainers.Select(nc => nc.Value.Light),
-                configure.SetLoggingContext(LogName, LoggingEnabled ?? false));
+                configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false));
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(nodes[kvp.Key]));
             return this;
         }
@@ -45,7 +53,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> configure)
         {
-            var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light), configure.SetLoggingContext(LogName, LoggingEnabled ?? false));
+            var pipelines = lightPipelineFactory.CreateLightPipelines(NodeContainers.Select(c => c.Value.Light), configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false));
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(pipelines[kvp.Key]));
             return this;
         }
@@ -60,7 +68,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
         {
             return AddReactiveNode(c => c
-                .SetLoggingContext(LogName, "Dimmer", LoggingEnabled ?? false)
+                .SetHierarchyContext(HierarchyPath, "Dimmer", LoggingEnabled ?? false)
                 .AddUncoupledDimmer(dimmer, dimOptions));
         }
 

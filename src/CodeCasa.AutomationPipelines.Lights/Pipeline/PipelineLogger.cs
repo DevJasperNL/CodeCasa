@@ -6,6 +6,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     {
         public void Log(PipelineTelemetry<TState> pipelineTelemetry)
         {
+            if (pipelineTelemetry.Depth != 0)
+            {
+                // We only log the root pipeline telemetry to allow users to configure logging for nested pipelines separately if they choose to.
+                return;
+            }
             if (pipelineTelemetry.SourceNodeIndex == null && pipelineTelemetry.DestinationNodeIndex == null)
             {
                 logger?.LogTrace($"{LogPrefix}Input set to [{pipelineTelemetry.StateValue?.ToString() ?? "NULL"}]. No nodes registered, passing to pipeline output immediately.");

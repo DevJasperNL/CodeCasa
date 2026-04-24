@@ -9,7 +9,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightParameters> lightParameters)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Cycle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Cycle", LoggingEnabled ?? false)
             .AddCycle(triggerObservable, lightParameters));
     }
 
@@ -17,14 +17,14 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         params LightParameters[] lightParameters)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Cycle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Cycle", LoggingEnabled ?? false)
             .AddCycle(triggerObservable, lightParameters));
     }
 
     public ILightTransitionPipelineConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, IEnumerable<LightTransition> lightTransitions)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Cycle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Cycle", LoggingEnabled ?? false)
             .AddCycle(triggerObservable, lightTransitions));
     }
 
@@ -32,14 +32,14 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         params LightTransition[] lightTransitions)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Cycle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Cycle", LoggingEnabled ?? false)
             .AddCycle(triggerObservable, lightTransitions));
     }
 
     public ILightTransitionPipelineConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, Action<ILightTransitionCycleConfigurator<TLight>> configure)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Cycle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Cycle", LoggingEnabled ?? false)
             .AddCycle(triggerObservable, configure));
     }
 }

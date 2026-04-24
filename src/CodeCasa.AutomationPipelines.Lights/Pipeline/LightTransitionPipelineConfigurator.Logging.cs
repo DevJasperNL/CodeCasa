@@ -1,11 +1,10 @@
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-internal partial class LightTransitionPipelineConfigurator<TLight> : IInternalLoggingContext
+internal partial class LightTransitionPipelineConfigurator<TLight> : IPipelineHierarchyContext
 {
     private string? _parentName;
-    private string? _name;
 
-    public string LogName => _parentName == null ? _name ?? "Pipeline" : $"{_parentName}->{_name ?? "Pipeline"}";
+    public string HierarchyPath => _parentName == null ? Name ?? "Pipeline" : $"{_parentName}->{Name ?? "Pipeline"}";
     public bool? LoggingEnabled { get; private set; }
 
     public void EnableLoggingInternal()
@@ -20,13 +19,13 @@ internal partial class LightTransitionPipelineConfigurator<TLight> : IInternalLo
 
     public void SetName(string name)
     {
-        _name = name;
+        Name = name;
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> EnableLogging(string? pipelineName = null)
     {
-        _name = pipelineName;
+        Name = pipelineName;
         LoggingEnabled = true;
         return this;
     }

@@ -24,6 +24,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
     {
         private readonly int _minBrightness;
         private readonly int _brightnessStep;
+        private IDisposable? _reactiveNodeSubscription;
         private int _dimSteps; // negative is dimming, positive is brightening.
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             int brightnessStep, 
             IScheduler scheduler) : base(scheduler)
         {
-            reactiveNode.NodeChanged.Subscribe(_ => Reset());
+            _reactiveNodeSubscription = reactiveNode.NodeChanged.Subscribe(_ => Reset());
             PassThrough = true;
 
             LightId = lightId;
@@ -221,6 +222,14 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 }
             }
             return Math.Min(byte.MaxValue, Math.Max(0, calculatedBrightness));
+        }
+
+        /// <inheritdoc />
+        public override ValueTask DisposeAsync()
+        {
+            _reactiveNodeSubscription?.Dispose();
+            _reactiveNodeSubscription = null;
+            return base.DisposeAsync();
         }
     }
 }

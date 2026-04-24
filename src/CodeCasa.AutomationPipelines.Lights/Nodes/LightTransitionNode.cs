@@ -29,6 +29,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         public IObservable<LightTransition?> OnNewOutput => _newOutputSubject.AsObservable();
 
         /// <inheritdoc />
+        public Guid Id { get; } = Guid.CreateVersion7();
+        /// <inheritdoc />
+        public string? Name { get; set; }
+
+        /// <inheritdoc />
         public LightTransition? Input
         {
             get;
@@ -168,7 +173,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         public override string ToString() => GetType().Name;
 
         /// <inheritdoc />
-        public ValueTask DisposeAsync()
+        public virtual ValueTask DisposeAsync()
         {
             if (_newOutputSubject.IsDisposed)
             {

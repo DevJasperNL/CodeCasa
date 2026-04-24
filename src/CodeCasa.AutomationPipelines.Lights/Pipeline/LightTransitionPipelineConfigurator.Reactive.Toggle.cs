@@ -11,7 +11,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         IEnumerable<LightParameters> lightParameters)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, lightParameters));
     }
 
@@ -20,7 +20,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         params LightParameters[] lightParameters)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, lightParameters));
     }
 
@@ -29,7 +29,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         IEnumerable<LightTransition> lightTransitions)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, lightTransitions));
     }
 
@@ -38,7 +38,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         params LightTransition[] lightTransitions)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, lightTransitions));
     }
 
@@ -47,7 +47,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         IEnumerable<Func<IServiceProvider, IPipelineNode<LightTransition>>> nodeFactories)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, nodeFactories));
     }
 
@@ -56,7 +56,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         params Func<IServiceProvider, IPipelineNode<LightTransition>>[] nodeFactories)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, nodeFactories));
     }
 
@@ -65,7 +65,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionToggleConfigurator<TLight>> configure)
     {
         return AddReactiveNode(c => c
-            .SetLoggingContext(LogName, "Toggle", LoggingEnabled ?? false)
+            .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, configure));
     }
 }

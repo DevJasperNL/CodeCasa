@@ -1,11 +1,11 @@
 ﻿
 namespace CodeCasa.AutomationPipelines.Lights;
 
-internal interface IInternalLoggingContext
+internal interface IPipelineHierarchyContext
 {
     void EnableLoggingInternal();
     void SetName(string name);
     void SetParentName(string parentName);
-    string LogName { get; }
+    string HierarchyPath { get; }
     bool? LoggingEnabled { get; }
 }

@@ -143,11 +143,17 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             if (reactiveNodeConfigurator.LoggingEnabled ?? false)
             {
                 return new ReactiveNode(
-                    $"[{reactiveNodeConfigurator.Light.Id}] {reactiveNodeConfigurator.LogName}",
+                    $"[{reactiveNodeConfigurator.Light.Id}] {reactiveNodeConfigurator.HierarchyPath}",
                     reactiveNodeConfigurator.NodeObservables.Merge(),
-                    serviceProvider.GetRequiredService<ILogger<ReactiveNode>>());
+                    serviceProvider.GetRequiredService<ILogger<ReactiveNode>>())
+                {
+                    Name = reactiveNodeConfigurator.Name
+                };
             }
-            return new ReactiveNode(reactiveNodeConfigurator.NodeObservables.Merge());
+            return new ReactiveNode(reactiveNodeConfigurator.NodeObservables.Merge())
+            {
+                Name = reactiveNodeConfigurator.Name
+            };
         }
 
         private void SubscribeToPulses(

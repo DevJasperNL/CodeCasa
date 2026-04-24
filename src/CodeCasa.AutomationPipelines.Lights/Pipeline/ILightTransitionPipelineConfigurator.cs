@@ -12,6 +12,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 public partial interface ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
 {
     /// <summary>
+    /// Sets the name of the pipeline, used for identification and logging purposes.
+    /// </summary>
+    /// <param name="name">The name to assign to the pipeline.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> SetName(string name);
+
+    /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.
     /// The node is resolved from the service provider.
     /// </summary>
