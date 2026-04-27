@@ -44,7 +44,7 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
     public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
     {
         comparer ??= EqualityComparer<LightParameters>.Default;
-        return Add(new StaticLightTransitionNode(lightTransition, scheduler), _ => comparer.Equals(
+        return Add(_ => new StaticLightTransitionNode(lightTransition, scheduler), _ => comparer.Equals(
             Light.GetParameters(),
             lightTransition.LightParameters));
     }
@@ -64,11 +64,6 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
         return Add(c => ActivatorUtilities.CreateInstance<TNode>(c), matchesNodeState);
     }
 
-    public ILightTransitionCycleConfigurator<TLight> Add(IPipelineNode<LightTransition> node, Func<IServiceProvider, bool> matchesNodeState)
-    {
-        return Add(_ => node, matchesNodeState);
-    }
-
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
         CycleNodeFactories.Add((nodeFactory, matchesNodeState));
@@ -77,7 +72,7 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
 
     public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(new PassThroughNode<LightTransition>(), matchesNodeState);
+        return Add(_ => new PassThroughNode<LightTransition>(), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
