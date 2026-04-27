@@ -62,7 +62,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
 
         public ILightTransitionToggleConfigurator<TLight> Add(LightTransition lightTransition)
         {
-            return Add(new StaticLightTransitionNode(lightTransition, scheduler));
+            return Add(_ => new StaticLightTransitionNode(lightTransition, scheduler));
         }
 
         public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
@@ -80,11 +80,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return Add(c => ActivatorUtilities.CreateInstance<TNode>(c));
         }
 
-        public ILightTransitionToggleConfigurator<TLight> Add(IPipelineNode<LightTransition> node)
-        {
-            return Add(_ => node);
-        }
-
         public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
         {
             NodeFactories.Add(nodeFactory);
@@ -93,7 +88,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
 
         public ILightTransitionToggleConfigurator<TLight> AddPassThrough()
         {
-            return Add(new PassThroughNode<LightTransition>());
+            return Add(_ => new PassThroughNode<LightTransition>());
         }
 
         public ILightTransitionToggleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
