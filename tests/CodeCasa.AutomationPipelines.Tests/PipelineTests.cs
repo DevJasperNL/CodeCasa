@@ -164,7 +164,7 @@ public sealed class PipelineTests
         var pipeline = new Pipeline<string>();
         pipeline.OnNewOutput.Subscribe(o => emittedOutput = o);
 
-        pipeline.SetOutputHandler(outputHandlerResults.Add, callActionDistinct: true);
+        pipeline.SetOutputHandler(outputHandlerResults.Add, EqualityComparer<string>.Default);
 
         // Act
         pipeline.SetDefault(defaultValue);
@@ -188,7 +188,7 @@ public sealed class PipelineTests
         var pipeline = new Pipeline<string>();
         pipeline.OnNewOutput.Subscribe(o => emittedOutput = o);
 
-        pipeline.SetOutputHandler(outputHandlerResults.Add, callActionDistinct: false);
+        pipeline.SetOutputHandler(outputHandlerResults.Add, equalityComparer: null);
 
         // Act
         pipeline.SetDefault(defaultValue);

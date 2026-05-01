@@ -13,7 +13,7 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     private readonly Subject<PipelineTelemetry<TState>> _telemetrySubject = new();
     private readonly List<IDisposable> _nestedPipelineSubscriptions = new();
 
-    private bool _callActionDistinct = true;
+    private IEqualityComparer<TState>? _equalityComparer;
     private Action<TState>? _action;
     private IDisposable? _subscription;
     private bool _isDisposed;
@@ -40,7 +40,7 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     /// <summary>
     /// Initializes a new pipeline with the specified default state, nodes, and output handler.
     /// </summary>
-    public Pipeline(TState defaultState, IEnumerable<IPipelineNode<TState>> nodes, Action<TState> outputHandlerAction)
+    public Pipeline(TState defaultState, IEnumerable<IPipelineNode<TState>> nodes, Action<TState> outputHandlerAction, IEqualityComparer<TState>? equalityComparer = null)
     {
         foreach (var node in nodes)
         {
@@ -48,7 +48,7 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         }
 
         SetDefault(defaultState);
-        SetOutputHandler(outputHandlerAction);
+        SetOutputHandler(outputHandlerAction, equalityComparer);
     }
 
     /// <summary>
@@ -195,9 +195,9 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     }
 
     /// <inheritdoc />
-    public IPipeline<TState> SetOutputHandler(Action<TState> action, bool callActionDistinct = true)
+    public IPipeline<TState> SetOutputHandler(Action<TState> action, IEqualityComparer<TState>? equalityComparer = null)
     {
-        _callActionDistinct = callActionDistinct;
+        _equalityComparer = equalityComparer;
         _action = action;
         if (Output != null)
         {
@@ -231,14 +231,13 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 
     private void SetOutputAndCallActionWhenApplicable(TState? output)
     {
-        var outputChanged = !EqualityComparer<TState>.Default.Equals(Output, output);
-
+        var previousOutput = Output;
         Output = output;
         if (_action == null || output == null)
         {
             return;
         }
-        if (_callActionDistinct && !outputChanged)
+        if (_equalityComparer != null && _equalityComparer.Equals(previousOutput, output))
         {
             return;
         }

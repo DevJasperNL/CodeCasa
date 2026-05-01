@@ -23,8 +23,9 @@ public interface IPipeline<TState> : IPipelineNode<TState>, IAsyncDisposable
     /// <summary>
     /// Sets the output handler for the pipeline. This handler will be called whenever a new output is produced by the pipeline.
     /// This method can be called at any time during the creation of the pipeline and will be called immediately if the pipeline has already produced an output.
+    /// Optionally provide an <see cref="IEqualityComparer{TState}"/> to skip invocation when the output hasn't changed; by default the action is always invoked.
     /// </summary>
-    IPipeline<TState> SetOutputHandler(Action<TState> action, bool callActionDistinct = true);
+    IPipeline<TState> SetOutputHandler(Action<TState> action, IEqualityComparer<TState>? equalityComparer = null);
 
     /// <summary>
     /// Gets the collection of nodes registered in the pipeline.
