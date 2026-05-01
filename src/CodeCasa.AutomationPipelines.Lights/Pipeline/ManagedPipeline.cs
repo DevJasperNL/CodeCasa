@@ -9,26 +9,6 @@ internal sealed class ManagedPipeline<TNode>(IServiceScope scope, IPipeline<TNod
     private readonly IServiceScope _scope = scope ?? throw new ArgumentNullException(nameof(scope));
     private readonly IPipeline<TNode> _instance = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
 
-    public void Dispose()
-    {
-        foreach (var subscription in pipelineSubscriptions)
-        {
-            subscription.Dispose();
-        }
-        (_instance as IDisposable)?.Dispose();
-        _scope.Dispose();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        foreach (var subscription in pipelineSubscriptions)
-        {
-            subscription.Dispose();
-        }
-        await _instance.DisposeOrDisposeAsync();
-        await _scope.DisposeOrDisposeAsync();
-    }
-
     public Guid Id => pipeline.Id;
     public string? Name
     {
@@ -73,4 +53,29 @@ internal sealed class ManagedPipeline<TNode>(IServiceScope scope, IPipeline<TNod
     public IReadOnlyCollection<IPipelineNode<TNode>> Nodes => _instance.Nodes;
 
     public IObservable<PipelineTelemetry<TNode>> Telemetry => _instance.Telemetry;
+
+    public override string ToString()
+    {
+        return $"{pipeline} (scoped)";
+    }
+
+    public void Dispose()
+    {
+        foreach (var subscription in pipelineSubscriptions)
+        {
+            subscription.Dispose();
+        }
+        (_instance as IDisposable)?.Dispose();
+        _scope.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var subscription in pipelineSubscriptions)
+        {
+            subscription.Dispose();
+        }
+        await _instance.DisposeOrDisposeAsync();
+        await _scope.DisposeOrDisposeAsync();
+    }
 }

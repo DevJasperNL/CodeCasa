@@ -17,7 +17,6 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     private Action<TState>? _action;
     private IDisposable? _subscription;
     private bool _isDisposed;
-    private string? _name;
 
     /// <summary>
     /// Initializes a new, empty pipeline with no nodes.
@@ -80,18 +79,6 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 
     /// <inheritdoc />
     public IObservable<PipelineTelemetry<TState>> Telemetry => _telemetrySubject.AsObservable();
-
-    /// <summary>
-    /// Sets an optional name for this pipeline, used in ToString() for telemetry and logging.
-    /// </summary>
-    public IPipeline<TState> SetName(string name)
-    {
-        _name = name;
-        return this;
-    }
-
-    /// <inheritdoc />
-    public override string ToString() => _name ?? base.ToString() ?? GetType().Name;
 
     /// <inheritdoc />
     public IPipeline<TState> SetDefault(TState state)
