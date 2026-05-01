@@ -24,6 +24,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     ILightTransitionReactiveNodeConfigurator<TLight> ILightTransitionReactiveNodeConfigurator<TLight>.SetName(string name)
     {
         _name = name;
+        configurators.Values.ForEach(b => b.SetName(name));
         return this;
     }
 

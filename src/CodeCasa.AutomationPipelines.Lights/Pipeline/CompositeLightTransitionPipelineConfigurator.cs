@@ -23,6 +23,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
         {
             _name = name;
+            NodeContainers.Values.ForEach(b => b.SetName(name));
             return this;
         }
 

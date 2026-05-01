@@ -105,7 +105,11 @@ public class ReactiveNode : PipelineNode<LightTransition>
         DeactivateActiveNode();
         ActiveNode = node;
         _logger?.LogTrace($"{LogPrefix}Activating {node}.");
-        // todo: move after input setting?
+        ActiveNode.Input = Input;
+        if (!EqualityComparer<LightTransition>.Default.Equals(Output, ActiveNode.Output))
+        {
+            Output = ActiveNode.Output;
+        }
         _activeNodeSubscription = ActiveNode.OnNewOutput.Subscribe(output =>
         {
             if (EqualityComparer<LightTransition>.Default.Equals(Output, output))
@@ -120,11 +124,6 @@ public class ReactiveNode : PipelineNode<LightTransition>
                 }
             }
         });
-        ActiveNode.Input = Input;
-        if (!EqualityComparer<LightTransition>.Default.Equals(Output, ActiveNode.Output))
-        {
-            Output = ActiveNode.Output;
-        }
         PassThrough = false;
     }
 
