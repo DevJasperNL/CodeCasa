@@ -1,14 +1,10 @@
 ﻿namespace CodeCasa.Lights.Timelines
 {
-    internal sealed class DictionaryComparer<TKey, TValue> : IEqualityComparer<Dictionary<TKey, TValue>>
+    internal sealed class DictionaryComparer<TKey, TValue>(IEqualityComparer<TValue>? valueComparer = null)
+        : IEqualityComparer<Dictionary<TKey, TValue>>
         where TKey : notnull
     {
-        private readonly IEqualityComparer<TValue> _valueComparer;
-
-        public DictionaryComparer(IEqualityComparer<TValue>? valueComparer = null)
-        {
-            _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
-        }
+        private readonly IEqualityComparer<TValue> _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
 
         public bool Equals(Dictionary<TKey, TValue>? x, Dictionary<TKey, TValue>? y)
         {

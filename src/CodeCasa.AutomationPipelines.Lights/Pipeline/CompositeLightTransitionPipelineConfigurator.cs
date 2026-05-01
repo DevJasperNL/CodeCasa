@@ -23,6 +23,18 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
         {
             _name = name;
+            NodeContainers.Values.ForEach(b => b.SetName(name));
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput()
+            => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+        {
+            NodeContainers.Values.ForEach(b => b.WithDistinctOutput(equalityComparer));
             return this;
         }
 

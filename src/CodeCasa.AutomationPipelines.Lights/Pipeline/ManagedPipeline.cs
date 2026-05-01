@@ -64,9 +64,9 @@ internal sealed class ManagedPipeline<TNode>(IServiceScope scope, IPipeline<TNod
         return this;
     }
 
-    public IPipeline<TNode> SetOutputHandler(Action<TNode> action, bool callActionDistinct = true)
+    public IPipeline<TNode> SetOutputHandler(Action<TNode> action, IEqualityComparer<TNode>? equalityComparer = null)
     {
-        _instance.SetOutputHandler(action, callActionDistinct);
+        _instance.SetOutputHandler(action, equalityComparer);
         return this;
     }
 

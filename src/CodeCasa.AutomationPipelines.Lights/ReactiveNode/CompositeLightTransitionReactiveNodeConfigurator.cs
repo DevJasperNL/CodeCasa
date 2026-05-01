@@ -24,6 +24,18 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     ILightTransitionReactiveNodeConfigurator<TLight> ILightTransitionReactiveNodeConfigurator<TLight>.SetName(string name)
     {
         _name = name;
+        configurators.Values.ForEach(b => b.SetName(name));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput()
+        => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+    {
+        configurators.Values.ForEach(b => b.WithDistinctOutput(equalityComparer));
         return this;
     }
 

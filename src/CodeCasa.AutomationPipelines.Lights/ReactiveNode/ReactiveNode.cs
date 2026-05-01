@@ -16,6 +16,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private readonly Lock _lock = new();
     private readonly string? _name;
     private readonly ILogger<ReactiveNode>? _logger;
+    private readonly IEqualityComparer<LightTransition>? _equalityComparer;
     private readonly Subject<Unit> _nodeChangedSubject = new();
     private IDisposable? _activeNodeSubscription;
 
@@ -23,8 +24,9 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// Initializes a new instance of the <see cref="ReactiveNode"/> class.
     /// </summary>
     /// <param name="nodeObservable">An observable that emits the pipeline nodes to activate. Null values deactivate the current node.</param>
-    public ReactiveNode(IObservable<IPipelineNode<LightTransition>?> nodeObservable) :
-        this(null, nodeObservable, null!)
+    /// <param name="equalityComparer">Optional equality comparer used to determine whether the output has changed. When <see langword="null"/>, the output is always set when a new value is received.</param>
+    public ReactiveNode(IObservable<IPipelineNode<LightTransition>?> nodeObservable, IEqualityComparer<LightTransition>? equalityComparer = null) :
+        this(null, nodeObservable, null!, equalityComparer)
     {
     }
 
@@ -34,10 +36,12 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// <param name="name">Optional name for the reactive node, used for logging purposes.</param>
     /// <param name="nodeObservable">An observable that emits the pipeline nodes to activate. Null values deactivate the current node.</param>
     /// <param name="logger">Optional logger for diagnostic information.</param>
-    public ReactiveNode(string? name, IObservable<IPipelineNode<LightTransition>?> nodeObservable, ILogger<ReactiveNode> logger)
+    /// <param name="equalityComparer">Optional equality comparer used to determine whether the output has changed. When <see langword="null"/>, the output is always set when a new value is received.</param>
+    public ReactiveNode(string? name, IObservable<IPipelineNode<LightTransition>?> nodeObservable, ILogger<ReactiveNode> logger, IEqualityComparer<LightTransition>? equalityComparer = null)
     {
         _name = name;
         _logger = logger;
+        _equalityComparer = equalityComparer;
         PassThrough = true;
 
         nodeObservable
@@ -105,26 +109,25 @@ public class ReactiveNode : PipelineNode<LightTransition>
         DeactivateActiveNode();
         ActiveNode = node;
         _logger?.LogTrace($"{LogPrefix}Activating {node}.");
-        // todo: move after input setting?
+        ActiveNode.Input = Input;
+        if (_equalityComparer == null || !_equalityComparer.Equals(Output, ActiveNode.Output))
+        {
+            Output = ActiveNode.Output;
+        }
         _activeNodeSubscription = ActiveNode.OnNewOutput.Subscribe(output =>
         {
-            if (EqualityComparer<LightTransition>.Default.Equals(Output, output))
+            if (_equalityComparer != null && _equalityComparer.Equals(Output, output))
             {
                 return;
             }
             lock (_lock)
             {
-                if (!EqualityComparer<LightTransition>.Default.Equals(Output, output))
+                if (_equalityComparer == null || !_equalityComparer.Equals(Output, output))
                 {
                     Output = output;
                 }
             }
         });
-        ActiveNode.Input = Input;
-        if (!EqualityComparer<LightTransition>.Default.Equals(Output, ActiveNode.Output))
-        {
-            Output = ActiveNode.Output;
-        }
         PassThrough = false;
     }
 

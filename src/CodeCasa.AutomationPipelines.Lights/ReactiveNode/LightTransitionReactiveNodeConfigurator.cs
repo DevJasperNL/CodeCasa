@@ -35,6 +35,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     public TLight Light { get; }
 
     internal string? Name { get; set; } = "Reactive Node";
+    internal IEqualityComparer<LightTransition>? EqualityComparer { get; private set; }
     internal List<IObservable<IPipelineNode<LightTransition>?>> NodeObservables { get; } = new();
     internal List<IDimmer> Dimmers { get; } = new();
     internal DimmerOptions DimmerOptions { get; private set; } = new ();
@@ -42,6 +43,17 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     ILightTransitionReactiveNodeConfigurator<TLight> ILightTransitionReactiveNodeConfigurator<TLight>.SetName(string name)
     {
         Name = name;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput()
+        => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+    {
+        EqualityComparer = equalityComparer;
         return this;
     }
 

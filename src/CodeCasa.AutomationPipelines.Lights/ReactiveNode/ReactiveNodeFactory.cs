@@ -145,12 +145,15 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 return new ReactiveNode(
                     $"[{reactiveNodeConfigurator.Light.Id}] {reactiveNodeConfigurator.HierarchyPath}",
                     reactiveNodeConfigurator.NodeObservables.Merge(),
-                    serviceProvider.GetRequiredService<ILogger<ReactiveNode>>())
+                    serviceProvider.GetRequiredService<ILogger<ReactiveNode>>(),
+                    reactiveNodeConfigurator.EqualityComparer)
                 {
                     Name = reactiveNodeConfigurator.Name
                 };
             }
-            return new ReactiveNode(reactiveNodeConfigurator.NodeObservables.Merge())
+            return new ReactiveNode(
+                reactiveNodeConfigurator.NodeObservables.Merge(),
+                reactiveNodeConfigurator.EqualityComparer)
             {
                 Name = reactiveNodeConfigurator.Name
             };

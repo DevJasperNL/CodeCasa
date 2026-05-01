@@ -19,6 +19,21 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     ILightTransitionPipelineConfigurator<TLight> SetName(string name);
 
     /// <summary>
+    /// Configures the pipeline to only invoke the output handler when the output has changed,
+    /// using the default equality comparer for <see cref="LightTransition"/>.
+    /// </summary>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput();
+
+    /// <summary>
+    /// Configures the pipeline to only invoke the output handler when the output has changed,
+    /// using the specified <paramref name="equalityComparer"/>.
+    /// </summary>
+    /// <param name="equalityComparer">The equality comparer used to determine whether the output has changed.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer);
+
+    /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.
     /// The node is resolved from the service provider.
     /// </summary>

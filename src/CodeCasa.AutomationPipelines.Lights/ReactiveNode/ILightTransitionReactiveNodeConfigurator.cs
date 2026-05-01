@@ -18,6 +18,21 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     ILightTransitionReactiveNodeConfigurator<TLight> SetName(string name);
 
     /// <summary>
+    /// Configures the reactive node to only update the output when it has changed,
+    /// using the default equality comparer for <see cref="LightTransition"/>.
+    /// </summary>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput();
+
+    /// <summary>
+    /// Configures the reactive node to only update the output when it has changed,
+    /// using the specified <paramref name="equalityComparer"/>.
+    /// </summary>
+    /// <param name="equalityComparer">The equality comparer used to determine whether the output has changed.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer);
+
+    /// <summary>
     /// Adds a reactive dimmer control that will be reset when the reactive node activates a new node.
     /// Responds to dimmer events and adjusts light parameters accordingly.
     /// Multiple reactive dimmers can be added and will behave as a group.

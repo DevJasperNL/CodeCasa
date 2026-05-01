@@ -18,6 +18,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         internal string? Name { get; set; } = "Pipeline";
         internal TLight Light { get; }
+        internal IEqualityComparer<LightTransition>? EqualityComparer { get; private set; }
 
         public LightTransitionPipelineConfigurator(IServiceProvider serviceProvider, TLight light)
         {
@@ -38,6 +39,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
         {
             Name = name;
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput()
+            => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+        {
+            EqualityComparer = equalityComparer;
             return this;
         }
 
