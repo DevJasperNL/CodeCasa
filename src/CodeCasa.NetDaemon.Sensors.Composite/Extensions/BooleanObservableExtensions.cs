@@ -43,28 +43,32 @@ namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions
 
         public static IObservable<bool> CombineWithBrightness(this IObservable<bool> motion, IObservable<bool> brightnessLessThanThreshold)
         {
-            bool? triggered = null;
-            return motion.CombineLatest(brightnessLessThanThreshold, (motionTriggered, brightnessTriggered) =>
+            return Observable.Create<bool>(observer =>
             {
-                if (motionTriggered && brightnessTriggered)
+                bool? triggered = null;
+                return motion.CombineLatest(brightnessLessThanThreshold, (motionTriggered, brightnessTriggered) =>
                 {
-                    triggered = true;
-                }
-                else {
-                    if (triggered == false)
+                    if (motionTriggered && brightnessTriggered)
                     {
-                        // Prevent duplicate false emissions.
-                        return null;
+                        triggered = true;
+                    }
+                    else
+                    {
+                        if (triggered == false)
+                        {
+                            // Prevent duplicate false emissions.
+                            return null;
+                        }
+
+                        if (!motionTriggered)
+                        {
+                            triggered = false;
+                        }
                     }
 
-                    if (!motionTriggered)
-                    {
-                        triggered = false;
-                    }
-                }
-
-                return triggered;
-            }).Where(b => b != null).Select(b => b!.Value);
+                    return triggered;
+                }).Where(b => b != null).Select(b => b!.Value).Subscribe(observer);
+            });
         }
     }
 }
