@@ -2,6 +2,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using CodeCasa.NetDaemon.Extensions.Observables;
+using CodeCasa.NetDaemon.Sensors.Composite.Extensions;
 using CodeCasa.NetDaemon.Sensors.Composite.Generated;
 using NetDaemon.HassModel.Entities;
 
@@ -78,7 +79,7 @@ namespace CodeCasa.NetDaemon.Sensors.Composite
         /// Creates an observable that tracks motion persistence based on a brightness threshold.
         /// </summary>
         /// <param name="brightnessThreshold">The maximum brightness level allowed to initially trigger the motion state.</param>
-        /// <param name="offDelay">The duration to keep the motion state active after the sensor stops detecting movement. Defaults to 60 seconds.</param>
+        /// <param name="offDelay">The minimum duration to keep the motion state active after the sensor detects movement. Defaults to 60 seconds.</param>
         /// <returns>
         /// An <see cref="IObservable{T}"/> that emits <c>true</c> when motion is detected under the brightness threshold, 
         /// and remains <c>true</c> until the motion <paramref name="offDelay"/> expires.
@@ -92,26 +93,13 @@ namespace CodeCasa.NetDaemon.Sensors.Composite
         {
             offDelay ??= TimeSpan.FromSeconds(60);
 
-            var motionLastXTime =
-                _binarySensorEntity.PersistOnFor(offDelay.Value, _scheduler);
+            var motion =
+                _binarySensorEntity.ToBooleanObservable().PersistTrue(offDelay.Value, _scheduler);
 
             var brightnessLessThanX = _numericSensorEntity
                 .ToBooleanObservable(s => s.State <= brightnessThreshold);
 
-            var triggered = false;
-            return motionLastXTime.CombineLatest(brightnessLessThanX, (motionTriggered, brightnessTriggered) =>
-            {
-                if (motionTriggered && brightnessTriggered)
-                {
-                    triggered = true;
-                }
-                else if (!motionTriggered)
-                {
-                    triggered = false;
-                }
-
-                return triggered;
-            }).DistinctUntilChanged();
+            return motion.CombineWithBrightness(brightnessLessThanX);
         }
 
         /// <summary>

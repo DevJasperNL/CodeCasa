@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions
 {
-    public static class BooleanObservableExtensions
+    internal static class BooleanObservableExtensions
     {
         public static IObservable<bool> PersistTrue(
             this IObservable<bool> source,
@@ -42,6 +42,38 @@ namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions
                     .Switch()
                     .Subscribe(observer);
             });
+        }
+
+        /// <summary>
+        /// Combines a motion observable and a brightness observable into a latched motion state.
+        /// </summary>
+        /// <param name="motion">An observable that emits the current (persisted) motion state.</param>
+        /// <param name="brightnessLessThanThreshold">An observable that emits <c>true</c> when brightness is below the threshold.</param>
+        /// <returns>
+        /// An <see cref="IObservable{T}"/> that emits <c>true</c> when motion is detected under the brightness threshold,
+        /// and remains <c>true</c> until motion ceases, ignoring subsequent brightness changes.
+        /// </returns>
+        public static IObservable<bool> CombineWithBrightness(this IObservable<bool> motion, IObservable<bool> brightnessLessThanThreshold)
+        {
+            bool? triggered = null;
+            return motion.CombineLatest(brightnessLessThanThreshold, (motionTriggered, brightnessTriggered) =>
+            {
+                if (motionTriggered && brightnessTriggered)
+                {
+                    triggered = true;
+                }
+                else if (!motionTriggered)
+                {
+                    if (triggered == false)
+                    {
+                        // Prevent duplicate false emissions.
+                        return null;
+                    }
+                    triggered = false;
+                }
+
+                return triggered;
+            }).Where(b => b != null).Select(b => b!.Value);
         }
     }
 }

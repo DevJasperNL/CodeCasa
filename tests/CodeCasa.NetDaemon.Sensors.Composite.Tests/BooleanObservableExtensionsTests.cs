@@ -8,6 +8,142 @@ namespace CodeCasa.NetDaemon.Sensors.Composite.Tests
     public class BooleanObservableExtensionsTests : ReactiveTest
     {
         [TestMethod]
+        public void CombineWithBrightness_ShouldEmitTrue_WhenMotionAndBrightnessAreBothTrue()
+        {
+            var scheduler = new TestScheduler();
+
+            // Motion: true at Subscribed + 10
+            // Brightness: true (below threshold) from the start
+            var motion = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 10, true)
+            );
+            var brightness = scheduler.CreateHotObservable<bool>();
+
+            var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(true)));
+
+            res.Messages.AssertEqual(
+                OnNext(Subscribed, false),
+                OnNext(Subscribed + 10, true)
+            );
+        }
+
+        [TestMethod]
+        public void CombineWithBrightness_ShouldNotEmitTrue_WhenMotionTrueButBrightnessAboveThreshold()
+        {
+            var scheduler = new TestScheduler();
+
+            // Motion: true at Subscribed + 10
+            // Brightness: false (above threshold) from the start
+            var motion = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 10, true)
+            );
+            var brightness = scheduler.CreateHotObservable<bool>();
+
+            var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(false)));
+
+            // (true, false): motion triggered but brightness too high, latch stays false and emits false
+            res.Messages.AssertEqual(
+                OnNext(Subscribed, false),
+                OnNext(Subscribed + 10, false)
+            );
+        }
+
+        [TestMethod]
+        public void CombineWithBrightness_ShouldEmitFalse_WhenMotionClears()
+        {
+            var scheduler = new TestScheduler();
+
+            // Motion: true at Subscribed + 10, false at Subscribed + 50
+            // Brightness: always true (below threshold)
+            var motion = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 10, true),
+                OnNext(Subscribed + 50, false)
+            );
+            var brightness = scheduler.CreateHotObservable<bool>();
+
+            var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(true)));
+
+            res.Messages.AssertEqual(
+                OnNext(Subscribed, false),
+                OnNext(Subscribed + 10, true),
+                OnNext(Subscribed + 50, false)
+            );
+        }
+
+        [TestMethod]
+        public void CombineWithBrightness_ShouldStayTrue_WhenBrightnessIncreasesAfterTrigger()
+        {
+            var scheduler = new TestScheduler();
+
+            // Motion: true at Subscribed + 10, false at Subscribed + 80
+            // Brightness: true initially, flips to false at Subscribed + 30 (light came on)
+            var motion = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 10, true),
+                OnNext(Subscribed + 80, false)
+            );
+            var brightness = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 30, false)
+            );
+
+            var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(true)));
+
+            // Triggered at +10, brightness change at +30 re-emits the latched true (does not reset), only motion clearing at +80 resets
+            res.Messages.AssertEqual(
+                OnNext(Subscribed, false),
+                OnNext(Subscribed + 10, true),
+                OnNext(Subscribed + 30, true),
+                OnNext(Subscribed + 80, false)
+            );
+        }
+
+        [TestMethod]
+        public void CombineWithBrightness_ShouldNotEmitDuplicateFalse_WhenNotYetTriggered()
+        {
+            var scheduler = new TestScheduler();
+
+            // Motion stays false; brightness changes several times — no true should ever be emitted
+            var motion = scheduler.CreateHotObservable<bool>();
+            var brightness = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 20, true),
+                OnNext(Subscribed + 40, false)
+            );
+
+            var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(false)));
+
+            // No emissions at all: triggered was never set so false is suppressed
+            res.Messages.AssertEqual(
+                OnNext(Subscribed, false)
+            );
+        }
+
+        [TestMethod]
+        public void CombineWithBrightness_ShouldTriggerAgain_AfterMotionClearsAndRetriggers()
+        {
+            var scheduler = new TestScheduler();
+
+            // First trigger cycle: motion true at +10, false at +50
+            // Second trigger cycle: motion true at +100, false at +150
+            // Brightness always below threshold
+            var motion = scheduler.CreateHotObservable(
+                OnNext(Subscribed + 10, true),
+                OnNext(Subscribed + 50, false),
+                OnNext(Subscribed + 100, true),
+                OnNext(Subscribed + 150, false)
+            );
+            var brightness = scheduler.CreateHotObservable<bool>();
+
+            var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(true)));
+
+            res.Messages.AssertEqual(
+                OnNext(Subscribed, false),
+                OnNext(Subscribed + 10, true),
+                OnNext(Subscribed + 50, false),
+                OnNext(Subscribed + 100, true),
+                OnNext(Subscribed + 150, false)
+            );
+        }
+
+        [TestMethod]
         public void PersistTrue_ShouldDelayFalse_WhenEmittedBeforePersistentTimeout()
         {
             var scheduler = new TestScheduler();
