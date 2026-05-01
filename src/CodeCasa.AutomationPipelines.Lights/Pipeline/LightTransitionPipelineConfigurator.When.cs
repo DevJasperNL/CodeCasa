@@ -130,7 +130,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         }
         return When<TObservable>(c =>
             c.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings($"{HierarchyPath}->Condition", LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
@@ -144,7 +144,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         }
         return When(observable, c =>
             c.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings($"{HierarchyPath}->Condition", LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>

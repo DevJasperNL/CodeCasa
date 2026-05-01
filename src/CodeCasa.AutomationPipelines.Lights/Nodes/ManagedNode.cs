@@ -22,7 +22,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         public TState? Output => innerNode.Output;
         public IObservable<TState?> OnNewOutput => innerNode.OnNewOutput;
 
-        public override string? ToString() => $"{innerNode} (scoped)";
+        public override string ToString() => $"{innerNode} (scoped)";
 
         public async ValueTask DisposeAsync()
         {

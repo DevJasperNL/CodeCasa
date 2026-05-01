@@ -124,7 +124,7 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
     }
 
     /// <inheritdoc />
-    public override string ToString() => GetType().Name;
+    public override string ToString() => Name ?? GetType().Name;
 
     /// <inheritdoc />
     public virtual ValueTask DisposeAsync()
