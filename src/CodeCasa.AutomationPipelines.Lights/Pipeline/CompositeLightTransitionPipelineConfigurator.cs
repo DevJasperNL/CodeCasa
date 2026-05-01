@@ -28,6 +28,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         }
 
         /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput()
+            => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+
+        /// <inheritdoc/>
+        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+        {
+            NodeContainers.Values.ForEach(b => b.WithDistinctOutput(equalityComparer));
+            return this;
+        }
+
+        /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
         {
             NodeContainers.Values.ForEach(b => b.AddNode<TNode>());

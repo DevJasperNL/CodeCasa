@@ -83,7 +83,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
                     LightTransition.Off(),
                     conf.Nodes,
-                    conf.Light.ApplyTransition)
+                    conf.Light.ApplyTransition,
+                    conf.EqualityComparer)
                 {
                     Name = conf.Name
                 };
