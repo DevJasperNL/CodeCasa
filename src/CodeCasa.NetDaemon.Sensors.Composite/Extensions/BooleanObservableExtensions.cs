@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reactive.Concurrency;
+﻿using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Text;
 
 namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions
 {
@@ -44,15 +41,6 @@ namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions
             });
         }
 
-        /// <summary>
-        /// Combines a motion observable and a brightness observable into a latched motion state.
-        /// </summary>
-        /// <param name="motion">An observable that emits the current (persisted) motion state.</param>
-        /// <param name="brightnessLessThanThreshold">An observable that emits <c>true</c> when brightness is below the threshold.</param>
-        /// <returns>
-        /// An <see cref="IObservable{T}"/> that emits <c>true</c> when motion is detected under the brightness threshold,
-        /// and remains <c>true</c> until motion ceases, ignoring subsequent brightness changes.
-        /// </returns>
         public static IObservable<bool> CombineWithBrightness(this IObservable<bool> motion, IObservable<bool> brightnessLessThanThreshold)
         {
             bool? triggered = null;
@@ -62,14 +50,17 @@ namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions
                 {
                     triggered = true;
                 }
-                else if (!motionTriggered)
-                {
+                else {
                     if (triggered == false)
                     {
                         // Prevent duplicate false emissions.
                         return null;
                     }
-                    triggered = false;
+
+                    if (!motionTriggered)
+                    {
+                        triggered = false;
+                    }
                 }
 
                 return triggered;

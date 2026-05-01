@@ -41,10 +41,9 @@ namespace CodeCasa.NetDaemon.Sensors.Composite.Tests
 
             var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(false)));
 
-            // (true, false): motion triggered but brightness too high, latch stays false and emits false
+            // (true, false): motion triggered but brightness too high, latch stays null and nothing additional is emitted
             res.Messages.AssertEqual(
-                OnNext(Subscribed, false),
-                OnNext(Subscribed + 10, false)
+                OnNext(Subscribed, false)
             );
         }
 

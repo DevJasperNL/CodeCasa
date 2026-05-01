@@ -89,9 +89,9 @@ namespace CodeCasa.NetDaemon.Sensors.Composite
         /// AND brightness is low. However, once triggered, it stays <c>true</c> even if brightness increases, 
         /// until the motion sensor itself resets.
         /// </remarks>
-        public IObservable<bool> CreatePersistentMotionObservable(double brightnessThreshold = 5, TimeSpan? offDelay = null)
+        public IObservable<bool> CreatePersistentMotionObservable(double brightnessThreshold = 5000, TimeSpan? offDelay = null)
         {
-            offDelay ??= TimeSpan.FromSeconds(60);
+            offDelay ??= TimeSpan.FromSeconds(15);
 
             var motion =
                 _binarySensorEntity.ToBooleanObservable().PersistTrue(offDelay.Value, _scheduler);
