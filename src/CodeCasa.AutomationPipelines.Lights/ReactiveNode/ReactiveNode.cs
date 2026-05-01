@@ -24,8 +24,9 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// Initializes a new instance of the <see cref="ReactiveNode"/> class.
     /// </summary>
     /// <param name="nodeObservable">An observable that emits the pipeline nodes to activate. Null values deactivate the current node.</param>
-    public ReactiveNode(IObservable<IPipelineNode<LightTransition>?> nodeObservable) :
-        this(null, nodeObservable, null!, null)
+    /// <param name="equalityComparer">Optional equality comparer used to determine whether the output has changed. When <see langword="null"/>, the output is always set when a new value is received.</param>
+    public ReactiveNode(IObservable<IPipelineNode<LightTransition>?> nodeObservable, IEqualityComparer<LightTransition>? equalityComparer = null) :
+        this(null, nodeObservable, null!, equalityComparer)
     {
     }
 

@@ -29,6 +29,17 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     }
 
     /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput()
+        => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+    {
+        configurators.Values.ForEach(b => b.WithDistinctOutput(equalityComparer));
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddReactiveDimmer(IDimmer dimmer)
     {
         foreach (var configurator in configurators)
