@@ -28,60 +28,74 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T, TNode>(IObservable<T> triggerObservable) where TNode : IPipelineNode<LightTransition>
     {
-        configurators.Values.ForEach(c => c.On<T, TNode>(triggerObservable));
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+        configurators.Values.ForEach(c => c.On<T, TNode>(shareableTriggerObservable));
         return this;
     }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
-        configurators.Values.ForEach(c => c.On(triggerObservable, nodeFactory));
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+        configurators.Values.ForEach(c => c.On(shareableTriggerObservable, nodeFactory));
         return this;
     }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
         if (instantiationScope == InstantiationScope.Shared)
         {
             var factories = lightPipelineFactory.CreateCompositePipelineFactoryMap(
-                pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false),
+                pipelineConfigurator
+                    .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+                    .SetObservableSharingStrategy(_observableSharingStrategy),
                 configurators.Values.Select(c => c.Light).ToArray());
-            configurators.Values.ForEach(c => c.On(triggerObservable, factories[c.Light.Id]));
+            configurators.Values.ForEach(c => c.On(shareableTriggerObservable, factories[c.Light.Id]));
             return this;
         }
 
-        configurators.Values.ForEach(c => c.On(triggerObservable, pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false), instantiationScope));
+        configurators.Values.ForEach(c => c.On(shareableTriggerObservable, pipelineConfigurator
+            .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+            .SetObservableSharingStrategy(_observableSharingStrategy), instantiationScope));
         return this;
     }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
         if (instantiationScope == InstantiationScope.Shared)
         {
             var factories = reactiveNodeFactory.CreateCompositeReactiveNodeFactoryMap(
-                configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false),
+                configure
+                    .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+                    .SetObservableSharingStrategy(_observableSharingStrategy),
                 configurators.Values.Select(c => c.Light).ToArray());
-            configurators.Values.ForEach(c => c.On(triggerObservable, factories[c.Light.Id]));
+            configurators.Values.ForEach(c => c.On(shareableTriggerObservable, factories[c.Light.Id]));
             return this;
         }
 
-        configurators.Values.ForEach(c => c.On(triggerObservable, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false), instantiationScope));
+        configurators.Values.ForEach(c => c.On(shareableTriggerObservable, configure
+            .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+            .SetObservableSharingStrategy(_observableSharingStrategy), instantiationScope));
         return this;
     }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> PassThroughOn<T>(IObservable<T> triggerObservable)
     {
-        configurators.Values.ForEach(c => c.PassThroughOn(triggerObservable));
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+        configurators.Values.ForEach(c => c.PassThroughOn(shareableTriggerObservable));
         return this;
     }
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> TurnOffWhen<T>(IObservable<T> triggerObservable)
     {
-        configurators.Values.ForEach(c => c.TurnOffWhen(triggerObservable));
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+        configurators.Values.ForEach(c => c.TurnOffWhen(shareableTriggerObservable));
         return this;
     }
 

@@ -1,4 +1,5 @@
 using CodeCasa.Abstractions;
+using CodeCasa.AutomationPipelines.Lights.Observables;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
@@ -131,4 +132,29 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> ForLights(IEnumerable<TLight> lights,
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure);
+
+    /// <summary>
+    /// Configures the sharing strategy for observables passed to the child configurators.
+    /// </summary>
+    /// <param name="observableSharingStrategy">
+    /// The strategy used to "heat up" or multicast cold observables. 
+    /// Use this to ensure that multiple child nodes receive the same data stream and initial values.
+    /// </param>
+    /// <returns>The current <see cref="ILightTransitionReactiveNodeConfigurator{TLight}"/> for fluent chaining.</returns>
+    /// <remarks>
+    /// <para>
+    /// By default, this class uses a "Replay(1)" strategy to ensure that prepended values 
+    /// (e.g., via <c>Prepend</c> or <c>StartWith</c>) are captured and delivered to all child nodes, 
+    /// even if they subscribe at slightly different times.
+    /// </para>
+    /// <para>
+    /// This strategy is also set as the default for any child node configurators.
+    /// </para>
+    /// <para>
+    /// Switch to a "Publish" strategy if you only care about live events and want to ignore 
+    /// historical/initial values, or an "Independent" strategy if you want every child 
+    /// to trigger its own unique execution path of the source observable.
+    /// </para>
+    /// </remarks>
+    ILightTransitionReactiveNodeConfigurator<TLight> SetObservableSharingStrategy(IObservableSharingStrategy observableSharingStrategy);
 }

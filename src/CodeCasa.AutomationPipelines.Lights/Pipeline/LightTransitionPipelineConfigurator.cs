@@ -1,5 +1,6 @@
 using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines.Lights.Observables;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
@@ -132,6 +133,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
         {
             CompositeHelper.ResolveGroupsAndValidateLightSupported(lights, Light.Id);
+            return this;
+        }
+
+        public ILightTransitionPipelineConfigurator<TLight> SetObservableSharingStrategy(IObservableSharingStrategy observableSharingStrategy)
+        {
+            // Not applicable for a single light pipeline.
             return this;
         }
     }

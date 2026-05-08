@@ -47,7 +47,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             kvp => new LightTransitionCycleConfigurator<TLight>(kvp.Value.Light, scheduler));
         var compositeCycleConfigurator = new CompositeLightTransitionCycleConfigurator<TLight>(cycleConfigurators, []);
         configure(compositeCycleConfigurator);
-        configurators.ForEach(kvp => kvp.Value.AddNodeSource(triggerObservable.ToCycleObservable(cycleConfigurators[kvp.Key].CycleNodeFactories.Select(tuple =>
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+        configurators.ForEach(kvp => kvp.Value.AddNodeSource(shareableTriggerObservable.ToCycleObservable(cycleConfigurators[kvp.Key].CycleNodeFactories.Select(tuple =>
         {
             var factory = new Func<IPipelineNode<LightTransition>>(() => 
                 tuple.nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
