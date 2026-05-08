@@ -5,6 +5,7 @@ using CodeCasa.Lights;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using CodeCasa.AutomationPipelines.Lights.Observables;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
@@ -158,6 +159,13 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
     {
         CompositeHelper.ResolveGroupsAndValidateLightSupported(lights, Light.Id);
+        return this;
+    }
+
+    public ILightTransitionReactiveNodeConfigurator<TLight> SetObservableSharingStrategy(
+        IObservableSharingStrategy observableSharingStrategy)
+    {
+        // Not applicable for a single light reactive node.
         return this;
     }
 }

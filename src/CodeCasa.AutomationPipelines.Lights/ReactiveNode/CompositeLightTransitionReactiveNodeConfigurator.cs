@@ -2,7 +2,10 @@ using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using CodeCasa.AutomationPipelines.Lights.Observables;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -20,6 +23,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     where TLight : ILight
 {
     private string? _name;
+    // By default, we assume cold observables and replay their latest value to new subscribers.
+    private IObservableSharingStrategy _observableSharingStrategy = new ReplaySharingStrategy();
 
     ILightTransitionReactiveNodeConfigurator<TLight> ILightTransitionReactiveNodeConfigurator<TLight>.SetName(string name)
     {
@@ -89,7 +94,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource<TNodeSource>()
         where TNodeSource : IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>>
     {
-        configurators.Values.ForEach(c => c.AddNodeSource<TNodeSource>());
+        var shareableNodeSource = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TNodeSource>(serviceProvider));
+        configurators.Values.ForEach(c => c.AddNodeSource(shareableNodeSource));
         return this;
     }
 
@@ -104,7 +110,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddNodeSource(IObservable<Func<IServiceProvider, IPipelineNode<LightTransition>?>> nodeFactorySource)
     {
-        configurators.Values.ForEach(c => c.AddNodeSource(nodeFactorySource));
+        var shareableNodeFactorySource = _observableSharingStrategy.Apply(nodeFactorySource);
+        configurators.Values.ForEach(c => c.AddNodeSource(shareableNodeFactorySource));
         return this;
     }
 
@@ -145,5 +152,13 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>(
     {
         var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, configurators.Keys);
         return ForLights(lightIds, configure);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> SetObservableSharingStrategy(
+        IObservableSharingStrategy observableSharingStrategy)
+    {
+        _observableSharingStrategy = observableSharingStrategy;
+        return this;
     }
 }

@@ -65,7 +65,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             kvp => new LightTransitionToggleConfigurator<TLight>(kvp.Value.Light, scheduler));
         var compositeCycleConfigurator = new CompositeLightTransitionToggleConfigurator<TLight>(toggleConfigurators, []);
         configure(compositeCycleConfigurator);
-        configurators.ForEach(kvp => kvp.Value.AddNodeSource(triggerObservable.ToToggleObservable(
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+        configurators.ForEach(kvp => kvp.Value.AddNodeSource(shareableTriggerObservable.ToToggleObservable(
             () => configurators.Values.Any(c => c.Light.IsOn()),
             () => new TurnOffThenPassThroughNode(),
             toggleConfigurators[kvp.Key].NodeFactories.Select(fact =>
