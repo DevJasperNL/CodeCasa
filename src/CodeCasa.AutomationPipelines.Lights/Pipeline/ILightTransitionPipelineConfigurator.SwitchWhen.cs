@@ -38,18 +38,19 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a node that applies a switch between two sets of light parameters when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> determines which branch to apply and is resolved from the service provider.
+    /// Registers a node that applies a switch between two sets of light parameters when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which branch to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueLightParameters">The light parameters to apply when the switch observable emits true.</param>
     /// <param name="falseLightParameters">The light parameters to apply when the switch observable emits false.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable>(IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         LightParameters trueLightParameters, LightParameters falseLightParameters)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a node that applies a switch between two sets of light parameters created by factory functions when the
@@ -83,19 +84,20 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a node that applies a switch between two sets of light parameters created by factory functions when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a node that applies a switch between two sets of light parameters created by factory functions when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which branch to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueLightParametersFactory">A factory function that creates light parameters for true values.</param>
     /// <param name="falseLightParametersFactory">A factory function that creates light parameters for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable>(IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         Func<IServiceProvider, LightParameters> trueLightParametersFactory,
         Func<IServiceProvider, LightParameters> falseLightParametersFactory)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a node that applies a switch between two light transitions when the
@@ -127,18 +129,19 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a node that applies a switch between two light transitions when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a node that applies a switch between two light transitions when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which transition to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueLightTransition">The light transition to apply when the switch observable emits true.</param>
     /// <param name="falseLightTransition">The light transition to apply when the switch observable emits false.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable>(IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         LightTransition trueLightTransition, LightTransition falseLightTransition)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a node that applies a switch between two light transitions created by factory functions when the
@@ -172,19 +175,20 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a node that applies a switch between two light transitions created by factory functions when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a node that applies a switch between two light transitions created by factory functions when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which branch to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueLightTransitionFactory">A factory function that creates a light transition for true values.</param>
     /// <param name="falseLightTransitionFactory">A factory function that creates a light transition for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable>(IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
         Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a node that applies a switch between two pipeline nodes created by factory functions when the
@@ -218,19 +222,20 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a node that applies a switch between two pipeline nodes created by factory functions when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a node that applies a switch between two pipeline nodes created by factory functions when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which branch to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueNodeFactory">A factory function that creates a pipeline node for true values.</param>
     /// <param name="falseNodeFactory">A factory function that creates a pipeline node for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable>(IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory,
         Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a node that applies a switch between two pipeline node types when the observable of type
@@ -249,18 +254,19 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TFalseNode : IPipelineNode<LightTransition>;
 
     /// <summary>
-    /// Registers a node that applies a switch between two pipeline node types when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> and both node types are resolved from the service provider.
+    /// Registers a node that applies a switch between two pipeline node types when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> and both node types are resolved from the service provider.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
     /// <typeparam name="TTrueNode">The type of the pipeline node to apply for true values.</typeparam>
     /// <typeparam name="TFalseNode">The type of the pipeline node to apply for false values.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable, TTrueNode, TFalseNode>(
-        IObservable<bool> whenObservable)
-        where TSwitchObservable : IObservable<bool>
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TTrueNode, TFalseNode>(
+        IObservable<bool> switchObservable)
+        where TWhenObservable : IObservable<bool>
         where TTrueNode : IPipelineNode<LightTransition>
         where TFalseNode : IPipelineNode<LightTransition>;
 
@@ -306,17 +312,18 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a reactive node switch configured via a fluent <see cref="ILightTransitionSwitchConfigurator{TLight}"/> when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a reactive node switch configured via a fluent <see cref="ILightTransitionSwitchConfigurator{TLight}"/> when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which branch to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="configure">An action that receives the switch configurator to define both branches.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TSwitchObservable>(IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         Action<ILightTransitionSwitchConfigurator<TLight>> configure)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a reactive node that switches between two configurations when the
@@ -358,24 +365,25 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a reactive node that switches between two configurations when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a reactive node that switches between two configurations when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which configuration to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueConfigure">An action to configure the reactive node for true values.</param>
     /// <param name="falseConfigure">An action to configure the reactive node for false values.</param>
     /// <param name="instantiationScope">
     /// Specifies the instantiation scope for the reactive node.
     /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitchWhen<TSwitchObservable>(
-        IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitchWhen<TWhenObservable>(
+        IObservable<bool> switchObservable,
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure,
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a pipeline that switches between two configurations when the
@@ -417,24 +425,25 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a pipeline that switches between two configurations when the
-    /// <paramref name="whenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a pipeline that switches between two configurations when the observable of type
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/>, and passes inputs through unchanged when it emits <see langword="false"/>.
+    /// The <paramref name="switchObservable"/> determines which configuration to apply.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that selects which branch to apply.</param>
     /// <param name="trueConfigure">An action to configure the pipeline for true values.</param>
     /// <param name="falseConfigure">An action to configure the pipeline for false values.</param>
     /// <param name="instantiationScope">
     /// Specifies the instantiation scope for the pipeline.
     /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitchWhen<TSwitchObservable>(
-        IObservable<bool> whenObservable,
+    ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitchWhen<TWhenObservable>(
+        IObservable<bool> switchObservable,
         Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared)
-        where TSwitchObservable : IObservable<bool>;
+        where TWhenObservable : IObservable<bool>;
 
     /// <summary>
     /// Registers a node that turns on the light when the <paramref name="whenObservable"/> emits <see langword="true"/> and 
@@ -463,15 +472,15 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         where TSwitchObservable : IObservable<bool>;
 
     /// <summary>
-    /// Registers a node that turns on the light when the <paramref name="whenObservable"/> emits <see langword="true"/> and 
-    /// the observable of type <typeparamref name="TSwitchObservable"/> emits <see langword="true"/>, turns off the light when 
-    /// <paramref name="whenObservable"/> emits <see langword="true"/> and <typeparamref name="TSwitchObservable"/> emits <see langword="false"/>, 
-    /// and passes inputs through unchanged when <paramref name="whenObservable"/> emits <see langword="false"/>.
-    /// The observable of type <typeparamref name="TSwitchObservable"/> is resolved from the service provider.
+    /// Registers a node that turns on the light when the observable of type <typeparamref name="TWhenObservable"/> emits <see langword="true"/> and 
+    /// the <paramref name="switchObservable"/> emits <see langword="true"/>, turns off the light when 
+    /// <typeparamref name="TWhenObservable"/> emits <see langword="true"/> and <paramref name="switchObservable"/> emits <see langword="false"/>, 
+    /// and passes inputs through unchanged when <typeparamref name="TWhenObservable"/> emits <see langword="false"/>.
+    /// The when observable is resolved from the service provider.
     /// </summary>
-    /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
-    /// <param name="whenObservable">The observable that gates the switch; when false, inputs pass through unchanged.</param>
+    /// <typeparam name="TWhenObservable">The type of the gating observable to resolve from the service provider.</typeparam>
+    /// <param name="switchObservable">The observable that determines whether to turn on or off the light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> TurnOnOffWhen<TSwitchObservable>(IObservable<bool> whenObservable)
-        where TSwitchObservable : IObservable<bool>;
+    ILightTransitionPipelineConfigurator<TLight> TurnOnOffWhen<TWhenObservable>(IObservable<bool> switchObservable)
+        where TWhenObservable : IObservable<bool>;
 }
