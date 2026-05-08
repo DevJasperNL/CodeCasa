@@ -6,15 +6,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
 {
     internal static class PipelineNodeFactoryExtensions
     {
-        public static ManagedNode<LightTransition> CreateScopedNode(
+        public static ScopedPipelineNode<LightTransition> CreateScopedNode(
             this Func<IServiceProvider, IPipelineNode<LightTransition>> factory, 
             IServiceProvider serviceProvider)
         {
             var scope = serviceProvider.CreateScope();
-            return new ManagedNode<LightTransition>(scope, factory(scope.ServiceProvider));
+            return new ScopedPipelineNode<LightTransition>(factory(scope.ServiceProvider), scope);
         }
 
-        public static ManagedNode<LightTransition>? CreateScopedNodeOrNull(
+        public static ScopedPipelineNode<LightTransition>? CreateScopedNodeOrNull(
             this Func<IServiceProvider, IPipelineNode<LightTransition>?> factory,
             IServiceProvider serviceProvider)
         {
@@ -22,7 +22,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
             var node = factory(scope.ServiceProvider);
             if (node != null)
             {
-                return new ManagedNode<LightTransition>(scope, node);
+                return new ScopedPipelineNode<LightTransition>(node, scope);
             }
             scope.Dispose();
             return null;

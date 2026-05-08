@@ -1,10 +1,13 @@
 ﻿using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using static CodeCasa.AutomationPipelines.Lights.Pipeline.LightPipelineFactory;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {
@@ -42,6 +45,31 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             return CreateLightPipelines([light], pipelineBuilder)[light.Id];
+        }
+
+        /// <summary>
+        /// Creates a mapping of light identifiers to factory delegates that resolve pipeline nodes.
+        /// Each factory produces a <see cref="IPipelineNode{T}"/> that manages a shared pipeline registry 
+        /// and ensures groups of pipelines are created together allowing their configuration to be aware of each other.
+        /// </summary>
+        /// <typeparam name="TLight">The type of light, constrained to <see cref="ILight"/>.</typeparam>
+        /// <param name="pipelineConfigurator">The configuration action used to initialize the pipeline logic.</param>
+        /// <param name="lights">The collection of lights for which pipelines will be created.</param>
+        /// <returns>
+        /// A <see cref="Dictionary{TKey, TValue}"/> where the key is the light ID and the value is a 
+        /// function that resolves the corresponding <see cref="IPipelineNode{LightTransition}"/>.
+        /// </returns>
+        internal Dictionary<string, Func<IServiceProvider, IPipelineNode<LightTransition>>> CreateCompositePipelineFactoryMap<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, TLight[] lights) where TLight : ILight
+        {
+            var baseFactory = new CompositePipelineFactory<TLight>(pipelineConfigurator, lights);
+            return lights
+                .ToDictionary(
+                    l => l.Id,
+                    l =>
+                        (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
+                            sp => new ScopedPipelineNode<LightTransition>(
+                                baseFactory.GetOrCreatePipeline(sp, l.Id),
+                                Disposable.Create(() => baseFactory.Clear()))));
         }
 
         /// <summary>
@@ -112,6 +140,35 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
                 return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
             });
+        }
+
+        private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, IEnumerable<TLight> lights) where TLight : ILight
+        {
+            private readonly Lock _lock = new();
+            private Dictionary<string, IPipeline<LightTransition>>? _pipelines;
+
+            public IPipeline<LightTransition> GetOrCreatePipeline(IServiceProvider serviceProvider, string lightId)
+            {
+                lock (_lock)
+                {
+                    if (_pipelines == null)
+                    {
+                        var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
+                        _pipelines = pipelineFactory.CreateLightPipelines(lights, pipelineConfigurator);
+                    }
+
+                    return _pipelines[lightId];
+                }
+            }
+
+            public void Clear()
+            {
+                lock (_lock)
+                {
+                    // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
+                    _pipelines = null;
+                }
+            }
         }
     }
 }

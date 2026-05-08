@@ -44,10 +44,10 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     {
         if (instantiationScope == InstantiationScope.Shared)
         {
-            // Note: we create the pipeline in composite context so all configuration is also applied in that context.
-            var pipelines = lightPipelineFactory.CreateLightPipelines(configurators.Values.Select(c => c.Light),
-                pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false));
-            configurators.Values.ForEach(c => c.On(triggerObservable, _ => pipelines[c.Light.Id]));
+            var factories = lightPipelineFactory.CreateCompositePipelineFactoryMap(
+                pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false),
+                configurators.Values.Select(c => c.Light).ToArray());
+            configurators.Values.ForEach(c => c.On(triggerObservable, factories[c.Light.Id]));
             return this;
         }
 
@@ -60,10 +60,10 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     {
         if (instantiationScope == InstantiationScope.Shared)
         {
-            // Note: we create the pipeline in composite context so all configuration is also applied in that context.
-            var nodes = reactiveNodeFactory.CreateReactiveNodes(configurators.Values.Select(c => c.Light),
-                configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false));
-            configurators.Values.ForEach(c => c.On(triggerObservable, _ => nodes[c.Light.Id]));
+            var factories = reactiveNodeFactory.CreateCompositeReactiveNodeFactoryMap(
+                configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false),
+                configurators.Values.Select(c => c.Light).ToArray());
+            configurators.Values.ForEach(c => c.On(triggerObservable, factories[c.Light.Id]));
             return this;
         }
 

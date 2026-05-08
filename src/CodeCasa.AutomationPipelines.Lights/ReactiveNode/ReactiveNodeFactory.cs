@@ -30,6 +30,31 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         }
 
         /// <summary>
+        /// Creates a mapping of light identifiers to factory delegates that resolve reactive nodes.
+        /// Each factory produces a <see cref="IPipelineNode{T}"/> that manages a shared node registry 
+        /// and ensures groups of nodes are created together allowing their configuration to be aware of each other.
+        /// </summary>
+        /// <typeparam name="TLight">The type of light, constrained to <see cref="ILight"/>.</typeparam>
+        /// <param name="reactiveNodeConfigurator">The configuration action used to initialize the node logic.</param>
+        /// <param name="lights">The collection of lights for which reactive nodes will be created.</param>
+        /// <returns>
+        /// A <see cref="Dictionary{TKey, TValue}"/> where the key is the light ID and the value is a 
+        /// function that resolves the corresponding <see cref="IPipelineNode{LightTransition}"/>.
+        /// </returns>
+        internal Dictionary<string, Func<IServiceProvider, IPipelineNode<LightTransition>>> CreateCompositeReactiveNodeFactoryMap<TLight>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> reactiveNodeConfigurator, TLight[] lights) where TLight : ILight
+        {
+            var baseFactory = new CompositeReactiveNodeFactory<TLight>(reactiveNodeConfigurator, lights);
+            return lights
+                .ToDictionary(
+                    l => l.Id,
+                    l =>
+                        (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
+                            sp => new ScopedPipelineNode<LightTransition>(
+                                baseFactory.GetOrCreateNode(sp, l.Id),
+                                Disposable.Create(() => baseFactory.Clear()))));
+        }
+
+        /// <summary>
         /// Creates reactive nodes for multiple light entities.
         /// </summary>
         /// <typeparam name="TLight">The type of light being controlled.</typeparam>
@@ -178,6 +203,95 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             return new DimmingContext(orderedDimNodes
                 .Select(kvp => (kvp.Key, kvp.Value.Output?.LightParameters)).ToArray());
         }
+
+        private class CompositeReactiveNodeFactory<TLight>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> reactiveNodeConfigurator, IEnumerable<TLight> lights) where TLight : ILight
+        {
+            private readonly Lock _lock = new();
+            private Dictionary<string, IPipelineNode<LightTransition>>? _nodes;
+
+            public IPipelineNode<LightTransition> GetOrCreateNode(IServiceProvider serviceProvider, string lightId)
+            {
+                lock (_lock)
+                {
+                    if (_nodes == null)
+                    {
+                        var pipelineFactory = serviceProvider.GetRequiredService<ReactiveNodeFactory>();
+                        _nodes = pipelineFactory.CreateReactiveNodes(lights, reactiveNodeConfigurator);
+                    }
+
+                    return _nodes[lightId];
+                }
+            }
+
+            public void Clear()
+            {
+                lock (_lock)
+                {
+                    // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
+                    _nodes = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Manages registration of items and notifies when the last item is unregistered.
+        /// </summary>
+        private sealed class RegistrationManager<T> : IRegisterInterface<T>, IDisposable
+        {
+            private readonly HashSet<T> _items = new();
+            private readonly Lock _lock = new();
+            private readonly Subject<Unit> _lastUnregistered = new();
+            private bool _isDisposed;
+
+            /// <summary>
+            /// Gets an observable that emits when the last registered item is unregistered.
+            /// </summary>
+            public IObservable<Unit> LastUnregistered => _lastUnregistered;
+
+            /// <inheritdoc />
+            public void Register(T reference)
+            {
+                lock (_lock)
+                {
+                    ObjectDisposedException.ThrowIf(_isDisposed, typeof(RegistrationManager<T>));
+                    _items.Add(reference);
+                }
+            }
+
+            /// <inheritdoc />
+            public void Unregister(T reference)
+            {
+                bool becameEmpty = false;
+
+                lock (_lock)
+                {
+                    if (_isDisposed)
+                        return;
+
+                    if (_items.Remove(reference) && _items.Count == 0)
+                        becameEmpty = true;
+                }
+
+                if (becameEmpty)
+                    _lastUnregistered.OnNext(Unit.Default);
+            }
+
+            /// <inheritdoc />
+            public void Dispose()
+            {
+                lock (_lock)
+                {
+                    if (_isDisposed)
+                        return;
+
+                    _isDisposed = true;
+                    _items.Clear();
+                }
+
+                _lastUnregistered.OnCompleted();
+                _lastUnregistered.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -194,65 +308,5 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// Unregisters an item.
         /// </summary>
         void Unregister(T reference);
-    }
-
-    /// <summary>
-    /// Manages registration of items and notifies when the last item is unregistered.
-    /// </summary>
-    internal sealed class RegistrationManager<T> : IRegisterInterface<T>, IDisposable
-    {
-        private readonly HashSet<T> _items = new();
-        private readonly Lock _lock = new();
-        private readonly Subject<Unit> _lastUnregistered = new ();
-        private bool _isDisposed;
-
-        /// <summary>
-        /// Gets an observable that emits when the last registered item is unregistered.
-        /// </summary>
-        public IObservable<Unit> LastUnregistered => _lastUnregistered;
-
-        /// <inheritdoc />
-        public void Register(T reference)
-        {
-            lock (_lock)
-            {
-                ObjectDisposedException.ThrowIf(_isDisposed, typeof(RegistrationManager<T>));
-                _items.Add(reference);
-            }
-        }
-
-        /// <inheritdoc />
-        public void Unregister(T reference)
-        {
-            bool becameEmpty = false;
-
-            lock (_lock)
-            {
-                if (_isDisposed)
-                    return;
-                    
-                if (_items.Remove(reference) && _items.Count == 0)
-                    becameEmpty = true;
-            }
-
-            if (becameEmpty)
-                _lastUnregistered.OnNext(Unit.Default);
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            lock (_lock)
-            {
-                if (_isDisposed)
-                    return;
-                    
-                _isDisposed = true;
-                _items.Clear();
-            }
-
-            _lastUnregistered.OnCompleted();
-            _lastUnregistered.Dispose();
-        }
     }
 }

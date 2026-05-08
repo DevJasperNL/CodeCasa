@@ -73,8 +73,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="triggerObservable">The observable that triggers the pipeline activation.</param>
     /// <param name="pipelineConfigurator">An action to configure the nested pipeline.</param>
     /// <param name="instantiationScope">
-    /// Specifies where the nested pipeline is instantiated. Use <see cref="InstantiationScope.Shared"/> 
-    /// to create pipelines immediately in the composite context (shared across all lights), or 
+    /// Specifies how the nested pipeline is instantiated. Use <see cref="InstantiationScope.Shared"/> 
+    /// to create pipelines in composite context (shared across all lights), or 
     /// <see cref="InstantiationScope.PerChild"/> to defer creation to individual child service scopes.
     /// </param>
     /// <returns>The configurator instance for method chaining.</returns>
@@ -89,8 +89,8 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="triggerObservable">The observable that triggers the reactive node activation.</param>
     /// <param name="configure">An action to configure the nested reactive node.</param>
     /// <param name="instantiationScope">
-    /// Specifies where the nested reactive node is instantiated. Use <see cref="InstantiationScope.Shared"/> 
-    /// to create nodes immediately in the composite context (shared across all lights), or 
+    /// Specifies how the reactive node is instantiated. Use <see cref="InstantiationScope.Shared"/> 
+    /// to create reactive nodes in composite context (shared across all lights), or 
     /// <see cref="InstantiationScope.PerChild"/> to defer creation to individual child service scopes.
     /// </param>
     /// <returns>The configurator instance for method chaining.</returns>

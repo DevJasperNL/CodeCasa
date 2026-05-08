@@ -42,27 +42,15 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         AddNodeSource(triggerObservable.Select(_ => nodeFactory));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope instantiationScope = InstantiationScope.Shared)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope _ = InstantiationScope.Shared)
     {
-        if (instantiationScope == InstantiationScope.Shared)
-        {
-            // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner pipeline to avoid confusion.
-            var pipeline = ServiceProvider.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false));
-            return On(triggerObservable, _ => pipeline);
-        }
         return On(triggerObservable,
             s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(Light, pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope _ = InstantiationScope.Shared)
     {
-        if (instantiationScope == InstantiationScope.Shared)
-        {
-            // Note: even though InstantiationScope is primarily intended for composite pipelines, we try to stay consistent with the lifetime of the inner node to avoid confusion.
-            var node = ServiceProvider.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false));
-            return On(triggerObservable, _ => node);
-        }
         return On(triggerObservable,
             s => s.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
     }

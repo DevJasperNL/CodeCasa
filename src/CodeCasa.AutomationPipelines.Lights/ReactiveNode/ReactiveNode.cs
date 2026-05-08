@@ -18,6 +18,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private readonly ILogger<ReactiveNode>? _logger;
     private readonly IEqualityComparer<LightTransition>? _equalityComparer;
     private readonly Subject<Unit> _nodeChangedSubject = new();
+    private IDisposable? _nodeObservableSubscription;
     private IDisposable? _activeNodeSubscription;
 
     /// <summary>
@@ -44,7 +45,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
         _equalityComparer = equalityComparer;
         PassThrough = true;
 
-        nodeObservable
+        _nodeObservableSubscription = nodeObservable
             .Subscribe(n =>
             {
                 lock (_lock)
@@ -133,4 +134,12 @@ public class ReactiveNode : PipelineNode<LightTransition>
 
     /// <inheritdoc />
     public override string ToString() => _name ?? base.ToString();
+
+    /// <inheritdoc />
+    public override ValueTask DisposeAsync()
+    {
+        _nodeObservableSubscription?.Dispose();
+        _nodeObservableSubscription = null;
+        return base.DisposeAsync();
+    }
 }
