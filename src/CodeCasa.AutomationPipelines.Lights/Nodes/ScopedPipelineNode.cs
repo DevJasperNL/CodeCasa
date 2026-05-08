@@ -1,9 +1,8 @@
 ﻿using CodeCasa.AutomationPipelines.Lights.Utils;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
-    internal class ManagedNode<TState>(IServiceScope serviceScope, IPipelineNode<TState> innerNode)
+    internal class ScopedPipelineNode<TState>(IPipelineNode<TState> innerNode, IDisposable disposable)
         : IPipelineNode<TState>, IAsyncDisposable
     {
         public Guid Id => innerNode.Id;
@@ -26,7 +25,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
         public async ValueTask DisposeAsync()
         {
-            await serviceScope.DisposeOrDisposeAsync();
+            await disposable.DisposeOrDisposeAsync();
             await innerNode.DisposeOrDisposeAsync();
         }
     }
