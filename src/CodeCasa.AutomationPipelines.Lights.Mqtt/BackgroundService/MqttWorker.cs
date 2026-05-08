@@ -4,11 +4,20 @@ using MQTTnet.Formatter;
 
 namespace CodeCasa.AutomationPipelines.Lights.Mqtt.BackgroundService
 {
+    /// <summary>
+    /// A hosted background service that manages the MQTT client connection,
+    /// automatically reconnecting to the broker when the connection is lost.
+    /// </summary>
     public class MqttWorker(IMqttClient client, IOptions<MqttOptions> options)
         : Microsoft.Extensions.Hosting.BackgroundService
     {
         private readonly MqttOptions _options = options.Value;
 
+        /// <summary>
+        /// Continuously monitors the MQTT connection and reconnects when necessary
+        /// until the <paramref name="stoppingToken"/> is cancelled.
+        /// </summary>
+        /// <param name="stoppingToken">A token that signals when the hosted service should stop.</param>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var connectionBuilder = new MqttClientOptionsBuilder()
