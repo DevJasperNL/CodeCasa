@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using static CodeCasa.AutomationPipelines.Lights.Pipeline.LightPipelineFactory;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 {

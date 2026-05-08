@@ -1,5 +1,6 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.AutomationPipelines.Lights.Switch;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reactive.Linq;
@@ -160,6 +161,27 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
             .SetHierarchyContext(HierarchyPath, "Switch", LoggingEnabled ?? false)
             .On(shareableObservable.Where(x => x), trueConfigure.ApplyHierarchySettings(c), instantiationScope)
             .On(shareableObservable.Where(x => !x), falseConfigure.ApplyHierarchySettings(c), instantiationScope));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Action<ILightTransitionSwitchConfigurator<TLight>> configure)
+        where TObservable : IObservable<bool>
+    {
+        return Switch(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider), configure);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Action<ILightTransitionSwitchConfigurator<TLight>> configure)
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(observable);
+        var switchConfigurator = new LightTransitionSwitchConfigurator<TLight>();
+        configure(switchConfigurator);
+        var falseConfigurator = switchConfigurator.FalseConfigurator
+            ?? throw new InvalidOperationException($"{nameof(ILightTransitionSwitchConfigurator<>.WhenTrue)} must be called exactly once inside the switch configure action.");
+        var trueNodeFactory = falseConfigurator.TrueNodeFactory;
+        var falseNodeFactory = falseConfigurator.FalseNodeFactory
+            ?? throw new InvalidOperationException($"{nameof(ILightTransitionSwitchFalseConfigurator<>.WhenFalse)} must be called exactly once inside the switch configure action.");
+        return Switch(shareableObservable, trueNodeFactory, falseNodeFactory);
     }
 
     /// <inheritdoc/>

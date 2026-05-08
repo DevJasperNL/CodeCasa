@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Text;
+﻿using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Observables
 {

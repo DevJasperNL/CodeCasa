@@ -1,6 +1,7 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.AutomationPipelines.Lights.Switch;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reactive.Concurrency;
@@ -136,6 +137,27 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
             .SetHierarchyContext(HierarchyPath, "Switch", LoggingEnabled ?? false)
             .On(observable.Where(x => x), trueConfigure.ApplyHierarchySettings(c), instantiationScope)
             .On(observable.Where(x => !x), falseConfigure.ApplyHierarchySettings(c), instantiationScope));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Action<ILightTransitionSwitchConfigurator<TLight>> configure)
+        where TObservable : IObservable<bool>
+    {
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        return Switch(observable, configure);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Action<ILightTransitionSwitchConfigurator<TLight>> configure)
+    {
+        var switchConfigurator = new LightTransitionSwitchConfigurator<TLight>();
+        configure(switchConfigurator);
+        var falseConfigurator = switchConfigurator.FalseConfigurator
+            ?? throw new InvalidOperationException($"{nameof(ILightTransitionSwitchConfigurator<TLight>.WhenTrue)} must be called exactly once inside the switch configure action.");
+        var trueNodeFactory = falseConfigurator.TrueNodeFactory;
+        var falseNodeFactory = falseConfigurator.FalseNodeFactory
+            ?? throw new InvalidOperationException($"{nameof(ILightTransitionSwitchFalseConfigurator<TLight>.WhenFalse)} must be called exactly once inside the switch configure action.");
+        return Switch(observable, trueNodeFactory, falseNodeFactory);
     }
 
     /// <inheritdoc/>
