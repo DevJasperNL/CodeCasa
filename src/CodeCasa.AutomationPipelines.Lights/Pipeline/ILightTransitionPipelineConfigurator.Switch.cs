@@ -1,4 +1,5 @@
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.AutomationPipelines.Lights.Switch;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
@@ -249,6 +250,30 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
         Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure,
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared);
+
+    /// <summary>
+    /// Registers a switch node configured via a fluent <see cref="ILightTransitionSwitchConfigurator{TLight}"/>.
+    /// The observable of type <typeparamref name="TObservable"/> is resolved from the service provider.
+    /// Use <see cref="ILightTransitionSwitchConfigurator{TLight}.WhenTrue(LightParameters)"/> (and its overloads)
+    /// to specify the true branch, then chain <c>WhenFalse</c> on the returned configurator for the false branch.
+    /// </summary>
+    /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
+    /// <param name="configure">An action that receives the switch configurator to define both branches.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(
+        Action<ILightTransitionSwitchConfigurator<TLight>> configure)
+        where TObservable : IObservable<bool>;
+
+    /// <summary>
+    /// Registers a switch node configured via a fluent <see cref="ILightTransitionSwitchConfigurator{TLight}"/>.
+    /// Use <see cref="ILightTransitionSwitchConfigurator{TLight}.WhenTrue(LightParameters)"/> (and its overloads)
+    /// to specify the true branch, then chain <c>WhenFalse</c> on the returned configurator for the false branch.
+    /// </summary>
+    /// <param name="observable">The observable that determines which branch to apply.</param>
+    /// <param name="configure">An action that receives the switch configurator to define both branches.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Action<ILightTransitionSwitchConfigurator<TLight>> configure);
 
     /// <summary>
     /// Registers a node that turns the light on when the observable of type <typeparamref name="TObservable"/> 
