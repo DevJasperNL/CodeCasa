@@ -11,6 +11,8 @@ public static partial class EntityExtensions
     /// <summary>
     /// Subscribes actions to be executed on the open or closed state of an entity.
     /// Initial state is also taken into account, meaning an action might execute immediately if the entity is currently open or closed.
+    ///
+    /// Internally, this method uses the IsOn and IsOff extension methods to determine the entity's state. It works for entities whose states on/off state can be interpreted as open/closed. For entities like covers, which use "open" and "close" states, consider providing a custom predicate.
     /// </summary>
     public static IDisposable SubscribeOpenClosed(this Entity entity, Action openAction, Action closedAction)
         => entity.ToBooleanObservable().SubscribeOpenClosed(openAction, closedAction);
@@ -18,6 +20,8 @@ public static partial class EntityExtensions
     /// <summary>
     /// Subscribes actions to be executed on the open state of an entity.
     /// Initial state is also taken into account, meaning the action might execute immediately if the entity is currently open.
+    ///
+    /// Internally, this method uses the IsOn and IsOff extension methods to determine the entity's state. It works for entities whose states on/off state can be interpreted as open/closed. For entities like covers, which use "open" and "close" states, consider providing a custom predicate.
     /// </summary>
     public static IDisposable SubscribeOpen(this Entity entity, Action openAction)
         => entity.ToBooleanObservable().SubscribeOpen(openAction);
@@ -25,6 +29,8 @@ public static partial class EntityExtensions
     /// <summary>
     /// Subscribes actions to be executed on the closed state of an entity.
     /// Initial state is also taken into account, meaning the action might execute immediately if the entity is currently closed.
+    ///
+    /// Internally, this method uses the IsOn and IsOff extension methods to determine the entity's state. It works for entities whose states on/off state can be interpreted as open/closed. For entities like covers, which use "open" and "close" states, consider providing a custom predicate.
     /// </summary>
     public static IDisposable SubscribeClosed(this Entity entity, Action closedAction)
         => entity.ToBooleanObservable().SubscribeClosed(closedAction);

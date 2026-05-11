@@ -9,16 +9,22 @@ public static partial class BooleanObservableExtensions
 {
     /// <summary>
     /// Subscribes actions to be executed when the observable emits true (open) or false (closed).
+    ///
+    /// Internally, this method uses the IsOn and IsOff extension methods to determine the entity's state. It works for entities whose states on/off state can be interpreted as open/closed. For entities like covers, which use "open" and "close" states, consider providing a custom predicate.
     /// </summary>
     public static IDisposable SubscribeOpenClosed(this IObservable<bool> observable, Action openAction, Action closedAction) => observable.SubscribeTrueFalse(openAction, closedAction);
 
     /// <summary>
     /// Subscribes an action to be executed when the observable emits true (open).
+    ///
+    /// Internally, this method uses the IsOn and IsOff extension methods to determine the entity's state. It works for entities whose states on/off state can be interpreted as open/closed. For entities like covers, which use "open" and "close" states, consider providing a custom predicate.
     /// </summary>
     public static IDisposable SubscribeOpen(this IObservable<bool> observable, Action openAction) => observable.SubscribeTrue(openAction);
 
     /// <summary>
     /// Subscribes an action to be executed when the observable emits true (closed).
+    ///
+    /// Internally, this method uses the IsOn and IsOff extension methods to determine the entity's state. It works for entities whose states on/off state can be interpreted as open/closed. For entities like covers, which use "open" and "close" states, consider providing a custom predicate.
     /// </summary>
     public static IDisposable SubscribeClosed(this IObservable<bool> observable, Action closedAction) => observable.SubscribeFalse(closedAction);
 
