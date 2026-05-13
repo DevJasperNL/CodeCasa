@@ -15,7 +15,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
     /// <summary>
     /// Factory for creating reactive nodes that dynamically switch between child nodes based on observable inputs.
     /// </summary>
-    public class ReactiveNodeFactory(IServiceProvider serviceProvider, IScheduler scheduler)
+    public class ReactiveNodeFactory(IServiceProvider rootServiceProvider, IScheduler scheduler)
     {
         /// <summary>
         /// Creates a reactive node for a single light.
@@ -25,8 +25,19 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// <param name="configure">An action to configure the reactive node.</param>
         /// <returns>A configured reactive node for the specified light.</returns>
         public IPipelineNode<LightTransition> CreateReactiveNode<TLight>(TLight light, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TLight : ILight
+            => CreateReactiveNode(rootServiceProvider, light, configure);
+
+        /// <summary>
+        /// Creates a reactive node for a single light.
+        /// </summary>
+        /// <typeparam name="TLight">The type of light being controlled.</typeparam>
+        /// <param name="serviceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
+        /// <param name="light">The light to create the reactive node for.</param>
+        /// <param name="configure">An action to configure the reactive node.</param>
+        /// <returns>A configured reactive node for the specified light.</returns>
+        public IPipelineNode<LightTransition> CreateReactiveNode<TLight>(IServiceProvider serviceProvider, TLight light, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TLight : ILight
         {
-            return CreateReactiveNodes([light], configure)[light.Id];
+            return CreateReactiveNodes(serviceProvider, [light], configure)[light.Id];
         }
 
         /// <summary>
@@ -58,10 +69,11 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         /// Creates reactive nodes for multiple light entities.
         /// </summary>
         /// <typeparam name="TLight">The type of light being controlled.</typeparam>
+        /// <param name="serviceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
         /// <param name="lights">The light entities to create reactive nodes for.</param>
         /// <param name="configure">An action to configure the reactive nodes.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding reactive nodes.</returns>
-        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes<TLight>(IEnumerable<TLight> lights, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TLight : ILight
+        internal Dictionary<string, IPipelineNode<LightTransition>> CreateReactiveNodes<TLight>(IServiceProvider serviceProvider, IEnumerable<TLight> lights, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure) where TLight : ILight
         {
             // Note: we simply assume that these are not groups.
             var lightArray = lights.ToArray();
@@ -104,7 +116,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             {
                 return lightArray.ToDictionary(l => l.Id, l =>
                 {
-                    var reactiveNode = CreateReactiveNodeInternal(reactiveConfigurators[l.Id]);
+                    var reactiveNode = CreateReactiveNodeInternal(serviceProvider, reactiveConfigurators[l.Id]);
                     return (IPipelineNode<LightTransition>)reactiveNode;
                 });
             }
@@ -116,7 +128,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             foreach (var light in lightArray)
             {
                 var reactiveNodeConfigurator = reactiveConfigurators[light.Id];
-                var reactiveNode = CreateReactiveNodeInternal(reactiveNodeConfigurator);
+                var reactiveNode = CreateReactiveNodeInternal(serviceProvider, reactiveNodeConfigurator);
                 var lightDimmerOptions = reactiveNodeConfigurator.DimmerOptions;
                 
                 var dimmerNode = new ReactiveDimmerNode(
@@ -163,7 +175,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             return result;
         }
 
-        private ReactiveNode CreateReactiveNodeInternal<TLight>(LightTransitionReactiveNodeConfigurator<TLight> reactiveNodeConfigurator) where TLight : ILight
+        private ReactiveNode CreateReactiveNodeInternal<TLight>(IServiceProvider serviceProvider, LightTransitionReactiveNodeConfigurator<TLight> reactiveNodeConfigurator) where TLight : ILight
         {
             if (reactiveNodeConfigurator.LoggingEnabled ?? false)
             {
@@ -216,7 +228,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                     if (_nodes == null)
                     {
                         var pipelineFactory = serviceProvider.GetRequiredService<ReactiveNodeFactory>();
-                        _nodes = pipelineFactory.CreateReactiveNodes(lights, reactiveNodeConfigurator);
+                        _nodes = pipelineFactory.CreateReactiveNodes(serviceProvider, lights, reactiveNodeConfigurator);
                     }
 
                     return _nodes[lightId];

@@ -86,7 +86,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
             var factory = _serviceProvider.GetRequiredService<ReactiveNodeFactory>();
-            return AddNode(factory.CreateReactiveNode(Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+            return AddNode(factory.CreateReactiveNode(_serviceProvider, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
         }
 
         /// <inheritdoc/>
@@ -94,7 +94,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionPipelineConfigurator<TLight>> configure) =>
             AddNode(
                 _serviceProvider.GetRequiredService<LightPipelineFactory>()
-                    .CreateLightPipeline(Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+                    .CreateLightPipeline(_serviceProvider, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
 
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer)
