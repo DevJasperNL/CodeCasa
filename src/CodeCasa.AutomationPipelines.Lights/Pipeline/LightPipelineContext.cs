@@ -13,7 +13,20 @@ public record LightPipelineState(LightTransition? Output, DateTimeOffset OutputS
 /// </summary>
 public class LightPipelineContext
 {
+    /// <summary>
+    /// The light associated with the pipeline.
+    /// </summary>
+    public ILight Light { get; }
     private volatile LightPipelineState? _state;
+
+    /// <summary>
+    /// Provides context about the current state of a light pipeline.
+    /// Can be injected into pipeline nodes to retrieve the last output state and when it was set.
+    /// </summary>
+    public LightPipelineContext(ILight light)
+    {
+        Light = light;
+    }
 
     /// <summary>
     /// Gets a consistent snapshot of the last pipeline output and the time it was set,

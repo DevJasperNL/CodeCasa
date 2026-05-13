@@ -15,7 +15,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     /// Factory for creating and configuring light transition pipelines.
     /// </summary>
     public class LightPipelineFactory(
-        ILogger<Pipeline<LightTransition>> logger, IServiceProvider serviceProvider)
+        ILogger<Pipeline<LightTransition>> logger, IServiceProvider rootServiceProvider)
     {
         /// <summary>
         /// Sets up a light pipeline for the specified light and configures it with the provided builder action.
@@ -28,7 +28,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             var disposables = new CompositeAsyncDisposable();
-            var pipelines = CreateLightPipelines(light.Flatten().Cast<TLight>(), pipelineBuilder);
+            var pipelines = CreateLightPipelines(rootServiceProvider, light.Flatten().Cast<TLight>(), pipelineBuilder);
             foreach (var pipeline in pipelines.Values)
             {
                 disposables.Add(pipeline);
@@ -42,9 +42,20 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <param name="light">The light to create a pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A configured pipeline for controlling the specified light.</returns>
-        public IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        public IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light,
+            Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+            => CreateLightPipeline(rootServiceProvider, light, pipelineBuilder);
+
+        /// <summary>
+        /// Creates a single light pipeline for the specified light.
+        /// </summary>
+        /// <param name="serviceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
+        /// <param name="light">The light to create a pipeline for.</param>
+        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+        /// <returns>A configured pipeline for controlling the specified light.</returns>
+        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(IServiceProvider serviceProvider, TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
-            return CreateLightPipelines([light], pipelineBuilder)[light.Id];
+            return CreateLightPipelines(serviceProvider, [light], pipelineBuilder)[light.Id];
         }
 
         /// <summary>
@@ -75,10 +86,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <summary>
         /// Creates light pipelines for multiple light entities.
         /// </summary>
+        /// <param name="serviceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
         /// <param name="lights">The light entities to create pipelines for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
-        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IEnumerable<TLight> lights, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IServiceProvider serviceProvider, IEnumerable<TLight> lights, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             // Note: we simply assume that these are not groups.
             var lightArray = lights.ToArray();
@@ -87,7 +99,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightContextScope);
+            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightPipelineContextScope);
             var configurators = 
                 lightArray.ToDictionary(l => l.Id,
                     l =>
@@ -137,7 +149,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
                 var scheduler = scopedSp.GetRequiredService<IScheduler>();
                 var contextSubscription = pipeline.OnNewOutput
-                    .Subscribe(output => pipelineContext.Update(output, scheduler.Now));
+                    .Subscribe(output =>
+                    {
+                        pipelineContext.Update(output, scheduler.Now);
+                    });
                 subscriptions = [.. subscriptions, contextSubscription];
 
                 foreach (var completedCallback in conf.PipelineCompletedCallbacks)
@@ -161,7 +176,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                     if (_pipelines == null)
                     {
                         var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-                        _pipelines = pipelineFactory.CreateLightPipelines(lights, pipelineConfigurator);
+                        _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lights, pipelineConfigurator);
                     }
 
                     return _pipelines[lightId];

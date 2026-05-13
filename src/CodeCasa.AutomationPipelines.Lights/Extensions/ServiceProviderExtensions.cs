@@ -13,7 +13,6 @@ public static class ServiceProviderExtensions
 {
     internal static IServiceScope CreateLightContextScope<TLight>(this IServiceProvider serviceProvider, TLight light) where TLight : ILight
     {
-        var pipelineContext = new LightPipelineContext();
         return serviceProvider.CreateScope(cb =>
         {
             cb.AddTransient(typeof(ILight), _ => light);
@@ -24,8 +23,22 @@ public static class ServiceProviderExtensions
             {
                 cb.AddTransient(typeof(TLight), _ => light);
             }
+        });
+    }
 
-            cb.AddSingleton(_ => pipelineContext);
+    internal static IServiceScope CreateLightPipelineContextScope<TLight>(this IServiceProvider serviceProvider, TLight light) where TLight : ILight
+    {
+        return serviceProvider.CreateScope(cb =>
+        {
+            cb.AddTransient(typeof(ILight), _ => light);
+            if (
+                typeof(TLight) != typeof(ILight) && // Only add the second registration if TLight isn't already ILight
+                typeof(TLight).IsClass || typeof(TLight).IsInterface) // Check at runtime if TLight is a reference type
+            {
+                cb.AddTransient(typeof(TLight), _ => light);
+            }
+
+            cb.AddSingleton(new LightPipelineContext(light));
         });
     }
 

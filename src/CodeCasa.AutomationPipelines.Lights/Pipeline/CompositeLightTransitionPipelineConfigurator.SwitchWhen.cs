@@ -3,7 +3,6 @@ using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Switch;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 

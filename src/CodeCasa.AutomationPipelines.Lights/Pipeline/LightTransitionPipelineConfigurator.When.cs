@@ -113,26 +113,26 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeWhen(IObservable<bool> observable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        return AddReactiveNode(c => c
+        return AddReactiveNode(sp => sp
             .SetHierarchyContext(HierarchyPath, "Conditional Reactive Node", LoggingEnabled ?? false)
-            .On(observable.Where(x => x), configure.ApplyHierarchySettings(c), instantiationScope)
+            .On(observable.Where(x => x), configure.ApplyHierarchySettings(sp), instantiationScope)
             .PassThroughOn(observable.Where(x => !x)));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
-        return When<TObservable>(c =>
-            c.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings($"{HierarchyPath}->Condition", LoggingEnabled ?? false)));
+        return When<TObservable>(sp =>
+            sp.GetRequiredService<LightPipelineFactory>()
+                .CreateLightPipeline(sp, sp.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings($"{HierarchyPath}->Condition", LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineWhen(IObservable<bool> observable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        return When(observable, c =>
-            c.GetRequiredService<LightPipelineFactory>()
-                .CreateLightPipeline(c.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings($"{HierarchyPath}->Condition", LoggingEnabled ?? false)));
+        return When(observable, sp =>
+            sp.GetRequiredService<LightPipelineFactory>()
+                .CreateLightPipeline(sp, sp.GetRequiredService<TLight>(), pipelineConfigurator.ApplyHierarchySettings($"{HierarchyPath}->Condition", LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
