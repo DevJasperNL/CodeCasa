@@ -5,6 +5,7 @@ using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
@@ -131,6 +132,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 var subscriptions = conf.TelemetrySubscriptionFactories
                     .Select(factory => factory(telemetryStream))
                     .ToArray();
+
+                var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
+                var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
+                var scheduler = scopedSp.GetRequiredService<IScheduler>();
+                var contextSubscription = pipeline.OnNewOutput
+                    .Subscribe(output => pipelineContext.Update(output, scheduler.Now));
+                subscriptions = [.. subscriptions, contextSubscription];
 
                 foreach (var completedCallback in conf.PipelineCompletedCallbacks)
                 {

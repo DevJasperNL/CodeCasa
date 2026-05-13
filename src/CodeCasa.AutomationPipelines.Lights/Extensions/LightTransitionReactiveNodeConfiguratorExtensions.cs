@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Text;
-using CodeCasa.AutomationPipelines.Lights.Nodes;
+﻿using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Reactive.Linq;
+using System.Text;
 
 namespace CodeCasa.AutomationPipelines.Lights.Extensions
 {
@@ -17,11 +18,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
             configurator.AddNodeSource(sp =>
             {
                 var light = sp.GetRequiredService<ILight>();
-                return light.StateChanges().Where(l =>
-                {
-                    // todo: make sure we did not set the brightness to 0 ourselves
-                    return l.New?.Brightness == 0;
-                }).Select(_ => (Func<IServiceProvider, IPipelineNode<LightTransition>?>)(_ => new TurnOffThenPassThroughNode()));
+                var context = sp.GetRequiredService<LightPipelineContext>();
+                return light.StateChanges()
+                    .Where(l => 
+                        l.New?.Brightness == 0 && 
+                        (context.State == null || 
+                         context.State.Output?.LightParameters.Brightness != 0))
+                    .Select(_ => (Func<IServiceProvider, IPipelineNode<LightTransition>?>)(_ => new TurnOffThenPassThroughNode()));
             });
 
             return configurator;

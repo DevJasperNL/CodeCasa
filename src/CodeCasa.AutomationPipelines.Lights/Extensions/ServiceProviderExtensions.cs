@@ -1,4 +1,5 @@
 using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reactive.Concurrency;
@@ -12,6 +13,7 @@ public static class ServiceProviderExtensions
 {
     internal static IServiceScope CreateLightContextScope<TLight>(this IServiceProvider serviceProvider, TLight light) where TLight : ILight
     {
+        var pipelineContext = new LightPipelineContext();
         return serviceProvider.CreateScope(cb =>
         {
             cb.AddTransient(typeof(ILight), _ => light);
@@ -22,6 +24,8 @@ public static class ServiceProviderExtensions
             {
                 cb.AddTransient(typeof(TLight), _ => light);
             }
+
+            cb.AddSingleton(_ => pipelineContext);
         });
     }
 
