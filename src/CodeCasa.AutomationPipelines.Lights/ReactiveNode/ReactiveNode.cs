@@ -55,13 +55,14 @@ public class ReactiveNode : PipelineNode<LightTransition>
                         DeactivateActiveNode();
                         PassThrough = true;
                         _logger?.LogTrace($"{LogPrefix}No active node. Passing through data.");
-                        _nodeChangedSubject.OnNext(Unit.Default);
-                        return;
                     }
-
-                    ActivateNode(n);
-                    _nodeChangedSubject.OnNext(Unit.Default);
+                    else
+                    {
+                        ActivateNode(n);
+                    }
                 }
+
+                _nodeChangedSubject.OnNext(Unit.Default);
             });
     }
 
