@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace CodeCasa.AutomationPipelines;
@@ -8,7 +9,6 @@ namespace CodeCasa.AutomationPipelines;
 /// </summary>
 public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 {
-    private readonly Lock _lock = new();
     private readonly List<IPipelineNode<TState>> _nodes = new();
     private readonly Subject<PipelineTelemetry<TState>> _telemetrySubject = new();
     private readonly List<IDisposable> _nestedPipelineSubscriptions = new();
@@ -78,7 +78,7 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     public IReadOnlyCollection<IPipelineNode<TState>> Nodes => _nodes.AsReadOnly();
 
     /// <inheritdoc />
-    public IObservable<PipelineTelemetry<TState>> Telemetry => _telemetrySubject.AsObservable();
+    public IObservable<PipelineTelemetry<TState>> Telemetry => _telemetrySubject.ObserveOn(TaskPoolScheduler.Default);
 
     /// <inheritdoc />
     public IPipeline<TState> SetDefault(TState state)
@@ -107,17 +107,14 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
             var destinationIndex = _nodes.Count;
             previousNode.OnNewOutput.Subscribe(output =>
             {
-                lock (_lock)
-                {
-                    _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
-                        sourceIndex,
-                        previousNode.ToString(),
-                        destinationIndex,
-                        node.ToString(),
-                        previousNode.Output
-                    ));
-                    node.Input = output;
-                }
+                _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+                    sourceIndex,
+                    previousNode.ToString(),
+                    destinationIndex,
+                    node.ToString(),
+                    previousNode.Output
+                ));
+                node.Input = output;
             });
 
             _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
@@ -141,10 +138,7 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
             var nestedPipelineName = nestedPipeline.ToString() ?? string.Empty;
             _nestedPipelineSubscriptions.Add(nestedPipeline.Telemetry.Subscribe(t =>
             {
-                lock (_lock)
-                {
-                    _telemetrySubject.OnNext(t.WithParentPipeline(nestedIndex, nestedPipelineName));
-                }
+                _telemetrySubject.OnNext(t.WithParentPipeline(nestedIndex, nestedPipelineName));
             }));
         }
 
@@ -156,17 +150,14 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         var nodeIndex = _nodes.Count - 1;
         _subscription = node.OnNewOutput.Subscribe(o =>
         {
-            lock (_lock)
-            {
-                _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
-                    nodeIndex,
-                    node.ToString(),
-                    null, null,
-                    o
-                ));
+            _telemetrySubject.OnNext(new PipelineTelemetry<TState>(
+                nodeIndex,
+                node.ToString(),
+                null, null,
+                o
+            ));
 
-                SetOutputAndCallActionWhenApplicable(o);
-            }
+            SetOutputAndCallActionWhenApplicable(o);
         });
 
         var newOutput = node.Output;
