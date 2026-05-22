@@ -22,12 +22,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             Dimming = dimmers
                 .Select(d => d.Dimming)
-                .CombineLatest(x => x.Any())
+                .CombineLatest(x => x.Any(b => b))
                 .DistinctUntilChanged();
 
             Brightening = dimmers
                 .Select(d => d.Brightening)
-                .CombineLatest(x => x.Any())
+                .CombineLatest(x => x.Any(b => b))
                 .DistinctUntilChanged();
         }
 
