@@ -65,9 +65,9 @@ public class ReactiveNode : PipelineNode<LightTransition>
                     {
                         ActivateNode(n);
                     }
-                });
 
-                _nodeChangedSubject.OnNext(Unit.Default);
+                    _nodeChangedSubject.OnNext(Unit.Default);
+                });
             });
     }
 
@@ -141,14 +141,14 @@ public class ReactiveNode : PipelineNode<LightTransition>
         _nodeObservableSubscription?.Dispose();
         _nodeObservableSubscription = null;
 
-        _queueSubscription.Dispose();
-        _stateQueue.Dispose();
-        _nodeChangedSubject.Dispose();
-
         if (ActiveNode != null)
         {
             await ActiveNode.DisposeOrDisposeAsync();
         }
+
+        _queueSubscription.Dispose();
+        _stateQueue.Dispose();
+        _nodeChangedSubject.Dispose();
 
         await base.DisposeAsync();
     }
