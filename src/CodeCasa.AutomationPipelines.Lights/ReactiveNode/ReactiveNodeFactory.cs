@@ -273,19 +273,25 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             /// <inheritdoc />
             public void Unregister(T reference)
             {
-                bool becameEmpty = false;
+                var becameEmpty = false;
 
                 lock (_lock)
                 {
                     if (_isDisposed)
+                    {
                         return;
+                    }
 
                     if (_items.Remove(reference) && _items.Count == 0)
+                    {
                         becameEmpty = true;
+                    }
                 }
 
                 if (becameEmpty)
+                {
                     _lastUnregistered.OnNext(Unit.Default);
+                }
             }
 
             /// <inheritdoc />
@@ -294,7 +300,9 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 lock (_lock)
                 {
                     if (_isDisposed)
+                    {
                         return;
+                    }
 
                     _isDisposed = true;
                     _items.Clear();

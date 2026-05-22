@@ -13,11 +13,12 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 /// </summary>
 public class ReactiveNode : PipelineNode<LightTransition>
 {
-    private readonly Lock _lock = new();
     private readonly string? _name;
     private readonly ILogger<ReactiveNode>? _logger;
     private readonly IEqualityComparer<LightTransition>? _equalityComparer;
     private readonly Subject<Unit> _nodeChangedSubject = new();
+    private readonly Subject<Action> _stateQueue = new();
+    private readonly IDisposable _queueSubscription;
     private IDisposable? _nodeObservableSubscription;
     private IDisposable? _activeNodeSubscription;
 
@@ -45,23 +46,28 @@ public class ReactiveNode : PipelineNode<LightTransition>
         _equalityComparer = equalityComparer;
         PassThrough = true;
 
+        _queueSubscription = _stateQueue
+            .Synchronize()
+            .Subscribe(action => action());
+
         _nodeObservableSubscription = nodeObservable
             .Subscribe(n =>
             {
-                lock (_lock)
+                _stateQueue.OnNext(() =>
                 {
                     if (n == null)
                     {
                         DeactivateActiveNode();
                         PassThrough = true;
                         _logger?.LogTrace($"{LogPrefix}No active node. Passing through data.");
-                        _nodeChangedSubject.OnNext(Unit.Default);
-                        return;
+                    }
+                    else
+                    {
+                        ActivateNode(n);
                     }
 
-                    ActivateNode(n);
                     _nodeChangedSubject.OnNext(Unit.Default);
-                }
+                });
             });
     }
 
@@ -79,17 +85,13 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// <inheritdoc />
     protected override void InputReceived(LightTransition? input)
     {
-        if (ActiveNode == null)
-        {
-            return;
-        }
-        lock (_lock)
+        _stateQueue.OnNext(() =>
         {
             if (ActiveNode != null)
             {
                 ActiveNode.Input = input;
             }
-        }
+        });
     }
 
     private void DeactivateActiveNode()
@@ -117,29 +119,37 @@ public class ReactiveNode : PipelineNode<LightTransition>
         }
         _activeNodeSubscription = ActiveNode.OnNewOutput.Subscribe(output =>
         {
-            if (_equalityComparer != null && _equalityComparer.Equals(Output, output))
-            {
-                return;
-            }
-            lock (_lock)
-            {
-                if (_equalityComparer == null || !_equalityComparer.Equals(Output, output))
-                {
-                    Output = output;
-                }
-            }
+            _stateQueue.OnNext(() => UpdateOutput(output));
         });
         PassThrough = false;
+    }
+
+    private void UpdateOutput(LightTransition? newOutput)
+    {
+        if (_equalityComparer == null || !_equalityComparer.Equals(Output, newOutput))
+        {
+            Output = newOutput;
+        }
     }
 
     /// <inheritdoc />
     public override string ToString() => _name ?? base.ToString();
 
     /// <inheritdoc />
-    public override ValueTask DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         _nodeObservableSubscription?.Dispose();
         _nodeObservableSubscription = null;
-        return base.DisposeAsync();
+
+        if (ActiveNode != null)
+        {
+            await ActiveNode.DisposeOrDisposeAsync();
+        }
+
+        _queueSubscription.Dispose();
+        _stateQueue.Dispose();
+        _nodeChangedSubject.Dispose();
+
+        await base.DisposeAsync();
     }
 }
