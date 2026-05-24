@@ -146,22 +146,37 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             }
 
             /*
-             * Note: for now this implementation does not support assigning specific dimmers to specific children.
-             * The same is true for the options. We simply pick the first as all options will be set to the same value.
-             * If this ever changes, time between steps and entity order should be extracted to apply to every dimmer while the other properties can be applied to individual ones.
+             * Note: DimOrderLights is still a global concern and is taken from the first configurator.
+             * TimeBetweenSteps is now resolved per dimmer: dimmers are grouped by their associated TimeBetweenSteps
+             * value and each group drives its own pulse stream. When a dimmer is shared across multiple lights with
+             * conflicting TimeBetweenSteps, the value from the first configurator that added it wins.
              */
-            var dimmerOptions = reactiveConfigurators.First().Value.DimmerOptions;
+            var dimmerToOptions = new Dictionary<IDimmer, DimmerOptions>();
+            foreach (var rnConfigurator in reactiveConfigurators.Values)
+            {
+                foreach (var dimmer in rnConfigurator.Dimmers)
+                {
+                    dimmerToOptions.TryAdd(dimmer, rnConfigurator.DimmerOptions);
+                }
+            }
 
-            var dimPulses = CreateTaggedPulses(allUniqueDimmers, d => d.Dimming, dimmerOptions.TimeBetweenSteps);
-            var brightenPulses = CreateTaggedPulses(allUniqueDimmers, d => d.Brightening, dimmerOptions.TimeBetweenSteps);
-
-            var orderedDimNodes = dimmerOptions.ValidateAndOrderMultipleLightTypes(dimmerNodes);
+            var globalDimmerOptions = reactiveConfigurators.First().Value.DimmerOptions;
+            var orderedDimNodes = globalDimmerOptions.ValidateAndOrderMultipleLightTypes(dimmerNodes);
 
             var dimSubscriptionDisposables = new CompositeDisposable();
-            SubscribeToPulses(dimPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
-                (context, dn) => dn.DimStep(context));
-            SubscribeToPulses(brightenPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
-                (context, dn) => dn.BrightenStep(context));
+            foreach (var timingGroup in allUniqueDimmers.GroupBy(d => dimmerToOptions[d].TimeBetweenSteps))
+            {
+                var groupDimmers = timingGroup.ToArray();
+                var timeBetweenSteps = timingGroup.Key;
+
+                var dimPulses = CreateTaggedPulses(groupDimmers, d => d.Dimming, timeBetweenSteps);
+                var brightenPulses = CreateTaggedPulses(groupDimmers, d => d.Brightening, timeBetweenSteps);
+
+                SubscribeToPulses(dimPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
+                    (context, dn) => dn.DimStep(context));
+                SubscribeToPulses(brightenPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
+                    (context, dn) => dn.BrightenStep(context));
+            }
             
             var lastUnregisteredSubscription = registrationManager.LastUnregistered.Subscribe(_ =>
             {
