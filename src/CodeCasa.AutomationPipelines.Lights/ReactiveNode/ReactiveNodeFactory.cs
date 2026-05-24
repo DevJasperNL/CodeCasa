@@ -146,8 +146,8 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             }
 
             /*
-             * Note: DimOrderLights is still a global concern and is taken from the first configurator.
-             * TimeBetweenSteps is now resolved per dimmer: dimmers are grouped by their associated TimeBetweenSteps
+             * Note: DimOrderLights is a global concern and is taken from the first configurator.
+             * TimeBetweenSteps is resolved per dimmer: dimmers are grouped by their associated TimeBetweenSteps
              * value and each group drives its own pulse stream. When a dimmer is shared across multiple lights with
              * conflicting TimeBetweenSteps, the value from the first configurator that added it wins.
              */
@@ -172,9 +172,9 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                 var dimPulses = CreateTaggedPulses(groupDimmers, d => d.Dimming, timeBetweenSteps);
                 var brightenPulses = CreateTaggedPulses(groupDimmers, d => d.Brightening, timeBetweenSteps);
 
-                SubscribeToPulses(dimPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
+                SubscribeToPulses(dimPulses, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
                     (context, dn) => dn.DimStep(context));
-                SubscribeToPulses(brightenPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
+                SubscribeToPulses(brightenPulses, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
                     (context, dn) => dn.BrightenStep(context));
             }
             
@@ -234,7 +234,6 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
 
         private void SubscribeToPulses(
             IObservable<IReadOnlySet<IDimmer>> pulses,
-            Dictionary<string, ReactiveDimmerNode> dimmerNodes,
             OrderedDictionary<string, ReactiveDimmerNode> orderedDimNodes,
             Dictionary<string, HashSet<IDimmer>> dimmersByLightId,
             CompositeDisposable compositeDisposable,
@@ -242,13 +241,12 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
         {
             compositeDisposable.Add(pulses.Subscribe(activeDimmers =>
             {
-                var context = CreateDimmingContext(orderedDimNodes);
-                foreach (var (lightId, dimmerNode) in dimmerNodes)
+                var relevantOrderedDimNodes = new OrderedDictionary<string, ReactiveDimmerNode>(
+                    orderedDimNodes.Where(kvp => dimmersByLightId[kvp.Key].Overlaps(activeDimmers)));
+                var context = CreateDimmingContext(relevantOrderedDimNodes);
+                foreach (var (lightId, dimmerNode) in relevantOrderedDimNodes)
                 {
-                    if (dimmersByLightId[lightId].Overlaps(activeDimmers))
-                    {
-                        dimmerAction(context, dimmerNode);
-                    }
+                    dimmerAction(context, dimmerNode);
                 }
             }));
         }
