@@ -1,3 +1,4 @@
+using CodeCasa.Abstractions;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
@@ -88,7 +89,7 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                     l =>
                     {
                         var sp = lightContextScopes[l.Id].ServiceProvider;
-                        // Note: we cant resolve LightTransitionReactiveNodeConfigurator directly because it is not registered as a service.
+                        // Note: we cant resolve LightTransitionReactiveNodeConfigurator directly because it is not registered as a service due to the context specific light.
                         return new LightTransitionReactiveNodeConfigurator<TLight>(sp, l, sp.GetRequiredService<IScheduler>());
                     });
             ILightTransitionReactiveNodeConfigurator<TLight> configurator = lightArray.Length == 1
@@ -101,18 +102,16 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
                     scheduler);
             configure(configurator);
 
-            /*
-             * Note: for now this implementation does not support assigning specific dimmers to specific children.
-             * The nicest way to achieve this would be to create a pulse observable that emits a IDimmer[] for every pulse given, reflecting the dimmers that are currently pushed and providing the pulse.
-             * This array should then be compared to a dictionary that contains which dimmer node (and entity) relate to which dimmers.
-             * Then simply build the context and dim/brighten only for those dimmers.
-             */
-            var dimmers = reactiveConfigurators.Values
-                .SelectMany(rnc => rnc.Dimmers)
+            var dimmersByLightId = reactiveConfigurators.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Dimmers.ToHashSet());
+
+            var allUniqueDimmers = dimmersByLightId.Values
+                .SelectMany(d => d)
                 .Distinct()
                 .ToArray();
 
-            if (!dimmers.Any())
+            if (!allUniqueDimmers.Any())
             {
                 return lightArray.ToDictionary(l => l.Id, l =>
                 {
@@ -152,17 +151,16 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
              * If this ever changes, time between steps and entity order should be extracted to apply to every dimmer while the other properties can be applied to individual ones.
              */
             var dimmerOptions = reactiveConfigurators.First().Value.DimmerOptions;
-            var dimmer = dimmers.Length > 1 ? new CompositeDimmer(dimmers) : dimmers[0];
 
-            var dimPulses = dimmer.Dimming.ToPulsesWhenTrue(dimmerOptions.TimeBetweenSteps, scheduler);
-            var brightenPulses = dimmer.Brightening.ToPulsesWhenTrue(dimmerOptions.TimeBetweenSteps, scheduler);
+            var dimPulses = CreateTaggedPulses(allUniqueDimmers, d => d.Dimming, dimmerOptions.TimeBetweenSteps);
+            var brightenPulses = CreateTaggedPulses(allUniqueDimmers, d => d.Brightening, dimmerOptions.TimeBetweenSteps);
 
             var orderedDimNodes = dimmerOptions.ValidateAndOrderMultipleLightTypes(dimmerNodes);
 
             var dimSubscriptionDisposables = new CompositeDisposable();
-            SubscribeToPulses(dimPulses, dimmerNodes, orderedDimNodes, dimSubscriptionDisposables, 
+            SubscribeToPulses(dimPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
                 (context, dn) => dn.DimStep(context));
-            SubscribeToPulses(brightenPulses, dimmerNodes, orderedDimNodes, dimSubscriptionDisposables,
+            SubscribeToPulses(brightenPulses, dimmerNodes, orderedDimNodes, dimmersByLightId, dimSubscriptionDisposables,
                 (context, dn) => dn.BrightenStep(context));
             
             var lastUnregisteredSubscription = registrationManager.LastUnregistered.Subscribe(_ =>
@@ -196,17 +194,47 @@ namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode
             };
         }
 
+        private IObservable<IReadOnlySet<IDimmer>> CreateTaggedPulses(
+            IDimmer[] dimmers,
+            Func<IDimmer, IObservable<bool>> directionSelector,
+            TimeSpan timeBetweenSteps)
+        {
+            var latestActiveState = dimmers
+                .Select(d => directionSelector(d).Select(active => (Dimmer: d, Active: active)))
+                .CombineLatest()
+                .Select(pairs => (IReadOnlySet<IDimmer>)pairs
+                    .Where(p => p.Active)
+                    .Select(p => p.Dimmer)
+                    .ToHashSet());
+
+            var anyActive = dimmers
+                .Select(directionSelector)
+                .CombineLatest(x => x.Any(b => b))
+                .DistinctUntilChanged();
+
+            return anyActive
+                .ToPulsesWhenTrue(timeBetweenSteps, scheduler)
+                .WithLatestFrom(latestActiveState, (_, active) => active);
+        }
+
         private void SubscribeToPulses(
-            IObservable<Unit> pulses,
+            IObservable<IReadOnlySet<IDimmer>> pulses,
             Dictionary<string, ReactiveDimmerNode> dimmerNodes,
             OrderedDictionary<string, ReactiveDimmerNode> orderedDimNodes,
+            Dictionary<string, HashSet<IDimmer>> dimmersByLightId,
             CompositeDisposable compositeDisposable,
             Action<DimmingContext, ReactiveDimmerNode> dimmerAction)
         {
-            compositeDisposable.Add(pulses.Subscribe(_ =>
+            compositeDisposable.Add(pulses.Subscribe(activeDimmers =>
             {
                 var context = CreateDimmingContext(orderedDimNodes);
-                dimmerNodes.Values.ForEach(dn => dimmerAction(context, dn));
+                foreach (var (lightId, dimmerNode) in dimmerNodes)
+                {
+                    if (dimmersByLightId[lightId].Overlaps(activeDimmers))
+                    {
+                        dimmerAction(context, dimmerNode);
+                    }
+                }
             }));
         }
 
