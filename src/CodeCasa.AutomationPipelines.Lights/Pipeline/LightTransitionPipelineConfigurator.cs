@@ -14,7 +14,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
     internal partial class LightTransitionPipelineConfigurator<TLight>
         : ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
     {
-        private readonly IServiceProvider _serviceProvider;
+        public IServiceProvider ServiceProvider { get; }
         private readonly List<IPipelineNode<LightTransition>> _nodes = new();
 
         internal string? Name { get; set; } = "Pipeline";
@@ -23,7 +23,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
 
         public LightTransitionPipelineConfigurator(IServiceProvider serviceProvider, TLight light)
         {
-            _serviceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
             Light = light;
         }
 
@@ -58,7 +58,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>()
             where TNode : IPipelineNode<LightTransition>
         {
-            _nodes.Add(ActivatorUtilities.CreateInstance<TNode>(_serviceProvider));
+            _nodes.Add(ActivatorUtilities.CreateInstance<TNode>(ServiceProvider));
             return this;
         }
 
@@ -77,7 +77,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddNode(
             Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
         {
-            _nodes.Add(nodeFactory(_serviceProvider));
+            _nodes.Add(nodeFactory(ServiceProvider));
             return this;
         }
 
@@ -85,16 +85,16 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
-            var factory = _serviceProvider.GetRequiredService<ReactiveNodeFactory>();
-            return AddNode(factory.CreateReactiveNode(_serviceProvider, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+            var factory = ServiceProvider.GetRequiredService<ReactiveNodeFactory>();
+            return AddNode(factory.CreateReactiveNode(ServiceProvider, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
         }
 
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddPipeline(
             Action<ILightTransitionPipelineConfigurator<TLight>> configure) =>
             AddNode(
-                _serviceProvider.GetRequiredService<LightPipelineFactory>()
-                    .CreateLightPipeline(_serviceProvider, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+                ServiceProvider.GetRequiredService<LightPipelineFactory>()
+                    .CreateLightPipeline(ServiceProvider, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
 
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer)

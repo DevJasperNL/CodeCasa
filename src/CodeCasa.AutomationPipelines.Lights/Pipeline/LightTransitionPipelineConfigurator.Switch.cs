@@ -75,7 +75,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory, Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
         return Switch(observable, trueNodeFactory, falseNodeFactory);
     }
 
@@ -92,7 +92,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable, TTrueNode, TFalseNode>() where TObservable : IObservable<bool> where TTrueNode : IPipelineNode<LightTransition> where TFalseNode : IPipelineNode<LightTransition>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
         return Switch<TTrueNode, TFalseNode>(observable);
     }
 
@@ -108,7 +108,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitch<TObservable>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> trueConfigure, Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
         return AddReactiveNodeSwitch(observable, trueConfigure, falseConfigure, instantiationScope);
     }
 
@@ -125,7 +125,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddPipelineSwitch<TObservable>(Action<ILightTransitionPipelineConfigurator<TLight>> trueConfigure, Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure, InstantiationScope instantiationScope = InstantiationScope.Shared) where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
         return AddPipelineSwitch(observable, trueConfigure, falseConfigure, instantiationScope);
     }
 
@@ -143,7 +143,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Action<ILightTransitionSwitchConfigurator<TLight>> configure)
         where TObservable : IObservable<bool>
     {
-        var observable = ActivatorUtilities.CreateInstance<TObservable>(_serviceProvider);
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
         return Switch(observable, configure);
     }
 
