@@ -15,7 +15,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Extensions
             configurator.AddNodeSource(sp =>
             {
                 var light = sp.GetRequiredService<ILight>();
-                var context = sp.GetRequiredService<LightPipelineContext>();
+                var context = sp.GetService<LightPipelineContext>() ?? throw new InvalidOperationException($"{nameof(HandleExternalLightStateChanges)} can only be applies to reactive nodes hosted in a pipeline.");
                 return light.StateChanges()
                     .Where(l => 
                         l.New?.Brightness == 0 && 

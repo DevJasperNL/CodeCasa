@@ -59,7 +59,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
             Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
         {
-            var nodes = reactiveNodeFactory.CreateReactiveNodes(serviceProvider, NodeContainers.Select(nc => nc.Value.Light),
+            var nodes = reactiveNodeFactory.CreateReactiveNodes(serviceProvider, NodeContainers.ToDictionary(nc => nc.Value.Light, nc => nc.Value.ServiceProvider),
                 configure
                     .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
                     .SetObservableSharingStrategy(_observableSharingStrategy));
@@ -70,9 +70,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <inheritdoc/>
         public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> configure)
         {
-            var pipelines = lightPipelineFactory.CreateLightPipelines(serviceProvider, NodeContainers.Select(c => c.Value.Light), configure
-                .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
-                .SetObservableSharingStrategy(_observableSharingStrategy));
+            var pipelines = lightPipelineFactory.CreateLightPipelines(serviceProvider, NodeContainers.ToDictionary(nc => nc.Value.Light, nc => nc.Value.ServiceProvider), 
+                configure
+                    .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+                    .SetObservableSharingStrategy(_observableSharingStrategy));
             NodeContainers.ForEach(kvp => kvp.Value.AddNode(pipelines[kvp.Key]));
             return this;
         }

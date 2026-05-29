@@ -51,7 +51,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
                 pipelineConfigurator
                     .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
                     .SetObservableSharingStrategy(_observableSharingStrategy),
-                configurators.Values.Select(c => c.Light).ToArray());
+                configurators.Values.ToDictionary(kvp => kvp.Light, kvp => kvp.ServiceProvider));
             configurators.Values.ForEach(c => c.On(shareableTriggerObservable, factories[c.Light.Id]));
             return this;
         }
@@ -72,7 +72,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
                 configure
                     .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
                     .SetObservableSharingStrategy(_observableSharingStrategy),
-                configurators.Values.Select(c => c.Light).ToArray());
+                configurators.Values.ToDictionary(kvp => kvp.Light, kvp => kvp.ServiceProvider));
             configurators.Values.ForEach(c => c.On(shareableTriggerObservable, factories[c.Light.Id]));
             return this;
         }

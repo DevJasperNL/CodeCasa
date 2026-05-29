@@ -28,7 +28,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             var disposables = new CompositeAsyncDisposable();
-            var pipelines = CreateLightPipelines(rootServiceProvider, light.Flatten().Cast<TLight>(), pipelineBuilder);
+            var pipelines = CreateLightPipelines(rootServiceProvider, light.Flatten().Cast<TLight>().ToDictionary(l => l, _ => rootServiceProvider), pipelineBuilder);
             foreach (var pipeline in pipelines.Values)
             {
                 disposables.Add(pipeline);
@@ -49,13 +49,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <summary>
         /// Creates a single light pipeline for the specified light.
         /// </summary>
-        /// <param name="serviceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
+        /// <param name="compositeServiceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
         /// <param name="light">The light to create a pipeline for.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A configured pipeline for controlling the specified light.</returns>
-        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(IServiceProvider serviceProvider, TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(IServiceProvider compositeServiceProvider, TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
-            return CreateLightPipelines(serviceProvider, [light], pipelineBuilder)[light.Id];
+            return CreateLightPipelines(compositeServiceProvider, new Dictionary<TLight, IServiceProvider> { { light, compositeServiceProvider } }, pipelineBuilder)[light.Id];
         }
 
         /// <summary>
@@ -65,15 +65,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// </summary>
         /// <typeparam name="TLight">The type of light, constrained to <see cref="ILight"/>.</typeparam>
         /// <param name="pipelineConfigurator">The configuration action used to initialize the pipeline logic.</param>
-        /// <param name="lights">The collection of lights for which pipelines will be created.</param>
+        /// <param name="lightsAndProviders">Mapping to the lights to their respective service providers. This allows the factory to create context-specific scopes for each light.</param>
         /// <returns>
         /// A <see cref="Dictionary{TKey, TValue}"/> where the key is the light ID and the value is a 
         /// function that resolves the corresponding <see cref="IPipelineNode{LightTransition}"/>.
         /// </returns>
-        internal Dictionary<string, Func<IServiceProvider, IPipelineNode<LightTransition>>> CreateCompositePipelineFactoryMap<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, TLight[] lights) where TLight : ILight
+        internal Dictionary<string, Func<IServiceProvider, IPipelineNode<LightTransition>>> CreateCompositePipelineFactoryMap<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
         {
-            var baseFactory = new CompositePipelineFactory<TLight>(pipelineConfigurator, lights);
-            return lights
+            var baseFactory = new CompositePipelineFactory<TLight>(pipelineConfigurator, lightsAndProviders);
+            return lightsAndProviders.Keys
                 .ToDictionary(
                     l => l.Id,
                     l =>
@@ -86,20 +86,20 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
         /// <summary>
         /// Creates light pipelines for multiple light entities.
         /// </summary>
-        /// <param name="serviceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
-        /// <param name="lights">The light entities to create pipelines for.</param>
+        /// <param name="compositeServiceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
+        /// <param name="lightsAndProviders">Mapping to the lights to their respective service providers. This allows the factory to create context-specific scopes for each light.</param>
         /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
         /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
-        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IServiceProvider serviceProvider, IEnumerable<TLight> lights, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IServiceProvider compositeServiceProvider, Dictionary<TLight, IServiceProvider> lightsAndProviders, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
         {
             // Note: we simply assume that these are not groups.
-            var lightArray = lights.ToArray();
+            var lightArray = lightsAndProviders.Keys.ToArray();
             if (!lightArray.Any())
             {
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var lightContextScopes = lightArray.ToDictionary(l => l.Id, serviceProvider.CreateLightPipelineContextScope);
+            var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightPipelineContextScope(kvp.Key));
             var configurators = 
                 lightArray.ToDictionary(l => l.Id,
                     l =>
@@ -111,9 +111,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             ILightTransitionPipelineConfigurator<TLight> configurator = lightArray.Length == 1
                 ? configurators[lightArray[0].Id]
                 : new CompositeLightTransitionPipelineConfigurator<TLight>(
-                    serviceProvider,
-                    serviceProvider.GetRequiredService<LightPipelineFactory>(),
-                    serviceProvider.GetRequiredService<ReactiveNodeFactory>(),
+                    compositeServiceProvider,
+                    compositeServiceProvider.GetRequiredService<LightPipelineFactory>(),
+                    compositeServiceProvider.GetRequiredService<ReactiveNodeFactory>(),
                     configurators);
             pipelineBuilder(configurator);
 
@@ -164,7 +164,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
             });
         }
 
-        private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, IEnumerable<TLight> lights) where TLight : ILight
+        private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
         {
             private readonly Lock _lock = new();
             private Dictionary<string, IPipeline<LightTransition>>? _pipelines;
@@ -176,7 +176,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                     if (_pipelines == null)
                     {
                         var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-                        _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lights, pipelineConfigurator);
+                        _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
                     }
 
                     return _pipelines[lightId];
