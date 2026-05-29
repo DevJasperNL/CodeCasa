@@ -99,7 +99,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Pipeline
                 return new Dictionary<string, IPipeline<LightTransition>>();
             }
 
-            var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightContextScope(kvp.Key));
+            var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightPipelineContextScope(kvp.Key));
             var configurators = 
                 lightArray.ToDictionary(l => l.Id,
                     l =>
