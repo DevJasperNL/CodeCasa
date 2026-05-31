@@ -28,17 +28,17 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory) where TObservable : IObservable<bool>
     {
-        return Switch<TObservable>(c => falseLightParametersFactory(c).AsTransition(), c => trueLightParametersFactory(c).AsTransition());
+        return Switch<TObservable>(c => falseLightParametersFactory(c)?.AsTransition(), c => trueLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
-        return Switch(observable, c => trueLightParametersFactory(c).AsTransition(), c => falseLightParametersFactory(c).AsTransition());
+        return Switch(observable, c => trueLightParametersFactory(c)?.AsTransition(), c => falseLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
@@ -56,8 +56,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory) where TObservable : IObservable<bool>
     {
         return Switch<TObservable>(
             c => new StaticLightTransitionNode(trueLightTransitionFactory(c), c.GetRequiredService<IScheduler>()), 
@@ -65,8 +65,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
     {
         return Switch(
             observable,
@@ -230,7 +230,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         trueConfigure(trueConfigurator);
         var falseConfigurator = new TimelineConfigurator();
         falseConfigure(falseConfigurator);
-        return Switch(observable, trueConfigurator.Timeline, falseConfigurator.Timeline,
+        return Switch(observable, trueConfigurator.TimelineFactory, falseConfigurator.TimelineFactory,
             trueConfigurator.TransitionTime ?? falseConfigurator.TransitionTime);
     }
 }

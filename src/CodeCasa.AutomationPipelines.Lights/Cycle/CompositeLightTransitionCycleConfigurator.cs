@@ -107,7 +107,7 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        return AddTimeline(configurator.Timeline, configurator.TransitionTime);
+        return AddTimeline(configurator.TimelineFactory, configurator.TransitionTime);
     }
 
     public ILightTransitionCycleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);

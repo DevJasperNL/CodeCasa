@@ -8,7 +8,7 @@ namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
 /// <summary>
 /// Extension methods for light toggle configurators to work with NetDaemon light entities.
 /// </summary>
-public static class LightTransitionToggleConfiguratorExtensions
+public static partial class LightTransitionToggleConfiguratorExtensions
 {
     /// <summary>
     /// Creates a scoped toggle configuration for a specific NetDaemon light entity.
@@ -39,4 +39,5 @@ public static class LightTransitionToggleConfiguratorExtensions
     {
         return configurator.ForLights(lightEntities.Select(l => l.AsLight()), configure, excludedLightBehaviour);
     }
-}
+
+    }

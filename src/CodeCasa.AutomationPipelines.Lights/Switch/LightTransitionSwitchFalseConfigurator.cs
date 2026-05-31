@@ -21,11 +21,11 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
     public void WhenFalse(LightTransition lightTransition)
         => WhenFalse(_ => lightTransition);
 
-    public void WhenFalse(Func<IServiceProvider, LightParameters> lightParametersFactory)
-        => WhenFalse(c => lightParametersFactory(c).AsTransition());
+    public void WhenFalse(Func<IServiceProvider, LightParameters?> lightParametersFactory)
+        => WhenFalse(c => lightParametersFactory(c)?.AsTransition());
 
-    public void WhenFalse(Func<IServiceProvider, LightTransition> lightTransitionFactory)
-        => WhenFalse(c => (IPipelineNode<LightTransition>)new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+    public void WhenFalse(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
+        => WhenFalse(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
 
     public void WhenFalse(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
@@ -47,6 +47,6 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        WhenFalse(configurator.Timeline, configurator.TransitionTime);
+        WhenFalse(configurator.TimelineFactory, configurator.TransitionTime);
     }
 }

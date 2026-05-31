@@ -32,14 +32,14 @@ public interface ILightTransitionSwitchConfigurator<TLight> where TLight : ILigh
     /// </summary>
     /// <param name="lightParametersFactory">A factory function that creates the light parameters.</param>
     /// <returns>A configurator for specifying the false branch.</returns>
-    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, LightParameters> lightParametersFactory);
+    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, LightParameters?> lightParametersFactory);
 
     /// <summary>
     /// Specifies a factory that creates the <see cref="LightTransition"/> to apply when the observable emits <see langword="true"/>.
     /// </summary>
     /// <param name="lightTransitionFactory">A factory function that creates the light transition.</param>
     /// <returns>A configurator for specifying the false branch.</returns>
-    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, LightTransition> lightTransitionFactory);
+    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, LightTransition?> lightTransitionFactory);
 
     /// <summary>
     /// Specifies a factory that creates the pipeline node to apply when the observable emits <see langword="true"/>.

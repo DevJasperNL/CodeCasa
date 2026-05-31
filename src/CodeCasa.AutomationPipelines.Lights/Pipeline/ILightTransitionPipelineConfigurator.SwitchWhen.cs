@@ -66,8 +66,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory);
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory);
 
     /// <summary>
     /// Registers a node that applies a switch between two sets of light parameters created by factory functions when the observable of type
@@ -80,8 +80,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightParametersFactory">A factory function that creates light parameters for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>;
 
@@ -97,8 +97,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightParametersFactory">A factory function that creates light parameters for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
         where TWhenObservable : IObservable<bool>;
 
     /// <summary>
@@ -157,8 +157,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory);
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory);
 
     /// <summary>
     /// Registers a node that applies a switch between two light transitions created by factory functions when the observable of type
@@ -171,8 +171,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightTransitionFactory">A factory function that creates a light transition for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>;
 
@@ -188,8 +188,8 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="falseLightTransitionFactory">A factory function that creates a light transition for false values.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
         where TWhenObservable : IObservable<bool>;
 
     /// <summary>

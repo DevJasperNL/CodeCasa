@@ -43,18 +43,18 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
         return SwitchWhen(whenObservable, switchObservable,
-            c => trueLightParametersFactory(c).AsTransition(),
-            c => falseLightParametersFactory(c).AsTransition());
+            c => trueLightParametersFactory(c)?.AsTransition(),
+            c => falseLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>
     {
@@ -64,8 +64,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
         where TWhenObservable : IObservable<bool>
     {
         var whenObservable = ActivatorUtilities.CreateInstance<TWhenObservable>(ServiceProvider);
@@ -102,8 +102,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
     {
         return SwitchWhen(whenObservable, switchObservable,
             c => new StaticLightTransitionNode(trueLightTransitionFactory(c), c.GetRequiredService<IScheduler>()),
@@ -112,8 +112,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>
     {
@@ -123,8 +123,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
         where TWhenObservable : IObservable<bool>
     {
         var whenObservable = ActivatorUtilities.CreateInstance<TWhenObservable>(ServiceProvider);
@@ -406,7 +406,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         trueConfigure(trueConfigurator);
         var falseConfigurator = new TimelineConfigurator();
         falseConfigure(falseConfigurator);
-        return SwitchWhen(whenObservable, switchObservable, trueConfigurator.Timeline, falseConfigurator.Timeline,
+        return SwitchWhen(whenObservable, switchObservable, trueConfigurator.TimelineFactory, falseConfigurator.TimelineFactory,
             trueConfigurator.TransitionTime ?? falseConfigurator.TransitionTime);
     }
 

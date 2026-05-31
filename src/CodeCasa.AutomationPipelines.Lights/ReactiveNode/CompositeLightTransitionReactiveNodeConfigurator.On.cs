@@ -16,15 +16,15 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
         => On(triggerObservable, lightParameters.AsTransition());
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightParameters> lightParametersFactory)
-        => On(triggerObservable, c => lightParametersFactory(c).AsTransition());
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightParameters?> lightParametersFactory)
+        => On(triggerObservable, c => lightParametersFactory(c)?.AsTransition());
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, LightTransition lightTransition)
         => On(triggerObservable, c => new StaticLightTransitionNode(lightTransition, c.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
-    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightTransition> lightTransitionFactory)
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightTransition?> lightTransitionFactory)
         => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
@@ -124,6 +124,6 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        return On(triggerObservable, configurator.Timeline, configurator.TransitionTime);
+        return On(triggerObservable, configurator.TimelineFactory, configurator.TransitionTime);
     }
 }

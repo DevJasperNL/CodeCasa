@@ -8,7 +8,7 @@ namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
 /// <summary>
 /// Extension methods for light pipeline configurators to work with NetDaemon light entities.
 /// </summary>
-public static class LightTransitionPipelineConfiguratorExtensions
+public static partial class LightTransitionPipelineConfiguratorExtensions
 {
     /// <summary>
     /// Creates a scoped pipeline configuration for a specific NetDaemon light entity.

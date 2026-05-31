@@ -113,7 +113,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         {
             var configurator = new TimelineConfigurator();
             configure(configurator);
-            return AddTimeline(configurator.Timeline, configurator.TransitionTime);
+            return AddTimeline(configurator.TimelineFactory, configurator.TransitionTime);
         }
 
         public ILightTransitionToggleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);
