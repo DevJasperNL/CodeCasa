@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using Occurify;
@@ -99,6 +100,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             activeConfigurators.Values.ForEach(c => c.AddTimeline(timeline, transitionTimeForTimelineState));
             inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
             return this;
+        }
+
+        public ILightTransitionToggleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
+        {
+            var configurator = new TimelineConfigurator();
+            configure(configurator);
+            return AddTimeline(configurator.Timeline, configurator.TransitionTime);
         }
 
         public ILightTransitionToggleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);

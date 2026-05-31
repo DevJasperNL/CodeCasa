@@ -1,4 +1,5 @@
 using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,6 +85,13 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTr
             _ => EqualityComparer<LightParameters>.Default.Equals(
                 Light.GetParameters(),
                 timeline.GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First()));
+    }
+
+    public ILightTransitionCycleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
+    {
+        var configurator = new TimelineConfigurator();
+        configure(configurator);
+        return AddTimeline(configurator.Timeline, configurator.TransitionTime);
     }
 
     public ILightTransitionCycleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);

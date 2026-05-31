@@ -1,3 +1,4 @@
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Occurify;
 
@@ -118,6 +119,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </param>
         /// <returns>The configurator instance for method chaining.</returns>
         ILightTransitionToggleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
+
+        /// <summary>
+        /// Adds a timeline to the toggle sequence using a configurator action to build the timeline mapping and transition time.
+        /// The node will drive its output from the given time-based timeline, updating automatically as time progresses.
+        /// </summary>
+        /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+        /// <returns>The configurator instance for method chaining.</returns>
+        ILightTransitionToggleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure);
 
         /// <summary>
         /// Creates a scoped toggle configuration for a specific light identified by its entity ID.
