@@ -1,4 +1,5 @@
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Toggle
 {
@@ -106,6 +107,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         /// </summary>
         /// <returns>The configurator instance for method chaining.</returns>
         ILightTransitionToggleConfigurator<TLight> AddPassThrough();
+
+        /// <summary>
+        /// Adds a timeline to the toggle sequence. The node will drive its output from the given time-based
+        /// timeline, updating automatically as time progresses.
+        /// </summary>
+        /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+        /// <param name="transitionTimeForTimelineState">
+        /// The duration of the initial fade from the current state. Defaults to 500ms if null.
+        /// </param>
+        /// <returns>The configurator instance for method chaining.</returns>
+        ILightTransitionToggleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
 
         /// <summary>
         /// Creates a scoped toggle configuration for a specific light identified by its entity ID.

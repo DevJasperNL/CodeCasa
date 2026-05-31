@@ -2,11 +2,13 @@ using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Concurrency;
+using Occurify.Extensions;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle;
 
-internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler scheduler) : ILightTransitionCycleConfigurator<TLight>
+internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTransitionCycleConfigurator<TLight>
     where TLight : ILight
 {
     public TLight Light { get; } = light;
@@ -44,24 +46,24 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
     public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
     {
         comparer ??= EqualityComparer<LightParameters>.Default;
-        return Add(_ => new StaticLightTransitionNode(lightTransition, scheduler), _ => comparer.Equals(
+        return Add(sp => new StaticLightTransitionNode(lightTransition, sp.GetRequiredService<IScheduler>()), _ => comparer.Equals(
             Light.GetParameters(),
             lightTransition.LightParameters));
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), scheduler), matchesNodeState);
+        return Add(sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)), matchesNodeState);
+        return Add(sp => new FactoryNode<LightTransition>(t => lightTransitionFactory(sp, t)), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<IServiceProvider, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
     {
-        return Add(c => ActivatorUtilities.CreateInstance<TNode>(c), matchesNodeState);
+        return Add(sp => ActivatorUtilities.CreateInstance<TNode>(sp), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory, Func<IServiceProvider, bool> matchesNodeState)
@@ -73,6 +75,15 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light, IScheduler
     public ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<IServiceProvider, bool> matchesNodeState)
     {
         return Add(_ => new PassThroughNode<LightTransition>(), matchesNodeState);
+    }
+
+    public ILightTransitionCycleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return Add(
+            sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
+            _ => EqualityComparer<LightParameters>.Default.Equals(
+                Light.GetParameters(),
+                timeline.GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First()));
     }
 
     public ILightTransitionCycleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionCycleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);

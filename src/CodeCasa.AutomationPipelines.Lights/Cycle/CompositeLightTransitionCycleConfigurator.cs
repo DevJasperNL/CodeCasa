@@ -1,9 +1,11 @@
-using System.Reactive.Concurrency;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
+using Occurify.Extensions;
+using System.Reactive.Concurrency;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle;
 
@@ -79,6 +81,15 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
     {
         activeConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
         inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(matchesNodeState));
+        return this;
+    }
+
+    public ILightTransitionCycleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        activeConfigurators.Values.ForEach(c => c.AddTimeline(timeline, transitionTimeForTimelineState));
+        inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(sp => EqualityComparer<LightParameters>.Default.Equals(
+            sp.GetRequiredService<ILight>().GetParameters(),
+            timeline.GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First())));
         return this;
     }
 

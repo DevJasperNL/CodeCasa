@@ -1,4 +1,5 @@
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Cycle
 {
@@ -102,6 +103,18 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         /// <param name="matchesNodeState">A function that determines if the current state matches this cycle entry.</param>
         /// <returns>The configurator instance for method chaining.</returns>
         ILightTransitionCycleConfigurator<TLight> AddPassThrough(Func<IServiceProvider, bool> matchesNodeState);
+
+        /// <summary>
+        /// Adds a timeline to the cycle. The node will drive its output from the given time-based timeline,
+        /// updating automatically as time progresses. State matching is determined by comparing the light's
+        /// current parameters against the timeline's current output.
+        /// </summary>
+        /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+        /// <param name="transitionTimeForTimelineState">
+        /// The duration of the initial fade from the current state. Defaults to 500ms if null.
+        /// </param>
+        /// <returns>The configurator instance for method chaining.</returns>
+        ILightTransitionCycleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
 
         /// <summary>
         /// Creates a scoped cycle configuration for a specific light identified by its entity ID.

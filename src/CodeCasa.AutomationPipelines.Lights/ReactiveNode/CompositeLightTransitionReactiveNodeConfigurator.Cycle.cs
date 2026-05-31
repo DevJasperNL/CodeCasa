@@ -44,7 +44,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable, Action<ILightTransitionCycleConfigurator<TLight>> configure)
     {
         var cycleConfigurators = configurators.ToDictionary(kvp => kvp.Key,
-            kvp => new LightTransitionCycleConfigurator<TLight>(kvp.Value.Light, scheduler));
+            kvp => new LightTransitionCycleConfigurator<TLight>(kvp.Value.Light));
         var compositeCycleConfigurator = new CompositeLightTransitionCycleConfigurator<TLight>(cycleConfigurators, []);
         configure(compositeCycleConfigurator);
         var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
