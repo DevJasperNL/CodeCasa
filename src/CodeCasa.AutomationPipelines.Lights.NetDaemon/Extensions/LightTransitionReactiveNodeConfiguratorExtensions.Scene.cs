@@ -2,6 +2,7 @@ using CodeCasa.AutomationPipelines.Lights.Cycle;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights.NetDaemon;
+using CodeCasa.Lights.NetDaemon.Scenes;
 using NetDaemon.HassModel.Entities;
 
 namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
