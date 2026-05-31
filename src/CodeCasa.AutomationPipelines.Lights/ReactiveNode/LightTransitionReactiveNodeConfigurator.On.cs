@@ -18,7 +18,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
-        Func<IServiceProvider, LightParameters> lightParametersFactory)
+        Func<IServiceProvider, LightParameters?> lightParametersFactory)
         => On(triggerObservable, c => lightParametersFactory(c).AsTransition());
 
     /// <inheritdoc/>
@@ -28,7 +28,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
-        Func<IServiceProvider, LightTransition> lightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory)
         => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>

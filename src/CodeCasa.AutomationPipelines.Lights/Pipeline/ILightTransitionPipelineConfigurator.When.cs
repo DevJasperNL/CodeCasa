@@ -39,7 +39,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<IServiceProvider, LightParameters> lightParametersFactory)
+        Func<IServiceProvider, LightParameters?> lightParametersFactory)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -51,7 +51,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="lightParametersFactory">A factory function that creates light parameters based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<IServiceProvider, LightParameters> lightParametersFactory);
+        Func<IServiceProvider, LightParameters?> lightParametersFactory);
 
     /// <summary>
     /// Registers a node that applies the given <paramref name="lightTransition"/> when the observable 
@@ -86,7 +86,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<IServiceProvider, LightTransition> lightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory)
         where TObservable : IObservable<bool>;
 
     /// <summary>
@@ -99,7 +99,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="lightTransitionFactory">A factory function that creates a light transition based on the pipeline context.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<IServiceProvider, LightTransition> lightTransitionFactory);
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory);
 
     /// <summary>
     /// Registers a node created by <paramref name="nodeFactory"/> when the observable of type 

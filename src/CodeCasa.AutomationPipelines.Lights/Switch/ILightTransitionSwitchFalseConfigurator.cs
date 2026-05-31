@@ -34,7 +34,7 @@ public interface ILightTransitionSwitchFalseConfigurator<TLight> where TLight : 
     /// </summary>
     /// <param name="lightParametersFactory">A factory function that creates the light parameters.</param>
     /// <returns>The parent pipeline configurator for method chaining.</returns>
-    void WhenFalse(Func<IServiceProvider, LightParameters> lightParametersFactory);
+    void WhenFalse(Func<IServiceProvider, LightParameters?> lightParametersFactory);
 
     /// <summary>
     /// Specifies a factory that creates the <see cref="LightTransition"/> to apply when the observable emits <see langword="false"/>
@@ -42,7 +42,7 @@ public interface ILightTransitionSwitchFalseConfigurator<TLight> where TLight : 
     /// </summary>
     /// <param name="lightTransitionFactory">A factory function that creates the light transition.</param>
     /// <returns>The parent pipeline configurator for method chaining.</returns>
-    void WhenFalse(Func<IServiceProvider, LightTransition> lightTransitionFactory);
+    void WhenFalse(Func<IServiceProvider, LightTransition?> lightTransitionFactory);
 
     /// <summary>
     /// Specifies a factory that creates the pipeline node to apply when the observable emits <see langword="false"/>

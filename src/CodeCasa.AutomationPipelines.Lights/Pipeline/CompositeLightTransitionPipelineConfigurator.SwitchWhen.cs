@@ -47,8 +47,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
         var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
         var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
@@ -58,8 +58,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>
     {
@@ -71,8 +71,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+        Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
         where TWhenObservable : IObservable<bool>
     {
         var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
@@ -118,8 +118,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
     {
         var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
         var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
@@ -129,8 +129,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>
     {
@@ -142,8 +142,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
-        Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
         where TWhenObservable : IObservable<bool>
     {
         var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));

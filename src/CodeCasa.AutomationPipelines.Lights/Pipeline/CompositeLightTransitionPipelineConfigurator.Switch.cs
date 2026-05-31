@@ -30,8 +30,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory) where TObservable : IObservable<bool>
     {
         var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
         NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueLightParametersFactory, falseLightParametersFactory));
@@ -39,8 +39,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters> trueLightParametersFactory,
-        Func<IServiceProvider, LightParameters> falseLightParametersFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
+        Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
         var shareableObservable = _observableSharingStrategy.Apply(observable);
         NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueLightParametersFactory, falseLightParametersFactory));
@@ -66,8 +66,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory) where TObservable : IObservable<bool>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory) where TObservable : IObservable<bool>
     {
         var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
         NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueLightTransitionFactory, falseLightTransitionFactory));
@@ -75,8 +75,8 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     }
 
     /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightTransition> trueLightTransitionFactory,
-        Func<IServiceProvider, LightTransition> falseLightTransitionFactory)
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightTransition?> trueLightTransitionFactory,
+        Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
     {
         var shareableObservable = _observableSharingStrategy.Apply(observable);
         NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueLightTransitionFactory, falseLightTransitionFactory));

@@ -28,14 +28,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<IServiceProvider, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightParameters?> lightParametersFactory) where TObservable : IObservable<bool>
     {
         return When<TObservable>(c => lightParametersFactory(c).AsTransition());
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<IServiceProvider, LightParameters> lightParametersFactory)
+        Func<IServiceProvider, LightParameters?> lightParametersFactory)
     {
         return When(observable, c => lightParametersFactory(c).AsTransition());
     }
@@ -56,14 +56,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<IServiceProvider, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory) where TObservable : IObservable<bool>
     {
         return When<TObservable>(sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<IServiceProvider, LightTransition> lightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory)
     {
         return When(observable, sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
     }

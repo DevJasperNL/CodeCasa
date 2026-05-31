@@ -32,7 +32,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<IServiceProvider, LightParameters> lightParametersFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightParameters?> lightParametersFactory) where TObservable : IObservable<bool>
     {
         var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
         NodeContainers.Values.ForEach(b => b.When(shareableObservable, lightParametersFactory));
@@ -41,7 +41,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<IServiceProvider, LightParameters> lightParametersFactory)
+        Func<IServiceProvider, LightParameters?> lightParametersFactory)
     {
         var shareableObservable = _observableSharingStrategy.Apply(observable);
         NodeContainers.Values.ForEach(b => b.When(shareableObservable, lightParametersFactory));
@@ -68,7 +68,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
-        Func<IServiceProvider, LightTransition> lightTransitionFactory) where TObservable : IObservable<bool>
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory) where TObservable : IObservable<bool>
     {
         var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
         NodeContainers.Values.ForEach(b => b.When(shareableObservable, lightTransitionFactory));
@@ -77,7 +77,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
 
     /// <inheritdoc />
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
-        Func<IServiceProvider, LightTransition> lightTransitionFactory)
+        Func<IServiceProvider, LightTransition?> lightTransitionFactory)
     {
         var shareableObservable = _observableSharingStrategy.Apply(observable);
         NodeContainers.Values.ForEach(b => b.When(shareableObservable, lightTransitionFactory));
