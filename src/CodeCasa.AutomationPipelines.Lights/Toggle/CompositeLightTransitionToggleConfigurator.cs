@@ -102,6 +102,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             return this;
         }
 
+        public ILightTransitionToggleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
+        {
+            activeConfigurators.Values.ForEach(c => c.AddTimeline(timelineFactory, transitionTimeForTimelineState));
+            inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
+            return this;
+        }
+
         public ILightTransitionToggleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
         {
             var configurator = new TimelineConfigurator();

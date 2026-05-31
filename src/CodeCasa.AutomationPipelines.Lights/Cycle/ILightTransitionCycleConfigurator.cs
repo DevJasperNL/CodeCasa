@@ -118,6 +118,19 @@ namespace CodeCasa.AutomationPipelines.Lights.Cycle
         ILightTransitionCycleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
 
         /// <summary>
+        /// Adds a timeline to the cycle using a factory function to build the timeline mapping.
+        /// The node will drive its output from the given time-based timeline,
+        /// updating automatically as time progresses. State matching is determined by comparing the light's
+        /// current parameters against the timeline's current output.
+        /// </summary>
+        /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+        /// <param name="transitionTimeForTimelineState">
+        /// The duration of the initial fade from the current state. Defaults to 500ms if null.
+        /// </param>
+        /// <returns>The configurator instance for method chaining.</returns>
+        ILightTransitionCycleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null);
+
+        /// <summary>
         /// Adds a timeline to the cycle using a configurator action to build the timeline mapping and transition time.
         /// The node will drive its output from the given time-based timeline,
         /// updating automatically as time progresses. State matching is determined by comparing the light's

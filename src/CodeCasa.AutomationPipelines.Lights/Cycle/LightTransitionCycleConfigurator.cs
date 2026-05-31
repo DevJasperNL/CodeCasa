@@ -87,6 +87,15 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTr
                 timeline.GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First()));
     }
 
+    public ILightTransitionCycleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return Add(
+            sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
+            sp => EqualityComparer<LightParameters>.Default.Equals(
+                Light.GetParameters(),
+                timelineFactory(sp).GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First()));
+    }
+
     public ILightTransitionCycleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
     {
         var configurator = new TimelineConfigurator();

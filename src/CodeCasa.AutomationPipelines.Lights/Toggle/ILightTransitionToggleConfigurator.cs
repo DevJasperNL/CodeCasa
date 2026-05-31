@@ -121,6 +121,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
         ILightTransitionToggleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
 
         /// <summary>
+        /// Adds a timeline to the toggle sequence using a factory function to build the timeline mapping.
+        /// The node will drive its output from the given time-based timeline, updating automatically as time progresses.
+        /// </summary>
+        /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+        /// <param name="transitionTimeForTimelineState">
+        /// The duration of the initial fade from the current state. Defaults to 500ms if null.
+        /// </param>
+        /// <returns>The configurator instance for method chaining.</returns>
+        ILightTransitionToggleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null);
+
+        /// <summary>
         /// Adds a timeline to the toggle sequence using a configurator action to build the timeline mapping and transition time.
         /// The node will drive its output from the given time-based timeline, updating automatically as time progresses.
         /// </summary>

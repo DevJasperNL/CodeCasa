@@ -94,6 +94,15 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
         return this;
     }
 
+    public ILightTransitionCycleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        activeConfigurators.Values.ForEach(c => c.AddTimeline(timelineFactory, transitionTimeForTimelineState));
+        inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(sp => EqualityComparer<LightParameters>.Default.Equals(
+            sp.GetRequiredService<ILight>().GetParameters(),
+            timelineFactory(sp).GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First())));
+        return this;
+    }
+
     public ILightTransitionCycleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
     {
         var configurator = new TimelineConfigurator();
