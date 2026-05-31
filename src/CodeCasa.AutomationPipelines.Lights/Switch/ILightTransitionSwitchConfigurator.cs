@@ -1,4 +1,6 @@
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Switch;
 
@@ -52,4 +54,33 @@ public interface ILightTransitionSwitchConfigurator<TLight> where TLight : ILigh
     /// <typeparam name="TNode">The type of the pipeline node to resolve and apply.</typeparam>
     /// <returns>A configurator for specifying the false branch.</returns>
     ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue<TNode>() where TNode : IPipelineNode<LightTransition>;
+
+    /// <summary>
+    /// Specifies a timeline node to apply when the observable emits <see langword="true"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>A configurator for specifying the false branch.</returns>
+    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Dictionary<ITimeline, LightParameters> timeline,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Specifies a factory that creates a timeline node to apply when the observable emits <see langword="true"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>A configurator for specifying the false branch.</returns>
+    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Specifies a timeline node configured by <paramref name="configure"/> to apply when the observable emits <see langword="true"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+    /// <returns>A configurator for specifying the false branch.</returns>
+    ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Action<ITimelineConfigurator> configure);
 }
