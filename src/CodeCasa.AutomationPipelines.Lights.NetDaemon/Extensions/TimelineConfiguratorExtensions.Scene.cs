@@ -4,6 +4,10 @@ using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
 
+/// <summary>
+/// Provides extension methods for <see cref="ITimelineConfigurator"/> that add scene-based light parameter mappings
+/// using Home Assistant scenes via NetDaemon.
+/// </summary>
 public static class TimelineConfiguratorExtensions
 {
     /// <summary>
