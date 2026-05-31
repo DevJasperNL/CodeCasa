@@ -2,8 +2,10 @@ using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Switch;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
@@ -329,5 +331,101 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         var whenObservable = ActivatorUtilities.CreateInstance<TWhenObservable>(ServiceProvider);
         return TurnOnOffWhen(whenObservable, switchObservable);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
+        IObservable<bool> switchObservable, Dictionary<ITimeline, LightParameters> trueTimeline,
+        Dictionary<ITimeline, LightParameters> falseTimeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return SwitchWhen(whenObservable, switchObservable,
+            sp => new TimelineNode(trueTimeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
+            sp => new TimelineNode(falseTimeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
+        Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
+        TimeSpan? transitionTimeForTimelineState = null)
+        where TWhenObservable : IObservable<bool>
+        where TSwitchObservable : IObservable<bool>
+    {
+        var switchObservable = ActivatorUtilities.CreateInstance<TSwitchObservable>(ServiceProvider);
+        return SwitchWhen<TWhenObservable>(switchObservable, trueTimeline, falseTimeline, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
+        Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
+        TimeSpan? transitionTimeForTimelineState = null) where TWhenObservable : IObservable<bool>
+    {
+        var whenObservable = ActivatorUtilities.CreateInstance<TWhenObservable>(ServiceProvider);
+        return SwitchWhen(whenObservable, switchObservable, trueTimeline, falseTimeline, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
+        IObservable<bool> switchObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return SwitchWhen(whenObservable, switchObservable,
+            sp => new TimelineNode(trueTimelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
+            sp => new TimelineNode(falseTimelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+        where TWhenObservable : IObservable<bool>
+        where TSwitchObservable : IObservable<bool>
+    {
+        var switchObservable = ActivatorUtilities.CreateInstance<TSwitchObservable>(ServiceProvider);
+        return SwitchWhen<TWhenObservable>(switchObservable, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null) where TWhenObservable : IObservable<bool>
+    {
+        var whenObservable = ActivatorUtilities.CreateInstance<TWhenObservable>(ServiceProvider);
+        return SwitchWhen(whenObservable, switchObservable, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
+        IObservable<bool> switchObservable, Action<ITimelineConfigurator> trueConfigure,
+        Action<ITimelineConfigurator> falseConfigure)
+    {
+        var trueConfigurator = new TimelineConfigurator();
+        trueConfigure(trueConfigurator);
+        var falseConfigurator = new TimelineConfigurator();
+        falseConfigure(falseConfigurator);
+        return SwitchWhen(whenObservable, switchObservable, trueConfigurator.Timeline, falseConfigurator.Timeline,
+            trueConfigurator.TransitionTime ?? falseConfigurator.TransitionTime);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
+        Action<ITimelineConfigurator> trueConfigure, Action<ITimelineConfigurator> falseConfigure)
+        where TWhenObservable : IObservable<bool>
+        where TSwitchObservable : IObservable<bool>
+    {
+        var switchObservable = ActivatorUtilities.CreateInstance<TSwitchObservable>(ServiceProvider);
+        return SwitchWhen<TWhenObservable>(switchObservable, trueConfigure, falseConfigure);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
+        Action<ITimelineConfigurator> trueConfigure, Action<ITimelineConfigurator> falseConfigure)
+        where TWhenObservable : IObservable<bool>
+    {
+        var whenObservable = ActivatorUtilities.CreateInstance<TWhenObservable>(ServiceProvider);
+        return SwitchWhen(whenObservable, switchObservable, trueConfigure, falseConfigure);
     }
 }

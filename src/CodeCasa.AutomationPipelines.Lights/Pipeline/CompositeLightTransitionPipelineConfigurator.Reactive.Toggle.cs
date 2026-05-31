@@ -1,6 +1,8 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -67,5 +69,27 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         return AddReactiveNode(c => c
             .SetHierarchyContext(HierarchyPath, "Toggle", LoggingEnabled ?? false)
             .AddToggle(triggerObservable, configure));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return AddToggle(triggerObservable, c => c.AddTimeline(timeline, transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return AddToggle(triggerObservable, c => c.AddTimeline(timelineFactory, transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Action<ITimelineConfigurator> configure)
+    {
+        return AddToggle(triggerObservable, (Action<ILightTransitionToggleConfigurator<TLight>>)(c => c.AddTimeline(configure)));
     }
 }

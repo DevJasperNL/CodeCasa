@@ -1,8 +1,10 @@
 using System.Reactive.Concurrency;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Toggle
 {
@@ -91,6 +93,27 @@ namespace CodeCasa.AutomationPipelines.Lights.Toggle
             activeConfigurators.Values.ForEach(c => c.AddPassThrough());
             inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
             return this;
+        }
+
+        public ILightTransitionToggleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+        {
+            activeConfigurators.Values.ForEach(c => c.AddTimeline(timeline, transitionTimeForTimelineState));
+            inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
+            return this;
+        }
+
+        public ILightTransitionToggleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
+        {
+            activeConfigurators.Values.ForEach(c => c.AddTimeline(timelineFactory, transitionTimeForTimelineState));
+            inactiveConfigurators.Values.ForEach(c => c.AddPassThrough());
+            return this;
+        }
+
+        public ILightTransitionToggleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
+        {
+            var configurator = new TimelineConfigurator();
+            configure(configurator);
+            return AddTimeline(configurator.Timeline, configurator.TransitionTime);
         }
 
         public ILightTransitionToggleConfigurator<TLight> ForLight(string lightId, Action<ILightTransitionToggleConfigurator<TLight>> configure, ExcludedLightBehaviours excludedLightBehaviour = ExcludedLightBehaviours.None) => ForLights([lightId], configure, excludedLightBehaviour);

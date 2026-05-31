@@ -2,8 +2,10 @@ using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Switch;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
@@ -170,5 +172,65 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> TurnOnOff(IObservable<bool> observable)
     {
         return Switch(observable, LightTransition.On(), LightTransition.Off());
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Dictionary<ITimeline, LightParameters> trueTimeline,
+        Dictionary<ITimeline, LightParameters> falseTimeline, TimeSpan? transitionTimeForTimelineState = null)
+        where TObservable : IObservable<bool>
+    {
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
+        return Switch(observable, trueTimeline, falseTimeline, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return Switch(observable,
+            sp => new TimelineNode(trueTimeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
+            sp => new TimelineNode(falseTimeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null) where TObservable : IObservable<bool>
+    {
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
+        return Switch(observable, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return Switch(observable,
+            sp => new TimelineNode(trueTimelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
+            sp => new TimelineNode(falseTimelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Action<ITimelineConfigurator> trueConfigure,
+        Action<ITimelineConfigurator> falseConfigure) where TObservable : IObservable<bool>
+    {
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
+        return Switch(observable, trueConfigure, falseConfigure);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Action<ITimelineConfigurator> trueConfigure, Action<ITimelineConfigurator> falseConfigure)
+    {
+        var trueConfigurator = new TimelineConfigurator();
+        trueConfigure(trueConfigurator);
+        var falseConfigurator = new TimelineConfigurator();
+        falseConfigure(falseConfigurator);
+        return Switch(observable, trueConfigurator.Timeline, falseConfigurator.Timeline,
+            trueConfigurator.TransitionTime ?? falseConfigurator.TransitionTime);
     }
 }

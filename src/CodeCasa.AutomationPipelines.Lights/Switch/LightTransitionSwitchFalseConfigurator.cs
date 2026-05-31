@@ -1,6 +1,8 @@
 using CodeCasa.AutomationPipelines.Lights.Nodes;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Concurrency;
 
 namespace CodeCasa.AutomationPipelines.Lights.Switch;
@@ -32,4 +34,19 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
 
     public void WhenFalse<TNode>() where TNode : IPipelineNode<LightTransition>
         => WhenFalse(c => ActivatorUtilities.CreateInstance<TNode>(c));
+
+    public void WhenFalse(Dictionary<ITimeline, LightParameters> timeline,
+        TimeSpan? transitionTimeForTimelineState = null)
+        => WhenFalse(c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+
+    public void WhenFalse(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+        => WhenFalse(c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+
+    public void WhenFalse(Action<ITimelineConfigurator> configure)
+    {
+        var configurator = new TimelineConfigurator();
+        configure(configurator);
+        WhenFalse(configurator.Timeline, configurator.TransitionTime);
+    }
 }

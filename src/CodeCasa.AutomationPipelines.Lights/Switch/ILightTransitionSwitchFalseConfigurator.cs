@@ -1,4 +1,6 @@
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Switch;
 
@@ -57,4 +59,29 @@ public interface ILightTransitionSwitchFalseConfigurator<TLight> where TLight : 
     /// <typeparam name="TNode">The type of the pipeline node to resolve and apply.</typeparam>
     /// <returns>The parent pipeline configurator for method chaining.</returns>
     void WhenFalse<TNode>() where TNode : IPipelineNode<LightTransition>;
+
+    /// <summary>
+    /// Specifies a timeline node to apply when the observable emits <see langword="false"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    void WhenFalse(Dictionary<ITimeline, LightParameters> timeline,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Specifies a factory that creates a timeline node to apply when the observable emits <see langword="false"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    void WhenFalse(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Specifies a timeline node configured by <paramref name="configure"/> to apply when the observable emits <see langword="false"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+    void WhenFalse(Action<ITimelineConfigurator> configure);
 }

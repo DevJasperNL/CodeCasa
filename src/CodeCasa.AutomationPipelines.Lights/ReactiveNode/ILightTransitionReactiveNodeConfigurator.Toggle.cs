@@ -1,5 +1,7 @@
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -88,4 +90,40 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         Action<ILightTransitionToggleConfigurator<TLight>> configure);
+
+    /// <summary>
+    /// Adds a time-based toggle trigger with a timeline entry when triggered by <paramref name="triggerObservable"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
+    /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
+    /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Adds a time-based toggle trigger with a timeline entry created by a factory function when triggered by <paramref name="triggerObservable"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
+    /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
+    /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Adds a time-based toggle trigger with a timeline entry configured by <paramref name="configure"/> when triggered by <paramref name="triggerObservable"/>.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
+    /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
+    /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
+        Action<ITimelineConfigurator> configure);
 }

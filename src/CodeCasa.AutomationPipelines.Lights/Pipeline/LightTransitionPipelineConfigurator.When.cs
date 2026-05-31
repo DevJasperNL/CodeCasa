@@ -1,7 +1,9 @@
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
@@ -157,5 +159,55 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> TurnOnWhen(IObservable<bool> observable)
     {
         return When(observable, LightTransition.On());
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(Dictionary<ITimeline, LightParameters> timeline,
+        TimeSpan? transitionTimeForTimelineState = null) where TObservable : IObservable<bool>
+    {
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
+        return When(observable, timeline, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return When(observable, sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null) where TObservable : IObservable<bool>
+    {
+        var observable = ActivatorUtilities.CreateInstance<TObservable>(ServiceProvider);
+        return When(observable, timelineFactory, transitionTimeForTimelineState);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return When(observable, sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(Action<ITimelineConfigurator> configure)
+        where TObservable : IObservable<bool>
+    {
+        var configurator = new TimelineConfigurator();
+        configure(configurator);
+        return When<TObservable>(configurator.Timeline, configurator.TransitionTime);
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
+        Action<ITimelineConfigurator> configure)
+    {
+        var configurator = new TimelineConfigurator();
+        configure(configurator);
+        return When(observable, configurator.Timeline, configurator.TransitionTime);
     }
 }

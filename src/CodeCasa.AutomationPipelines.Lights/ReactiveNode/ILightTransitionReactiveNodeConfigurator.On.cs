@@ -1,5 +1,7 @@
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -122,4 +124,40 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <param name="triggerObservable">The observable that triggers turning on the light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> TurnOnWhen<T>(IObservable<T> triggerObservable);
+
+    /// <summary>
+    /// Registers a trigger that activates a timeline node when the <paramref name="triggerObservable"/> emits a value.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
+    /// <param name="triggerObservable">The observable that triggers the timeline node activation.</param>
+    /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Registers a trigger that activates a timeline node created by a factory when the <paramref name="triggerObservable"/> emits a value.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
+    /// <param name="triggerObservable">The observable that triggers the timeline node activation.</param>
+    /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Registers a trigger that activates a timeline node configured by <paramref name="configure"/> when the <paramref name="triggerObservable"/> emits a value.
+    /// The timeline drives the output automatically as time progresses.
+    /// </summary>
+    /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
+    /// <param name="triggerObservable">The observable that triggers the timeline node activation.</param>
+    /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Action<ITimelineConfigurator> configure);
 }
