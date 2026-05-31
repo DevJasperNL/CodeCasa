@@ -1,6 +1,8 @@
 ﻿using CodeCasa.AutomationPipelines.Lights.Cycle;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -41,5 +43,27 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         return AddReactiveNode(c => c
             .SetHierarchyContext(HierarchyPath, "Cycle", LoggingEnabled ?? false)
             .AddCycle(triggerObservable, configure));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return AddCycle(triggerObservable, c => c.AddTimeline(timeline, transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        return AddCycle(triggerObservable, c => c.AddTimeline(timelineFactory, transitionTimeForTimelineState));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddCycle<T>(IObservable<T> triggerObservable,
+        Action<ITimelineConfigurator> configure)
+    {
+        return AddCycle(triggerObservable, c => c.AddTimeline(configure));
     }
 }
