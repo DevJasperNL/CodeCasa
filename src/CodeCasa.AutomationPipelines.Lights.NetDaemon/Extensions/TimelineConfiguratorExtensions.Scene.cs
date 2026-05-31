@@ -1,0 +1,24 @@
+using CodeCasa.AutomationPipelines.Lights.Timeline;
+using NetDaemon.HassModel.Entities;
+using Occurify;
+
+namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
+
+public static class TimelineConfiguratorExtensions
+{
+    /// <summary>
+    /// Adds a mapping from a timeline point to light parameters fetched from a Home Assistant scene.
+    /// The scene is resolved and cached via <see cref="Lights.NetDaemon.Scenes.LightSceneCacheService"/> on first use.
+    /// If the current light is not part of the scene, no state is added for that timeline point.
+    /// </summary>
+    /// <param name="configurator">The timeline configurator.</param>
+    /// <param name="timeline">The timeline point.</param>
+    /// <param name="sceneEntity">The scene entity whose light parameters will be applied.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    public static ITimelineConfigurator AddScene(this ITimelineConfigurator configurator,
+        ITimeline timeline,
+        IEntityCore sceneEntity)
+    {
+        return configurator.Add(timeline, sp => SceneExtensionHelpers.GetSceneLightParameters(sp, sceneEntity));
+    }
+}

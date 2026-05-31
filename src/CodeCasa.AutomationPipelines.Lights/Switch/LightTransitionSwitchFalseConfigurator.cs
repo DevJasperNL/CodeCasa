@@ -47,6 +47,6 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        WhenFalse(configurator.Timeline, configurator.TransitionTime);
+        WhenFalse(configurator.TimelineFactory, configurator.TransitionTime);
     }
 }

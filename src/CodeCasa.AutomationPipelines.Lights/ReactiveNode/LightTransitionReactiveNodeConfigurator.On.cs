@@ -94,6 +94,6 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        return On(triggerObservable, configurator.Timeline, configurator.TransitionTime);
+        return On(triggerObservable, configurator.TimelineFactory, configurator.TransitionTime);
     }
 }

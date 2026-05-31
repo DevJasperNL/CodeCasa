@@ -406,7 +406,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         trueConfigure(trueConfigurator);
         var falseConfigurator = new TimelineConfigurator();
         falseConfigure(falseConfigurator);
-        return SwitchWhen(whenObservable, switchObservable, trueConfigurator.Timeline, falseConfigurator.Timeline,
+        return SwitchWhen(whenObservable, switchObservable, trueConfigurator.TimelineFactory, falseConfigurator.TimelineFactory,
             trueConfigurator.TransitionTime ?? falseConfigurator.TransitionTime);
     }
 

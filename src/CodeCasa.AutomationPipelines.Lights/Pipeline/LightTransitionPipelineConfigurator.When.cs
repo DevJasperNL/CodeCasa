@@ -199,7 +199,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        return When<TObservable>(configurator.Timeline, configurator.TransitionTime);
+        return When<TObservable>(configurator.TimelineFactory, configurator.TransitionTime);
     }
 
     /// <inheritdoc/>
@@ -208,6 +208,6 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         var configurator = new TimelineConfigurator();
         configure(configurator);
-        return When(observable, configurator.Timeline, configurator.TransitionTime);
+        return When(observable, configurator.TimelineFactory, configurator.TransitionTime);
     }
 }
