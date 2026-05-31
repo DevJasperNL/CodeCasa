@@ -1,5 +1,7 @@
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -246,4 +248,81 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="observable">The observable that determines when to turn on the light.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> TurnOnWhen(IObservable<bool> observable);
+
+    /// <summary>
+    /// Registers a timeline node that applies the given <paramref name="timeline"/> when the observable
+    /// of type <typeparamref name="TObservable"/> emits <see langword="true"/>.
+    /// When the observable emits <see langword="false"/>, inputs are passed through unchanged.
+    /// The observable is resolved from the service provider.
+    /// </summary>
+    /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
+    /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> When<TObservable>(Dictionary<ITimeline, LightParameters> timeline,
+        TimeSpan? transitionTimeForTimelineState = null)
+        where TObservable : IObservable<bool>;
+
+    /// <summary>
+    /// Registers a timeline node that applies the given <paramref name="timeline"/> when the
+    /// <paramref name="observable"/> emits <see langword="true"/>.
+    /// When the observable emits <see langword="false"/>, inputs are passed through unchanged.
+    /// </summary>
+    /// <param name="observable">The observable that determines when to apply the timeline.</param>
+    /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Registers a timeline node created by a factory function when the observable
+    /// of type <typeparamref name="TObservable"/> emits <see langword="true"/>.
+    /// When the observable emits <see langword="false"/>, inputs are passed through unchanged.
+    /// The observable is resolved from the service provider.
+    /// </summary>
+    /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
+    /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+        where TObservable : IObservable<bool>;
+
+    /// <summary>
+    /// Registers a timeline node created by a factory function when the
+    /// <paramref name="observable"/> emits <see langword="true"/>.
+    /// When the observable emits <see langword="false"/>, inputs are passed through unchanged.
+    /// </summary>
+    /// <param name="observable">The observable that determines when to apply the timeline.</param>
+    /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null);
+
+    /// <summary>
+    /// Registers a timeline node configured by <paramref name="configure"/> when the observable
+    /// of type <typeparamref name="TObservable"/> emits <see langword="true"/>.
+    /// When the observable emits <see langword="false"/>, inputs are passed through unchanged.
+    /// The observable is resolved from the service provider.
+    /// </summary>
+    /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
+    /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> When<TObservable>(Action<ITimelineConfigurator> configure)
+        where TObservable : IObservable<bool>;
+
+    /// <summary>
+    /// Registers a timeline node configured by <paramref name="configure"/> when the
+    /// <paramref name="observable"/> emits <see langword="true"/>.
+    /// When the observable emits <see langword="false"/>, inputs are passed through unchanged.
+    /// </summary>
+    /// <param name="observable">The observable that determines when to apply the timeline.</param>
+    /// <param name="configure">An action to configure the timeline entries and optional transition time.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
+        Action<ITimelineConfigurator> configure);
 }

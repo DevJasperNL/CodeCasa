@@ -1,8 +1,10 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Switch;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
@@ -196,5 +198,65 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
     {
         var shareableObservable = _observableSharingStrategy.Apply(observable);
         return Switch(shareableObservable, LightTransition.On(), LightTransition.Off());
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Dictionary<ITimeline, LightParameters> trueTimeline,
+        Dictionary<ITimeline, LightParameters> falseTimeline, TimeSpan? transitionTimeForTimelineState = null)
+        where TObservable : IObservable<bool>
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
+        NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueTimeline, falseTimeline, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(observable);
+        NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueTimeline, falseTimeline, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null) where TObservable : IObservable<bool>
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
+        NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(observable);
+        NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Action<ITimelineConfigurator> trueConfigure,
+        Action<ITimelineConfigurator> falseConfigure) where TObservable : IObservable<bool>
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TObservable>(serviceProvider));
+        NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueConfigure, falseConfigure));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable,
+        Action<ITimelineConfigurator> trueConfigure, Action<ITimelineConfigurator> falseConfigure)
+    {
+        var shareableObservable = _observableSharingStrategy.Apply(observable);
+        NodeContainers.Values.ForEach(b => b.Switch(shareableObservable, trueConfigure, falseConfigure));
+        return this;
     }
 }

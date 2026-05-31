@@ -1,8 +1,10 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Switch;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -368,6 +370,114 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
         var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
         NodeContainers.Values.ForEach(b => b.TurnOnOffWhen(shareableWhen, shareableSwitch));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
+        IObservable<bool> switchObservable, Dictionary<ITimeline, LightParameters> trueTimeline,
+        Dictionary<ITimeline, LightParameters> falseTimeline, TimeSpan? transitionTimeForTimelineState = null)
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
+        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueTimeline, falseTimeline, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
+        Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
+        TimeSpan? transitionTimeForTimelineState = null)
+        where TWhenObservable : IObservable<bool>
+        where TSwitchObservable : IObservable<bool>
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
+        var shareableSwitch = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider));
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueTimeline, falseTimeline, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
+        Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
+        TimeSpan? transitionTimeForTimelineState = null) where TWhenObservable : IObservable<bool>
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
+        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueTimeline, falseTimeline, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
+        IObservable<bool> switchObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
+        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+        where TWhenObservable : IObservable<bool>
+        where TSwitchObservable : IObservable<bool>
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
+        var shareableSwitch = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider));
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> falseTimelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null) where TWhenObservable : IObservable<bool>
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
+        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueTimelineFactory, falseTimelineFactory, transitionTimeForTimelineState));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
+        IObservable<bool> switchObservable, Action<ITimelineConfigurator> trueConfigure,
+        Action<ITimelineConfigurator> falseConfigure)
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
+        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
+        Action<ITimelineConfigurator> trueConfigure, Action<ITimelineConfigurator> falseConfigure)
+        where TWhenObservable : IObservable<bool>
+        where TSwitchObservable : IObservable<bool>
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
+        var shareableSwitch = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider));
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
+        Action<ITimelineConfigurator> trueConfigure, Action<ITimelineConfigurator> falseConfigure)
+        where TWhenObservable : IObservable<bool>
+    {
+        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
+        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
+        NodeContainers.Values.ForEach(b => b.SwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure));
         return this;
     }
 }
