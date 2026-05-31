@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodeCasa.AutomationPipelines.Lights\CodeCasa.AutomationPipelines.Lights.csproj" />
+    <ProjectReference Include="..\CodeCasa.Lights.NetDaemon.Scenes\CodeCasa.Lights.NetDaemon.Scenes.csproj" />
     <ProjectReference Include="..\CodeCasa.Lights.NetDaemon\CodeCasa.Lights.NetDaemon.csproj" />
   </ItemGroup>
 

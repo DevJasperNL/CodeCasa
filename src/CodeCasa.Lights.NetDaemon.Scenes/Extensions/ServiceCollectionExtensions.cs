@@ -15,7 +15,8 @@ namespace CodeCasa.Lights.NetDaemon.Scenes.Extensions
         public static IServiceCollection AddLightSceneService(this IServiceCollection serviceCollection)
         {
             return serviceCollection
-                .AddTransient<LightSceneService>();
+                .AddTransient<LightSceneService>()
+                .AddSingleton<LightSceneCacheService>();
         }
     }
 }
