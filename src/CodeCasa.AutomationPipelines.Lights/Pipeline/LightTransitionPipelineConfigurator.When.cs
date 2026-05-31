@@ -30,14 +30,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
         Func<IServiceProvider, LightParameters?> lightParametersFactory) where TObservable : IObservable<bool>
     {
-        return When<TObservable>(c => lightParametersFactory(c).AsTransition());
+        return When<TObservable>(c => lightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
         Func<IServiceProvider, LightParameters?> lightParametersFactory)
     {
-        return When(observable, c => lightParametersFactory(c).AsTransition());
+        return When(observable, c => lightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>

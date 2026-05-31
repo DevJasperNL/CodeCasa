@@ -17,7 +17,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightParameters?> lightParametersFactory)
-        => On(triggerObservable, c => lightParametersFactory(c).AsTransition());
+        => On(triggerObservable, c => lightParametersFactory(c)?.AsTransition());
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, LightTransition lightTransition)

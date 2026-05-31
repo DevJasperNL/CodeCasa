@@ -31,14 +31,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
         Func<IServiceProvider, LightParameters?> falseLightParametersFactory) where TObservable : IObservable<bool>
     {
-        return Switch<TObservable>(c => falseLightParametersFactory(c).AsTransition(), c => trueLightParametersFactory(c).AsTransition());
+        return Switch<TObservable>(c => falseLightParametersFactory(c)?.AsTransition(), c => trueLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
         Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
-        return Switch(observable, c => trueLightParametersFactory(c).AsTransition(), c => falseLightParametersFactory(c).AsTransition());
+        return Switch(observable, c => trueLightParametersFactory(c)?.AsTransition(), c => falseLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>

@@ -22,10 +22,10 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
         => WhenFalse(_ => lightTransition);
 
     public void WhenFalse(Func<IServiceProvider, LightParameters?> lightParametersFactory)
-        => WhenFalse(c => lightParametersFactory(c).AsTransition());
+        => WhenFalse(c => lightParametersFactory(c)?.AsTransition());
 
     public void WhenFalse(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
-        => WhenFalse(c => (IPipelineNode<LightTransition>)new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+        => WhenFalse(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
 
     public void WhenFalse(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {

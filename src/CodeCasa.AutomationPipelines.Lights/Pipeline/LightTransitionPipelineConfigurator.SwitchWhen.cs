@@ -47,8 +47,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
         return SwitchWhen(whenObservable, switchObservable,
-            c => trueLightParametersFactory(c).AsTransition(),
-            c => falseLightParametersFactory(c).AsTransition());
+            c => trueLightParametersFactory(c)?.AsTransition(),
+            c => falseLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
