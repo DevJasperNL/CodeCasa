@@ -1,8 +1,10 @@
 using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
+using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
+using Occurify;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
@@ -73,5 +75,25 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     public ILightTransitionReactiveNodeConfigurator<TLight> TurnOnWhen<T>(IObservable<T> triggerObservable)
     {
         return On(triggerObservable, LightTransition.On());
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
+        => On(triggerObservable, c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
+        TimeSpan? transitionTimeForTimelineState = null)
+        => On(triggerObservable, c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+
+    /// <inheritdoc/>
+    public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
+        Action<ITimelineConfigurator> configure)
+    {
+        var configurator = new TimelineConfigurator();
+        configure(configurator);
+        return On(triggerObservable, configurator.Timeline, configurator.TransitionTime);
     }
 }
