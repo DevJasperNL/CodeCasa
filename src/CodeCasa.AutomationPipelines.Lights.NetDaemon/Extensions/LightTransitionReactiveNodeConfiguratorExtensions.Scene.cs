@@ -1,10 +1,7 @@
 using CodeCasa.AutomationPipelines.Lights.Cycle;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.AutomationPipelines.Lights.Toggle;
-using CodeCasa.Lights;
 using CodeCasa.Lights.NetDaemon;
-using CodeCasa.Lights.NetDaemon.Scenes;
-using Microsoft.Extensions.DependencyInjection;
 using NetDaemon.HassModel.Entities;
 
 namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
@@ -31,7 +28,7 @@ public static partial class LightTransitionReactiveNodeConfiguratorExtensions
         IObservable<T> triggerObservable,
         IEntityCore sceneEntity)
     {
-        return configurator.On(triggerObservable, sp => GetSceneLightParameters(sp, sceneEntity));
+        return configurator.On(triggerObservable, sp => SceneExtensionHelpers.GetSceneLightParameters(sp, sceneEntity));
     }
 
     // -------------------------------------------------------------------------
@@ -88,15 +85,4 @@ public static partial class LightTransitionReactiveNodeConfiguratorExtensions
         }));
     }
 
-    // -------------------------------------------------------------------------
-    // Shared helper
-    // -------------------------------------------------------------------------
-
-    private static LightParameters? GetSceneLightParameters(IServiceProvider sp, IEntityCore sceneEntity)
-    {
-        var cacheService = sp.GetRequiredService<LightSceneCacheService>();
-        var sceneLights = cacheService.GetLightSceneAsync(sceneEntity.EntityId).GetAwaiter().GetResult();
-        var light = sp.GetRequiredService<ILight>();
-        return sceneLights.GetValueOrDefault(light.Id);
     }
-}
