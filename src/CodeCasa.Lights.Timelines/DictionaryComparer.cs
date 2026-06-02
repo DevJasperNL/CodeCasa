@@ -1,34 +1,33 @@
-﻿namespace CodeCasa.Lights.Timelines
+﻿namespace CodeCasa.Lights.Timelines;
+
+internal sealed class DictionaryComparer<TKey, TValue>(IEqualityComparer<TValue>? valueComparer = null)
+    : IEqualityComparer<Dictionary<TKey, TValue>>
+    where TKey : notnull
 {
-    internal sealed class DictionaryComparer<TKey, TValue>(IEqualityComparer<TValue>? valueComparer = null)
-        : IEqualityComparer<Dictionary<TKey, TValue>>
-        where TKey : notnull
+    private readonly IEqualityComparer<TValue> _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
+
+    public bool Equals(Dictionary<TKey, TValue>? x, Dictionary<TKey, TValue>? y)
     {
-        private readonly IEqualityComparer<TValue> _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
+        if (ReferenceEquals(x, y)) return true;
+        if (x == null || y == null) return false;
+        if (x.Count != y.Count) return false;
 
-        public bool Equals(Dictionary<TKey, TValue>? x, Dictionary<TKey, TValue>? y)
+        foreach (var (key, value) in x)
         {
-            if (ReferenceEquals(x, y)) return true;
-            if (x == null || y == null) return false;
-            if (x.Count != y.Count) return false;
-
-            foreach (var (key, value) in x)
-            {
-                if (!y.TryGetValue(key, out var yValue) || !_valueComparer.Equals(value, yValue))
-                    return false;
-            }
-            return true;
+            if (!y.TryGetValue(key, out var yValue) || !_valueComparer.Equals(value, yValue))
+                return false;
         }
+        return true;
+    }
 
-        public int GetHashCode(Dictionary<TKey, TValue> obj)
+    public int GetHashCode(Dictionary<TKey, TValue> obj)
+    {
+        var hash = new HashCode();
+        foreach (var (key, value) in obj)
         {
-            var hash = new HashCode();
-            foreach (var (key, value) in obj)
-            {
-                hash.Add(key);
-                hash.Add(value, _valueComparer);
-            }
-            return hash.ToHashCode();
+            hash.Add(key);
+            hash.Add(value, _valueComparer);
         }
+        return hash.ToHashCode();
     }
 }

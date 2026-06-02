@@ -9,187 +9,186 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
-namespace CodeCasa.AutomationPipelines.Lights.Pipeline
+namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
+
+/// <summary>
+/// Factory for creating and configuring light transition pipelines.
+/// </summary>
+public class LightPipelineFactory(
+    ILogger<Pipeline<LightTransition>> logger, IServiceProvider rootServiceProvider)
 {
     /// <summary>
-    /// Factory for creating and configuring light transition pipelines.
+    /// Sets up a light pipeline for the specified light and configures it with the provided builder action.
     /// </summary>
-    public class LightPipelineFactory(
-        ILogger<Pipeline<LightTransition>> logger, IServiceProvider rootServiceProvider)
+    /// <typeparam name="TLight">The specific type of light.</typeparam>
+    /// <param name="light">The light to set up the pipeline for.</param>
+    /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+    /// <returns>An async disposable representing the created pipeline(s) that can be disposed to clean up resources.</returns>
+    public IAsyncDisposable SetupLightPipeline<TLight>(TLight light,
+        Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
     {
-        /// <summary>
-        /// Sets up a light pipeline for the specified light and configures it with the provided builder action.
-        /// </summary>
-        /// <typeparam name="TLight">The specific type of light.</typeparam>
-        /// <param name="light">The light to set up the pipeline for.</param>
-        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
-        /// <returns>An async disposable representing the created pipeline(s) that can be disposed to clean up resources.</returns>
-        public IAsyncDisposable SetupLightPipeline<TLight>(TLight light,
-            Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        var disposables = new CompositeAsyncDisposable();
+        var pipelines = CreateLightPipelines(rootServiceProvider, light.Flatten().Cast<TLight>().ToDictionary(l => l, _ => rootServiceProvider), pipelineBuilder);
+        foreach (var pipeline in pipelines.Values)
         {
-            var disposables = new CompositeAsyncDisposable();
-            var pipelines = CreateLightPipelines(rootServiceProvider, light.Flatten().Cast<TLight>().ToDictionary(l => l, _ => rootServiceProvider), pipelineBuilder);
-            foreach (var pipeline in pipelines.Values)
-            {
-                disposables.Add(pipeline);
-            }
-            return disposables;
+            disposables.Add(pipeline);
+        }
+        return disposables;
+    }
+
+    /// <summary>
+    /// Creates a single light pipeline for the specified light.
+    /// </summary>
+    /// <param name="light">The light to create a pipeline for.</param>
+    /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+    /// <returns>A configured pipeline for controlling the specified light.</returns>
+    public IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light,
+        Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        => CreateLightPipeline(rootServiceProvider, light, pipelineBuilder);
+
+    /// <summary>
+    /// Creates a single light pipeline for the specified light.
+    /// </summary>
+    /// <param name="compositeServiceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
+    /// <param name="light">The light to create a pipeline for.</param>
+    /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+    /// <returns>A configured pipeline for controlling the specified light.</returns>
+    internal IPipeline<LightTransition> CreateLightPipeline<TLight>(IServiceProvider compositeServiceProvider, TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+    {
+        return CreateLightPipelines(compositeServiceProvider, new Dictionary<TLight, IServiceProvider> { { light, compositeServiceProvider } }, pipelineBuilder)[light.Id];
+    }
+
+    /// <summary>
+    /// Creates a mapping of light identifiers to factory delegates that resolve pipeline nodes.
+    /// Each factory produces a <see cref="IPipelineNode{T}"/> that manages a shared pipeline registry 
+    /// and ensures groups of pipelines are created together allowing their configuration to be aware of each other.
+    /// </summary>
+    /// <typeparam name="TLight">The type of light, constrained to <see cref="ILight"/>.</typeparam>
+    /// <param name="pipelineConfigurator">The configuration action used to initialize the pipeline logic.</param>
+    /// <param name="lightsAndProviders">Mapping to the lights to their respective service providers. This allows the factory to create context-specific scopes for each light.</param>
+    /// <returns>
+    /// A <see cref="Dictionary{TKey, TValue}"/> where the key is the light ID and the value is a 
+    /// function that resolves the corresponding <see cref="IPipelineNode{LightTransition}"/>.
+    /// </returns>
+    internal Dictionary<string, Func<IServiceProvider, IPipelineNode<LightTransition>>> CreateCompositePipelineFactoryMap<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
+    {
+        var baseFactory = new CompositePipelineFactory<TLight>(pipelineConfigurator, lightsAndProviders);
+        return lightsAndProviders.Keys
+            .ToDictionary(
+                l => l.Id,
+                l =>
+                    (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
+                        sp => new ScopedPipelineNode<LightTransition>(
+                            baseFactory.GetOrCreatePipeline(sp, l.Id),
+                            Disposable.Create(() => baseFactory.Clear()))));
+    }
+
+    /// <summary>
+    /// Creates light pipelines for multiple light entities.
+    /// </summary>
+    /// <param name="compositeServiceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
+    /// <param name="lightsAndProviders">Mapping to the lights to their respective service providers. This allows the factory to create context-specific scopes for each light.</param>
+    /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
+    /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
+    internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IServiceProvider compositeServiceProvider, Dictionary<TLight, IServiceProvider> lightsAndProviders, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+    {
+        // Note: we simply assume that these are not groups.
+        var lightArray = lightsAndProviders.Keys.ToArray();
+        if (!lightArray.Any())
+        {
+            return new Dictionary<string, IPipeline<LightTransition>>();
         }
 
-        /// <summary>
-        /// Creates a single light pipeline for the specified light.
-        /// </summary>
-        /// <param name="light">The light to create a pipeline for.</param>
-        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
-        /// <returns>A configured pipeline for controlling the specified light.</returns>
-        public IPipeline<LightTransition> CreateLightPipeline<TLight>(TLight light,
-            Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
-            => CreateLightPipeline(rootServiceProvider, light, pipelineBuilder);
+        var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightPipelineContextScope(kvp.Key));
+        var configurators = 
+            lightArray.ToDictionary(l => l.Id,
+                l =>
+                {
+                    var sp = lightContextScopes[l.Id].ServiceProvider;
+                    // Note: we cant resolve LightTransitionPipelineConfigurator directly because it is not registered as a service.
+                    return new LightTransitionPipelineConfigurator<TLight>(sp, l);
+                });
+        ILightTransitionPipelineConfigurator<TLight> configurator = lightArray.Length == 1
+            ? configurators[lightArray[0].Id]
+            : new CompositeLightTransitionPipelineConfigurator<TLight>(
+                compositeServiceProvider,
+                compositeServiceProvider.GetRequiredService<LightPipelineFactory>(),
+                compositeServiceProvider.GetRequiredService<ReactiveNodeFactory>(),
+                configurators);
+        pipelineBuilder(configurator);
 
-        /// <summary>
-        /// Creates a single light pipeline for the specified light.
-        /// </summary>
-        /// <param name="compositeServiceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
-        /// <param name="light">The light to create a pipeline for.</param>
-        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
-        /// <returns>A configured pipeline for controlling the specified light.</returns>
-        internal IPipeline<LightTransition> CreateLightPipeline<TLight>(IServiceProvider compositeServiceProvider, TLight light, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
+        return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
-            return CreateLightPipelines(compositeServiceProvider, new Dictionary<TLight, IServiceProvider> { { light, compositeServiceProvider } }, pipelineBuilder)[light.Id];
-        }
-
-        /// <summary>
-        /// Creates a mapping of light identifiers to factory delegates that resolve pipeline nodes.
-        /// Each factory produces a <see cref="IPipelineNode{T}"/> that manages a shared pipeline registry 
-        /// and ensures groups of pipelines are created together allowing their configuration to be aware of each other.
-        /// </summary>
-        /// <typeparam name="TLight">The type of light, constrained to <see cref="ILight"/>.</typeparam>
-        /// <param name="pipelineConfigurator">The configuration action used to initialize the pipeline logic.</param>
-        /// <param name="lightsAndProviders">Mapping to the lights to their respective service providers. This allows the factory to create context-specific scopes for each light.</param>
-        /// <returns>
-        /// A <see cref="Dictionary{TKey, TValue}"/> where the key is the light ID and the value is a 
-        /// function that resolves the corresponding <see cref="IPipelineNode{LightTransition}"/>.
-        /// </returns>
-        internal Dictionary<string, Func<IServiceProvider, IPipelineNode<LightTransition>>> CreateCompositePipelineFactoryMap<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
-        {
-            var baseFactory = new CompositePipelineFactory<TLight>(pipelineConfigurator, lightsAndProviders);
-            return lightsAndProviders.Keys
-                .ToDictionary(
-                    l => l.Id,
-                    l =>
-                        (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
-                            sp => new ScopedPipelineNode<LightTransition>(
-                                baseFactory.GetOrCreatePipeline(sp, l.Id),
-                                Disposable.Create(() => baseFactory.Clear()))));
-        }
-
-        /// <summary>
-        /// Creates light pipelines for multiple light entities.
-        /// </summary>
-        /// <param name="compositeServiceProvider">The service provider passed to the configurators. This method is used within the library to allow passing the composite service provider. This is necessary because the factory will only receive the root service provider even if resolved inside the context scope.</param>
-        /// <param name="lightsAndProviders">Mapping to the lights to their respective service providers. This allows the factory to create context-specific scopes for each light.</param>
-        /// <param name="pipelineBuilder">An action to configure the pipeline behavior.</param>
-        /// <returns>A dictionary mapping light IDs to their corresponding pipelines.</returns>
-        internal Dictionary<string, IPipeline<LightTransition>> CreateLightPipelines<TLight>(IServiceProvider compositeServiceProvider, Dictionary<TLight, IServiceProvider> lightsAndProviders, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineBuilder) where TLight : ILight
-        {
-            // Note: we simply assume that these are not groups.
-            var lightArray = lightsAndProviders.Keys.ToArray();
-            if (!lightArray.Any())
+            var conf = kvp.Value;
+            IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
+                LightTransition.Off(),
+                conf.Nodes,
+                conf.Light.ApplyTransition,
+                conf.EqualityComparer)
             {
-                return new Dictionary<string, IPipeline<LightTransition>>();
-            }
-
-            var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightPipelineContextScope(kvp.Key));
-            var configurators = 
-                lightArray.ToDictionary(l => l.Id,
-                    l =>
-                    {
-                        var sp = lightContextScopes[l.Id].ServiceProvider;
-                        // Note: we cant resolve LightTransitionPipelineConfigurator directly because it is not registered as a service.
-                        return new LightTransitionPipelineConfigurator<TLight>(sp, l);
-                    });
-            ILightTransitionPipelineConfigurator<TLight> configurator = lightArray.Length == 1
-                ? configurators[lightArray[0].Id]
-                : new CompositeLightTransitionPipelineConfigurator<TLight>(
-                    compositeServiceProvider,
-                    compositeServiceProvider.GetRequiredService<LightPipelineFactory>(),
-                    compositeServiceProvider.GetRequiredService<ReactiveNodeFactory>(),
-                    configurators);
-            pipelineBuilder(configurator);
-
-            return configurators.ToDictionary(kvp => kvp.Key, kvp =>
+                Name = conf.Name
+            };
+            if (conf.LoggingEnabled ?? false)
             {
-                var conf = kvp.Value;
-                IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
-                    LightTransition.Off(),
-                    conf.Nodes,
-                    conf.Light.ApplyTransition,
-                    conf.EqualityComparer)
-                {
-                    Name = conf.Name
-                };
-                if (conf.LoggingEnabled ?? false)
-                {
-                    var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
-                    pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
-                }
-
-                var telemetryStream = pipeline.Telemetry
-                    .Select(t => new LightTransitionPipelineTelemetry<TLight>(
-                        pipeline,
-                        conf.Light, t.SourceNodeIndex, t.SourceNodeName, t.DestinationNodeIndex,
-                        t.DestinationNodeName, t.StateValue))
-                    .Publish()
-                    .RefCount();
-                var subscriptions = conf.TelemetrySubscriptionFactories
-                    .Select(factory => factory(telemetryStream))
-                    .ToArray();
-
-                var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
-                var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
-                var scheduler = scopedSp.GetRequiredService<IScheduler>();
-                var contextSubscription = pipeline.OnNewOutput
-                    .Subscribe(output =>
-                    {
-                        pipelineContext.Update(output, scheduler.Now);
-                    });
-                subscriptions = [.. subscriptions, contextSubscription];
-
-                foreach (var completedCallback in conf.PipelineCompletedCallbacks)
-                {
-                    completedCallback(new LightTransitionPipelineCreatedEvent<TLight>(pipeline, conf.Light));
-                }
-
-                return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
-            });
-        }
-
-        private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
-        {
-            private readonly Lock _lock = new();
-            private Dictionary<string, IPipeline<LightTransition>>? _pipelines;
-
-            public IPipeline<LightTransition> GetOrCreatePipeline(IServiceProvider serviceProvider, string lightId)
-            {
-                lock (_lock)
-                {
-                    if (_pipelines == null)
-                    {
-                        var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-                        _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
-                    }
-
-                    return _pipelines[lightId];
-                }
+                var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
+                pipeline.Telemetry.Subscribe(t => pipelineLogger.Log(t));
             }
 
-            public void Clear()
-            {
-                lock (_lock)
+            var telemetryStream = pipeline.Telemetry
+                .Select(t => new LightTransitionPipelineTelemetry<TLight>(
+                    pipeline,
+                    conf.Light, t.SourceNodeIndex, t.SourceNodeName, t.DestinationNodeIndex,
+                    t.DestinationNodeName, t.StateValue))
+                .Publish()
+                .RefCount();
+            var subscriptions = conf.TelemetrySubscriptionFactories
+                .Select(factory => factory(telemetryStream))
+                .ToArray();
+
+            var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
+            var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
+            var scheduler = scopedSp.GetRequiredService<IScheduler>();
+            var contextSubscription = pipeline.OnNewOutput
+                .Subscribe(output =>
                 {
-                    // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
-                    _pipelines = null;
+                    pipelineContext.Update(output, scheduler.Now);
+                });
+            subscriptions = [.. subscriptions, contextSubscription];
+
+            foreach (var completedCallback in conf.PipelineCompletedCallbacks)
+            {
+                completedCallback(new LightTransitionPipelineCreatedEvent<TLight>(pipeline, conf.Light));
+            }
+
+            return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
+        });
+    }
+
+    private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
+    {
+        private readonly Lock _lock = new();
+        private Dictionary<string, IPipeline<LightTransition>>? _pipelines;
+
+        public IPipeline<LightTransition> GetOrCreatePipeline(IServiceProvider serviceProvider, string lightId)
+        {
+            lock (_lock)
+            {
+                if (_pipelines == null)
+                {
+                    var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
+                    _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
                 }
+
+                return _pipelines[lightId];
+            }
+        }
+
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
+                _pipelines = null;
             }
         }
     }

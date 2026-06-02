@@ -4,139 +4,138 @@ using CodeCasa.AutomationPipelines.Lights.Observables;
 using CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 using CodeCasa.Lights;
 
-namespace CodeCasa.AutomationPipelines.Lights.Pipeline
+namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
+
+/// <summary>
+/// Configures light transition pipelines for multiple light entities as a composite.
+/// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
+/// </summary>
+internal partial class CompositeLightTransitionPipelineConfigurator<TLight>(
+    IServiceProvider serviceProvider,
+    LightPipelineFactory lightPipelineFactory,
+    ReactiveNodeFactory reactiveNodeFactory,
+    Dictionary<string, LightTransitionPipelineConfigurator<TLight>> nodeContainers)
+    : ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
 {
-    /// <summary>
-    /// Configures light transition pipelines for multiple light entities as a composite.
-    /// This configurator applies configurations across all included lights and allows for selective scoping to subsets of lights.
-    /// </summary>
-    internal partial class CompositeLightTransitionPipelineConfigurator<TLight>(
-        IServiceProvider serviceProvider,
-        LightPipelineFactory lightPipelineFactory,
-        ReactiveNodeFactory reactiveNodeFactory,
-        Dictionary<string, LightTransitionPipelineConfigurator<TLight>> nodeContainers)
-        : ILightTransitionPipelineConfigurator<TLight> where TLight : ILight
+    public Dictionary<string, LightTransitionPipelineConfigurator<TLight>> NodeContainers { get; } = nodeContainers;
+
+    private string? _name;
+    // By default, we assume cold observables and replay their latest value to new subscribers.
+    private IObservableSharingStrategy _observableSharingStrategy = new ReplaySharingStrategy();
+
+    ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
     {
-        public Dictionary<string, LightTransitionPipelineConfigurator<TLight>> NodeContainers { get; } = nodeContainers;
+        _name = name;
+        NodeContainers.Values.ForEach(b => b.SetName(name));
+        return this;
+    }
 
-        private string? _name;
-        // By default, we assume cold observables and replay their latest value to new subscribers.
-        private IObservableSharingStrategy _observableSharingStrategy = new ReplaySharingStrategy();
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput()
+        => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
 
-        ILightTransitionPipelineConfigurator<TLight> ILightTransitionPipelineConfigurator<TLight>.SetName(string name)
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
+    {
+        NodeContainers.Values.ForEach(b => b.WithDistinctOutput(equalityComparer));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
+    {
+        NodeContainers.Values.ForEach(b => b.AddNode<TNode>());
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
+    {
+        NodeContainers.Values.ForEach(b => b.AddNode(nodeFactory));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
+        Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
+    {
+        var nodes = reactiveNodeFactory.CreateReactiveNodes(serviceProvider, NodeContainers.ToDictionary(nc => nc.Value.Light, nc => nc.Value.ServiceProvider),
+            configure
+                .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+                .SetObservableSharingStrategy(_observableSharingStrategy));
+        NodeContainers.ForEach(kvp => kvp.Value.AddNode(nodes[kvp.Key]));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> configure)
+    {
+        var pipelines = lightPipelineFactory.CreateLightPipelines(serviceProvider, NodeContainers.ToDictionary(nc => nc.Value.Light, nc => nc.Value.ServiceProvider), 
+            configure
+                .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
+                .SetObservableSharingStrategy(_observableSharingStrategy));
+        NodeContainers.ForEach(kvp => kvp.Value.AddNode(pipelines[kvp.Key]));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer)
+    {
+        return AddDimmer(dimmer, _ => { });
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
+    {
+        return AddReactiveNode(c => c
+            .SetHierarchyContext(HierarchyPath, "Dimmer", LoggingEnabled ?? false)
+            .AddUncoupledDimmer(dimmer, dimOptions));
+    }
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> ForLight(string lightId,
+        Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder) => ForLights([lightId], compositeNodeBuilder);
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> ForLight(TLight light,
+        Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> ForLights(IEnumerable<string> lightIds,
+        Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
+    {
+        var lightIdsArray =
+            CompositeHelper.ValidateLightsSupported(lightIds, NodeContainers.Keys);
+
+        if (lightIdsArray.Length == NodeContainers.Count)
         {
-            _name = name;
-            NodeContainers.Values.ForEach(b => b.SetName(name));
+            compositeNodeBuilder(this);
+            return this;
+        }
+        if (lightIdsArray.Length == 1)
+        {
+            compositeNodeBuilder(NodeContainers[lightIdsArray.First()]);
             return this;
         }
 
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput()
-            => WithDistinctOutput(EqualityComparer<LightTransition>.Default);
+        compositeNodeBuilder(new CompositeLightTransitionPipelineConfigurator<TLight>(serviceProvider, lightPipelineFactory, reactiveNodeFactory, NodeContainers
+            .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)));
+        return this;
+    }
 
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
-        {
-            NodeContainers.Values.ForEach(b => b.WithDistinctOutput(equalityComparer));
-            return this;
-        }
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> ForLights(IEnumerable<TLight> lights,
+        Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
+    {
+        var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, NodeContainers.Keys);
+        return ForLights(lightIds, compositeNodeBuilder);
+    }
 
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
-        {
-            NodeContainers.Values.ForEach(b => b.AddNode<TNode>());
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddNode(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
-        {
-            NodeContainers.Values.ForEach(b => b.AddNode(nodeFactory));
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddReactiveNode(
-            Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure)
-        {
-            var nodes = reactiveNodeFactory.CreateReactiveNodes(serviceProvider, NodeContainers.ToDictionary(nc => nc.Value.Light, nc => nc.Value.ServiceProvider),
-                configure
-                    .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
-                    .SetObservableSharingStrategy(_observableSharingStrategy));
-            NodeContainers.ForEach(kvp => kvp.Value.AddNode(nodes[kvp.Key]));
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddPipeline(Action<ILightTransitionPipelineConfigurator<TLight>> configure)
-        {
-            var pipelines = lightPipelineFactory.CreateLightPipelines(serviceProvider, NodeContainers.ToDictionary(nc => nc.Value.Light, nc => nc.Value.ServiceProvider), 
-                configure
-                    .ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)
-                    .SetObservableSharingStrategy(_observableSharingStrategy));
-            NodeContainers.ForEach(kvp => kvp.Value.AddNode(pipelines[kvp.Key]));
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer)
-        {
-            return AddDimmer(dimmer, _ => { });
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> AddDimmer(IDimmer dimmer, Action<DimmerOptions> dimOptions)
-        {
-            return AddReactiveNode(c => c
-                .SetHierarchyContext(HierarchyPath, "Dimmer", LoggingEnabled ?? false)
-                .AddUncoupledDimmer(dimmer, dimOptions));
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> ForLight(string lightId,
-            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder) => ForLights([lightId], compositeNodeBuilder);
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> ForLight(TLight light,
-            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder) => ForLights([light], compositeNodeBuilder);
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> ForLights(IEnumerable<string> lightIds,
-            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
-        {
-            var lightIdsArray =
-                CompositeHelper.ValidateLightsSupported(lightIds, NodeContainers.Keys);
-
-            if (lightIdsArray.Length == NodeContainers.Count)
-            {
-                compositeNodeBuilder(this);
-                return this;
-            }
-            if (lightIdsArray.Length == 1)
-            {
-                compositeNodeBuilder(NodeContainers[lightIdsArray.First()]);
-                return this;
-            }
-
-            compositeNodeBuilder(new CompositeLightTransitionPipelineConfigurator<TLight>(serviceProvider, lightPipelineFactory, reactiveNodeFactory, NodeContainers
-                    .Where(kvp => lightIdsArray.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)));
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> ForLights(IEnumerable<TLight> lights,
-            Action<ILightTransitionPipelineConfigurator<TLight>> compositeNodeBuilder)
-        {
-            var lightIds = CompositeHelper.ResolveGroupsAndValidateLightsSupported(lights, NodeContainers.Keys);
-            return ForLights(lightIds, compositeNodeBuilder);
-        }
-
-        /// <inheritdoc/>
-        public ILightTransitionPipelineConfigurator<TLight> SetObservableSharingStrategy(
-            IObservableSharingStrategy observableSharingStrategy)
-        {
-            _observableSharingStrategy = observableSharingStrategy;
-            return this;
-        }
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SetObservableSharingStrategy(
+        IObservableSharingStrategy observableSharingStrategy)
+    {
+        _observableSharingStrategy = observableSharingStrategy;
+        return this;
     }
 }
