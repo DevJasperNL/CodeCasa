@@ -12,11 +12,11 @@ namespace CodeCasa.Lights.NetDaemon.Scenes.Extensions
         /// </summary>
         /// <param name="serviceCollection">The service collection to add the service to.</param>
         /// <returns>The service collection for method chaining.</returns>
-        public static IServiceCollection AddLightSceneService(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddLightScenes(this IServiceCollection serviceCollection)
         {
             return serviceCollection
                 .AddTransient<LightSceneService>()
-                .AddSingleton<LightSceneCacheService>();
+                .AddTransient<LightSceneCacheService>();
         }
     }
 }

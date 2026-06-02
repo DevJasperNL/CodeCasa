@@ -3,12 +3,13 @@ using System.Collections.Concurrent;
 namespace CodeCasa.Lights.NetDaemon.Scenes
 {
     /// <summary>
-    /// A singleton service that caches light scene data retrieved by <see cref="LightSceneService"/>,
+    /// A transient service that caches light scene data retrieved by <see cref="LightSceneService"/>,
     /// preventing redundant API calls for the same scene entity.
     /// </summary>
     public class LightSceneCacheService(LightSceneService lightSceneService)
     {
-        private readonly ConcurrentDictionary<string, Dictionary<string, LightParameters>> _cache = new();
+        private static readonly ConcurrentDictionary<string, Dictionary<string, LightParameters>> Cache = new();
+        private static readonly SemaphoreSlim Lock = new(1, 1);
 
         /// <summary>
         /// Retrieves the light parameters for all lights in a Home Assistant scene, using a cached result
@@ -21,14 +22,27 @@ namespace CodeCasa.Lights.NetDaemon.Scenes
         /// </returns>
         public async Task<Dictionary<string, LightParameters>> GetLightSceneAsync(string sceneEntityId, CancellationToken cancellationToken = default)
         {
-            if (_cache.TryGetValue(sceneEntityId, out var cached))
+            if (Cache.TryGetValue(sceneEntityId, out var cached))
             {
                 return cached;
             }
 
-            var result = await lightSceneService.GetLightSceneAsync(sceneEntityId, cancellationToken);
-            _cache[sceneEntityId] = result;
-            return result;
+            await Lock.WaitAsync(cancellationToken);
+            try
+            {
+                if (Cache.TryGetValue(sceneEntityId, out cached))
+                {
+                    return cached;
+                }
+
+                var result = await lightSceneService.GetLightSceneAsync(sceneEntityId, cancellationToken);
+                Cache[sceneEntityId] = result;
+                return result;
+            }
+            finally
+            {
+                Lock.Release();
+            }
         }
     }
 }

@@ -23,5 +23,4 @@ public static class LightTransitionSwitchFalseConfiguratorExtensions
     {
         configurator.WhenFalse(sp => SceneExtensionHelpers.GetSceneLightParameters(sp, sceneEntity));
     }
-
-    }
+}
