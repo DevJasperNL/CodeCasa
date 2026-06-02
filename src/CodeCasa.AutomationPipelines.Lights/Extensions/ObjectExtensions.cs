@@ -1,20 +1,19 @@
 ﻿
-namespace CodeCasa.AutomationPipelines.Lights.Extensions
+namespace CodeCasa.AutomationPipelines.Lights.Extensions;
+
+internal static class ObjectExtensions
 {
-    internal static class ObjectExtensions
+    public static T SetHierarchyContext<T>(this T obj, string parentName, string name, bool enableLogging)
     {
-        public static T SetHierarchyContext<T>(this T obj, string parentName, string name, bool enableLogging)
+        if (obj is IPipelineHierarchyContext loggingContext)
         {
-            if (obj is IPipelineHierarchyContext loggingContext)
+            loggingContext.SetParentName(parentName);
+            loggingContext.SetName(name);
+            if (enableLogging)
             {
-                loggingContext.SetParentName(parentName);
-                loggingContext.SetName(name);
-                if (enableLogging)
-                {
-                    loggingContext.EnableLoggingInternal();
-                }
+                loggingContext.EnableLoggingInternal();
             }
-            return obj;
         }
+        return obj;
     }
 }

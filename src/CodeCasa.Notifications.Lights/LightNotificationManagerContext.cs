@@ -2,34 +2,33 @@
 using System.Reactive.Subjects;
 using CodeCasa.Notifications.Lights.Config;
 
-namespace CodeCasa.Notifications.Lights
+namespace CodeCasa.Notifications.Lights;
+
+/// <summary>
+/// Represents a context that subscribes to light notifications from a manager and exposes them as an observable.
+/// </summary>
+public class LightNotificationManagerContext : IDisposable
 {
+    private readonly BehaviorSubject<ILightNotificationConfig?> _subject = new(null);
+    private readonly IDisposable _subscriptionDisposable;
+
     /// <summary>
-    /// Represents a context that subscribes to light notifications from a manager and exposes them as an observable.
+    /// Initializes a new instance of the <see cref="LightNotificationManagerContext"/> class.
     /// </summary>
-    public class LightNotificationManagerContext : IDisposable
+    /// <param name="lightNotificationManager">The manager to subscribe to.</param>
+    public LightNotificationManagerContext(LightNotificationManager lightNotificationManager)
     {
-        private readonly BehaviorSubject<ILightNotificationConfig?> _subject = new(null);
-        private readonly IDisposable _subscriptionDisposable;
+        _subscriptionDisposable = lightNotificationManager.LightNotifications().Subscribe(_subject);
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LightNotificationManagerContext"/> class.
-        /// </summary>
-        /// <param name="lightNotificationManager">The manager to subscribe to.</param>
-        public LightNotificationManagerContext(LightNotificationManager lightNotificationManager)
-        {
-            _subscriptionDisposable = lightNotificationManager.LightNotifications().Subscribe(_subject);
-        }
+    /// <summary>
+    /// Gets an observable sequence of the current light notification configuration.
+    /// </summary>
+    public IObservable<ILightNotificationConfig?> LightNotifications => _subject.AsObservable();
 
-        /// <summary>
-        /// Gets an observable sequence of the current light notification configuration.
-        /// </summary>
-        public IObservable<ILightNotificationConfig?> LightNotifications => _subject.AsObservable();
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            _subscriptionDisposable.Dispose();
-        }
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _subscriptionDisposable.Dispose();
     }
 }

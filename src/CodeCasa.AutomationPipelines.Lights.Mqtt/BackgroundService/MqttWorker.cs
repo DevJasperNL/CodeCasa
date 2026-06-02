@@ -2,51 +2,50 @@
 using MQTTnet;
 using MQTTnet.Formatter;
 
-namespace CodeCasa.AutomationPipelines.Lights.Mqtt.BackgroundService
+namespace CodeCasa.AutomationPipelines.Lights.Mqtt.BackgroundService;
+
+/// <summary>
+/// A hosted background service that manages the MQTT client connection,
+/// automatically reconnecting to the broker when the connection is lost.
+/// </summary>
+public class MqttWorker(IMqttClient client, IOptions<MqttOptions> options)
+    : Microsoft.Extensions.Hosting.BackgroundService
 {
+    private readonly MqttOptions _options = options.Value;
+
     /// <summary>
-    /// A hosted background service that manages the MQTT client connection,
-    /// automatically reconnecting to the broker when the connection is lost.
+    /// Continuously monitors the MQTT connection and reconnects when necessary
+    /// until the <paramref name="stoppingToken"/> is cancelled.
     /// </summary>
-    public class MqttWorker(IMqttClient client, IOptions<MqttOptions> options)
-        : Microsoft.Extensions.Hosting.BackgroundService
+    /// <param name="stoppingToken">A token that signals when the hosted service should stop.</param>
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        private readonly MqttOptions _options = options.Value;
-
-        /// <summary>
-        /// Continuously monitors the MQTT connection and reconnects when necessary
-        /// until the <paramref name="stoppingToken"/> is cancelled.
-        /// </summary>
-        /// <param name="stoppingToken">A token that signals when the hosted service should stop.</param>
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        var connectionBuilder = new MqttClientOptionsBuilder()
+            .WithTcpServer(_options.Host, _options.Port)
+            .WithProtocolVersion(MqttProtocolVersion.V500);
+        if (_options.User != null)
         {
-            var connectionBuilder = new MqttClientOptionsBuilder()
-                .WithTcpServer(_options.Host, _options.Port)
-                .WithProtocolVersion(MqttProtocolVersion.V500);
-            if (_options.User != null)
-            {
-                connectionBuilder.WithCredentials(_options.User, _options.Password!);
-            }
-            var connectOptions = connectionBuilder.Build();
+            connectionBuilder.WithCredentials(_options.User, _options.Password!);
+        }
+        var connectOptions = connectionBuilder.Build();
 
-            while (!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
             {
-                try
+                if (!client.IsConnected)
                 {
-                    if (!client.IsConnected)
-                    {
-                        await client.ConnectAsync(connectOptions, stoppingToken);
-                        Console.WriteLine("MQTT Connected.");
-                    }
+                    await client.ConnectAsync(connectOptions, stoppingToken);
+                    Console.WriteLine("MQTT Connected.");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Connection failed: {ex.Message}. Retrying...");
-                }
-
-                // Wait before checking connection status again
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Connection failed: {ex.Message}. Retrying...");
+            }
+
+            // Wait before checking connection status again
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
         }
     }
 }

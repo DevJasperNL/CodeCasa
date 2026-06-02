@@ -1,10 +1,9 @@
-﻿namespace CodeCasa.NetDaemon.TypedEntities.Extensions
+﻿namespace CodeCasa.NetDaemon.TypedEntities.Extensions;
+
+internal static class DictionaryExtensions
 {
-    internal static class DictionaryExtensions
-    {
-        public static Dictionary<TValue, TKey> Inverse<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, IEqualityComparer<TValue> comparer)
-            where TKey : notnull
-            where TValue : notnull =>
-            dictionary.ToDictionary(kvp => kvp.Value, kvp => kvp.Key, comparer);
-    }
+    public static Dictionary<TValue, TKey> Inverse<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, IEqualityComparer<TValue> comparer)
+        where TKey : notnull
+        where TValue : notnull =>
+        dictionary.ToDictionary(kvp => kvp.Value, kvp => kvp.Key, comparer);
 }
