@@ -139,9 +139,15 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         return AddReactiveNode(sp => sp
             .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
-            .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => x), trueNodeFactory)
-            .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => !x), falseNodeFactory)
-            .PassThroughOn(whenObservable.Where(x => !x)));
+            .AddNodeSource(_ => whenObservable.CombineLatest(switchObservable, (when, sw) =>
+            {
+                if (!when)
+                {
+                    return _ =>
+                        new PassThroughNode<LightTransition>();
+                }
+                return sw ? trueNodeFactory : falseNodeFactory;
+            })));
     }
 
     /// <inheritdoc/>
@@ -195,9 +201,20 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         return AddReactiveNode(c => c
             .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
-            .On<bool, TTrueNode>(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => x))
-            .On<bool, TFalseNode>(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => !x))
-            .PassThroughOn(whenObservable.Where(x => !x)));
+            .AddNodeSource(_ => whenObservable.CombineLatest(switchObservable, (when, sw) =>
+            {
+                if (!when)
+                {
+                    return _ =>
+                        new PassThroughNode<LightTransition>();
+                }
+
+                return sw
+                    ? sp =>
+                        ActivatorUtilities.CreateInstance<TTrueNode>(sp)
+                    : new Func<IServiceProvider, IPipelineNode<LightTransition>?>(sp =>
+                        ActivatorUtilities.CreateInstance<TFalseNode>(sp));
+            })));
     }
 
     /// <inheritdoc/>
@@ -242,9 +259,22 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         return AddReactiveNode(c => c
             .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
-            .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => x), trueConfigure.ApplyHierarchySettings(c), instantiationScope)
-            .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => !x), falseConfigure.ApplyHierarchySettings(c), instantiationScope)
-            .PassThroughOn(whenObservable.Where(x => !x)));
+            .AddNodeSource(_ => whenObservable.CombineLatest(switchObservable, (when, sw) =>
+            {
+                if (!when)
+                {
+                    return _ =>
+                        new PassThroughNode<LightTransition>();
+                }
+
+                return sw
+                    ? new Func<IServiceProvider, IPipelineNode<LightTransition>?>(sp => sp
+                        .GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(sp, Light,
+                            trueConfigure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)))
+                    : new Func<IServiceProvider, IPipelineNode<LightTransition>?>(sp => sp
+                        .GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(sp, Light,
+                            falseConfigure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+            })));
     }
 
     /// <inheritdoc/>
@@ -280,9 +310,22 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         return AddReactiveNode(c => c
             .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
-            .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => x), trueConfigure.ApplyHierarchySettings(c), instantiationScope)
-            .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => !x), falseConfigure.ApplyHierarchySettings(c), instantiationScope)
-            .PassThroughOn(whenObservable.Where(x => !x)));
+            .AddNodeSource(_ => whenObservable.CombineLatest(switchObservable, (when, sw) =>
+            {
+                if (!when)
+                {
+                    return _ =>
+                        new PassThroughNode<LightTransition>();
+                }
+
+                return sw
+                    ? new Func<IServiceProvider, IPipelineNode<LightTransition>?>(sp => sp
+                        .GetRequiredService<LightPipelineFactory>().CreateLightPipeline(ServiceProvider, Light,
+                            trueConfigure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)))
+                    : new Func<IServiceProvider, IPipelineNode<LightTransition>?>(sp => sp
+                        .GetRequiredService<LightPipelineFactory>().CreateLightPipeline(ServiceProvider, Light,
+                            falseConfigure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+            })));
     }
 
     /// <inheritdoc/>
