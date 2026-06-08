@@ -54,7 +54,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionReactiveNodeConfigurator<TLight>> configure, InstantiationScope _ = InstantiationScope.Shared)
     {
         return On(triggerObservable,
-            s => s.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(s, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+            sp => sp.GetRequiredService<ReactiveNodeFactory>().CreateReactiveNode(sp, Light, configure.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
