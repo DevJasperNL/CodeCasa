@@ -96,5 +96,5 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         Action<ITimelineConfigurator> configure)
-        => AddToggle(triggerObservable, (Action<ILightTransitionToggleConfigurator<TLight>>)(c => c.AddTimeline(configure)));
+        => AddToggle(triggerObservable, c => c.AddTimeline(configure));
 }

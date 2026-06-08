@@ -203,11 +203,11 @@ public static partial class LightTransitionPipelineConfiguratorExtensions
         IObservable<T> triggerObservable,
         params IEntityCore[] sceneEntities)
     {
-        return configurator.AddToggle(triggerObservable, (Action<ILightTransitionToggleConfigurator<NetDaemonLight>>)(c =>
+        return configurator.AddToggle(triggerObservable, c =>
         {
             foreach (var scene in sceneEntities)
                 c.AddScene(scene);
-        }));
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -230,11 +230,11 @@ public static partial class LightTransitionPipelineConfiguratorExtensions
         IObservable<T> triggerObservable,
         params IEntityCore[] sceneEntities)
     {
-        return configurator.AddCycle(triggerObservable, (Action<ILightTransitionCycleConfigurator<NetDaemonLight>>)(c =>
+        return configurator.AddCycle(triggerObservable, c =>
         {
             foreach (var scene in sceneEntities)
                 c.AddScene(scene);
-        }));
+        });
     }
 
     }
