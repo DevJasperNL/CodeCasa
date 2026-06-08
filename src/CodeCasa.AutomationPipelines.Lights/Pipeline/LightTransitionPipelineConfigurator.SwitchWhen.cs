@@ -47,8 +47,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
         return SwitchWhen(whenObservable, switchObservable,
-            c => trueLightParametersFactory(c)?.AsTransition(),
-            c => falseLightParametersFactory(c)?.AsTransition());
+            sp => trueLightParametersFactory(sp)?.AsTransition(),
+            sp => falseLightParametersFactory(sp)?.AsTransition());
     }
 
     /// <inheritdoc/>
@@ -106,8 +106,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, LightTransition?> falseLightTransitionFactory)
     {
         return SwitchWhen(whenObservable, switchObservable,
-            c => new StaticLightTransitionNode(trueLightTransitionFactory(c), c.GetRequiredService<IScheduler>()),
-            c => new StaticLightTransitionNode(falseLightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+            sp => new StaticLightTransitionNode(trueLightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()),
+            sp => new StaticLightTransitionNode(falseLightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
     }
 
     /// <inheritdoc/>
@@ -137,7 +137,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, IPipelineNode<LightTransition>> trueNodeFactory,
         Func<IServiceProvider, IPipelineNode<LightTransition>> falseNodeFactory)
     {
-        return AddReactiveNode(c => c
+        return AddReactiveNode(sp => sp
             .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
             .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => x), trueNodeFactory)
             .On(whenObservable.Where(x => x).CombineLatest(switchObservable, (_, s) => s).Where(x => !x), falseNodeFactory)

@@ -20,10 +20,10 @@ internal sealed class LightTransitionSwitchConfigurator<TLight>
         => WhenTrue(_ => lightTransition);
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, LightParameters?> lightParametersFactory)
-        => WhenTrue(c => lightParametersFactory(c)?.AsTransition());
+        => WhenTrue(sp => lightParametersFactory(sp)?.AsTransition());
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
-        => WhenTrue(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+        => WhenTrue(sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
@@ -33,16 +33,16 @@ internal sealed class LightTransitionSwitchConfigurator<TLight>
     }
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue<TNode>() where TNode : IPipelineNode<LightTransition>
-        => WhenTrue(c => ActivatorUtilities.CreateInstance<TNode>(c));
+        => WhenTrue(sp => ActivatorUtilities.CreateInstance<TNode>(sp));
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Dictionary<ITimeline, LightParameters> timeline,
         TimeSpan? transitionTimeForTimelineState = null)
-        => WhenTrue(c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => WhenTrue(sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
         TimeSpan? transitionTimeForTimelineState = null)
-        => WhenTrue(c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => WhenTrue(sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     public ILightTransitionSwitchFalseConfigurator<TLight> WhenTrue(Action<ITimelineConfigurator> configure)
     {

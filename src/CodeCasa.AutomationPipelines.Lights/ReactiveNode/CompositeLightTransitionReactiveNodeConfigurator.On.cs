@@ -17,15 +17,15 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightParameters?> lightParametersFactory)
-        => On(triggerObservable, c => lightParametersFactory(c)?.AsTransition());
+        => On(triggerObservable, sp => lightParametersFactory(sp)?.AsTransition());
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, LightTransition lightTransition)
-        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransition, c.GetRequiredService<IScheduler>()));
+        => On(triggerObservable, sp => new StaticLightTransitionNode(lightTransition, sp.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Func<IServiceProvider, LightTransition?> lightTransitionFactory)
-        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+        => On(triggerObservable, sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T, TNode>(IObservable<T> triggerObservable) where TNode : IPipelineNode<LightTransition>
@@ -110,13 +110,13 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
-        => On(triggerObservable, c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => On(triggerObservable, sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
         TimeSpan? transitionTimeForTimelineState = null)
-        => On(triggerObservable, c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => On(triggerObservable, sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,

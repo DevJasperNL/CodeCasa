@@ -54,7 +54,7 @@ internal class LightTransitionToggleConfigurator<TLight>(TLight light, ISchedule
 
     public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory)
     {
-        return Add(c => lightParametersFactory(c)?.AsTransition());
+        return Add(sp => lightParametersFactory(sp)?.AsTransition());
     }
 
     public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory)
@@ -69,17 +69,17 @@ internal class LightTransitionToggleConfigurator<TLight>(TLight light, ISchedule
 
     public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
     {
-        return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+        return Add(sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
     }
 
     public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory)
     {
-        return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)));
+        return Add(sp => new FactoryNode<LightTransition>(t => lightTransitionFactory(sp, t)));
     }
 
     public ILightTransitionToggleConfigurator<TLight> Add<TNode>() where TNode : IPipelineNode<LightTransition>
     {
-        return Add(c => ActivatorUtilities.CreateInstance<TNode>(c));
+        return Add(sp => ActivatorUtilities.CreateInstance<TNode>(sp));
     }
 
     public ILightTransitionToggleConfigurator<TLight> Add(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
@@ -95,12 +95,12 @@ internal class LightTransitionToggleConfigurator<TLight>(TLight light, ISchedule
 
     public ILightTransitionToggleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
     {
-        return Add(c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        return Add(sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
     }
 
     public ILightTransitionToggleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
     {
-        return Add(c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        return Add(sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
     }
 
     public ILightTransitionToggleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)
