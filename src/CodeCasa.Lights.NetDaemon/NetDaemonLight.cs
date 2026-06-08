@@ -71,4 +71,10 @@ public class NetDaemonLight : ILight
     public IObservable<Abstractions.StateChange<ILight, LightParameters>> StateChangesWithCurrent() =>
         _lightEntity.StateChangesWithCurrent().Select(sc => new Abstractions.StateChange<ILight, LightParameters>(this,
             sc.Old?.Attributes?.ToLightParameters(), sc.New?.Attributes?.ToLightParameters()));
+
+    /// <inheritdoc />
+    public DateTime? LastChangedUtc => _lightEntity.EntityState?.LastChanged?.ToUniversalTime();
+
+    /// <inheritdoc />
+    public DateTime? LastUpdatedUtc => _lightEntity.EntityState?.LastUpdated?.ToUniversalTime();
 }

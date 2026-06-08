@@ -90,6 +90,6 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         Action<ITimelineConfigurator> configure)
     {
-        return AddToggle(triggerObservable, (Action<ILightTransitionToggleConfigurator<TLight>>)(c => c.AddTimeline(configure)));
+        return AddToggle(triggerObservable, c => c.AddTimeline(configure));
     }
 }

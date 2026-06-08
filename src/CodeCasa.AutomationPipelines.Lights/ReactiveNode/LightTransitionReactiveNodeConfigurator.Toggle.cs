@@ -65,8 +65,20 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     {
         var toggleConfigurator = new LightTransitionToggleConfigurator<TLight>(Light, _scheduler);
         configure(toggleConfigurator);
+
+        var gracePeriod = toggleConfigurator.GracePeriod ?? TimeSpan.FromSeconds(1);
         AddNodeSource(triggerObservable.ToToggleObservable(
-            () => Light.IsOn(),
+            lastActivationTime =>
+            {
+                var utcNow = DateTime.UtcNow;
+                if (utcNow - Light.LastChangedUtc <= gracePeriod &&
+                    (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
+                {
+                    return !Light.IsOn();
+                }
+
+                return Light.IsOn();
+            },
             () => new TurnOffThenPassThroughNode(),
             toggleConfigurator.NodeFactories.Select(fact =>
             {
@@ -93,5 +105,5 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         Action<ITimelineConfigurator> configure)
-        => AddToggle(triggerObservable, (Action<ILightTransitionToggleConfigurator<TLight>>)(c => c.AddTimeline(configure)));
+        => AddToggle(triggerObservable, c => c.AddTimeline(configure));
 }
