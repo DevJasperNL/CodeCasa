@@ -13,6 +13,7 @@ internal class LightTransitionToggleConfigurator<TLight>(TLight light, ISchedule
     public TLight Light { get; } = light;
     internal TimeSpan? ToggleTimeout { get; private set; }
     internal bool? IncludeOffValue { get; private set; }
+    internal TimeSpan? GracePeriod { get; private set; }
     internal List<Func<IServiceProvider, IPipelineNode<LightTransition>>> NodeFactories
     {
         get;
@@ -33,6 +34,12 @@ internal class LightTransitionToggleConfigurator<TLight>(TLight light, ISchedule
     public ILightTransitionToggleConfigurator<TLight> ExcludeOffFromToggleCycle()
     {
         IncludeOffValue = false;
+        return this;
+    }
+
+    public ILightTransitionToggleConfigurator<TLight> SetGracePeriod(TimeSpan gracePeriod)
+    {
+        GracePeriod = gracePeriod;
         return this;
     }
 

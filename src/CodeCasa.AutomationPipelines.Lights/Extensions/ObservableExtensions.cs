@@ -35,7 +35,7 @@ internal static class ObservableExtensions
 
     public static IObservable<TValue?> ToToggleObservable<TTrigger, TValue>(
         this IObservable<TTrigger> triggerObservable,
-        Func<bool> offCondition,
+        Func<DateTime?, bool> offCondition,
         Func<TValue> offValueFactory,
         IEnumerable<Func<TValue>> valueFactories,
         TimeSpan timeout,
@@ -55,19 +55,20 @@ internal static class ObservableExtensions
             {
                 var utcNow = DateTime.UtcNow;
                 var consecutive = previousLastChanged != null && utcNow - previousLastChanged < timeout;
-                previousLastChanged = utcNow;
-
+                
                 if (!consecutive)
                 {
                     index = 0;
-                    if (offCondition())
+                    if (offCondition(previousLastChanged))
                     {
+                        previousLastChanged = utcNow;
                         return offValueFactory();
                     }
                 }
 
                 var value = index >= valueFactoryArray.Length ? offValueFactory() : valueFactoryArray[index]();
                 index = index < maxIndexValue ? index + 1 : 0;
+                previousLastChanged = utcNow;
                 return value;
             });
     }

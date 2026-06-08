@@ -65,20 +65,37 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
     {
         var toggleConfigurators = configurators.ToDictionary(kvp => kvp.Key,
             kvp => new LightTransitionToggleConfigurator<TLight>(kvp.Value.Light, scheduler));
-        var compositeCycleConfigurator = new CompositeLightTransitionToggleConfigurator<TLight>(toggleConfigurators, []);
-        configure(compositeCycleConfigurator);
+        var compositeToggleConfigurator = new CompositeLightTransitionToggleConfigurator<TLight>(toggleConfigurators, []);
+        configure(compositeToggleConfigurator);
         var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
-        configurators.ForEach(kvp => kvp.Value.AddNodeSource(shareableTriggerObservable.ToToggleObservable(
-            () => configurators.Values.Any(c => c.Light.IsOn()),
-            () => new TurnOffThenPassThroughNode(),
-            toggleConfigurators[kvp.Key].NodeFactories.Select(fact =>
-            {
-                return new Func<IPipelineNode<LightTransition>>(() => 
-                    fact.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+
+        configurators.ForEach(kvp =>
+        {
+            var toggleConfig = toggleConfigurators[kvp.Key];
+            var gracePeriod = toggleConfig.GracePeriod ?? TimeSpan.FromSeconds(1);
+            kvp.Value.AddNodeSource(shareableTriggerObservable.ToToggleObservable(
+                lastActivationTime =>
+                {
+                    if (lastActivationTime.HasValue &&
+                        DateTime.UtcNow - lastActivationTime > gracePeriod &&
+                        DateTime.UtcNow - kvp.Value.Light.LastChangedUtc <= gracePeriod)
+                    {
+                        return !configurators.Values.Any(c => c.Light.IsOn());
+                    }
+
+                    return configurators.Values.Any(c => c.Light.IsOn());
+                },
+                () => new TurnOffThenPassThroughNode(),
+                toggleConfig.NodeFactories.Select(fact =>
+                {
+                    return new Func<IPipelineNode<LightTransition>>(() =>
+                            fact.CreateScopedNode(kvp.Value
+                                .ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
                     );
-            }),
-            toggleConfigurators[kvp.Key].ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
-            toggleConfigurators[kvp.Key].IncludeOffValue)));
+                }),
+                toggleConfig.ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
+                toggleConfig.IncludeOffValue));
+        });
         return this;
     }
 

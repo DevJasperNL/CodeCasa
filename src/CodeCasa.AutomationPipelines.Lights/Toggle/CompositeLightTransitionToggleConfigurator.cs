@@ -34,6 +34,13 @@ internal class CompositeLightTransitionToggleConfigurator<TLight>(
         return this;
     }
 
+    public ILightTransitionToggleConfigurator<TLight> SetGracePeriod(TimeSpan gracePeriod)
+    {
+        activeConfigurators.Values.ForEach(c => c.SetGracePeriod(gracePeriod));
+        inactiveConfigurators.Values.ForEach(c => c.SetGracePeriod(gracePeriod));
+        return this;
+    }
+
     public ILightTransitionToggleConfigurator<TLight> AddOff()
     {
         return Add<TurnOffThenPassThroughNode>();

@@ -32,6 +32,12 @@ public interface ILightTransitionToggleConfigurator<TLight> where TLight : ILigh
     ILightTransitionToggleConfigurator<TLight> ExcludeOffFromToggleCycle();
 
     /// <summary>
+    /// Sets the grace period during which a manual interaction will use the light's 
+    /// previous state instead of its current state.
+    /// </summary>
+    ILightTransitionToggleConfigurator<TLight> SetGracePeriod(TimeSpan gracePeriod);
+
+    /// <summary>
     /// Adds an "off" state to the toggle sequence.
     /// </summary>
     /// <returns>The configurator instance for method chaining.</returns>
