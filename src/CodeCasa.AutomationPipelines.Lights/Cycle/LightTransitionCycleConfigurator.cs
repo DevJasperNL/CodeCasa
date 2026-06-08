@@ -36,12 +36,12 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTr
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => lightParametersFactory(c)?.AsTransition(), matchesNodeState);
+        return Add(sp => lightParametersFactory(sp)?.AsTransition(), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add((c, t) => lightParametersFactory(c, t)?.AsTransition(), matchesNodeState);
+        return Add((sp, t) => lightParametersFactory(sp, t)?.AsTransition(), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)

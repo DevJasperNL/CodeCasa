@@ -19,24 +19,24 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Func<IServiceProvider, LightParameters?> lightParametersFactory)
-        => On(triggerObservable, c => lightParametersFactory(c)?.AsTransition());
+        => On(triggerObservable, sp => lightParametersFactory(sp)?.AsTransition());
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         LightTransition lightTransition) =>
-        On(triggerObservable, c => new StaticLightTransitionNode(lightTransition, c.GetRequiredService<IScheduler>()));
+        On(triggerObservable, sp => new StaticLightTransitionNode(lightTransition, sp.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Func<IServiceProvider, LightTransition?> lightTransitionFactory)
-        => On(triggerObservable, c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+        => On(triggerObservable, sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T, TNode>(IObservable<T> triggerObservable)
         where TNode : IPipelineNode<LightTransition> =>
         AddNodeSource(triggerObservable.Select(_ =>
-            new Func<IServiceProvider, IPipelineNode<LightTransition>?>(c =>
-                ActivatorUtilities.CreateInstance<TNode>(c))));
+            new Func<IServiceProvider, IPipelineNode<LightTransition>?>(sp =>
+                ActivatorUtilities.CreateInstance<TNode>(sp))));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
@@ -47,7 +47,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable, Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, InstantiationScope _ = InstantiationScope.Shared)
     {
         return On(triggerObservable,
-            s => s.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(ServiceProvider, Light, pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
+            sp => sp.GetRequiredService<LightPipelineFactory>().CreateLightPipeline(ServiceProvider, Light, pipelineConfigurator.ApplyHierarchySettings(HierarchyPath, LoggingEnabled ?? false)));
     }
 
     /// <inheritdoc/>
@@ -80,13 +80,13 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
-        => On(triggerObservable, c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => On(triggerObservable, sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
         TimeSpan? transitionTimeForTimelineState = null)
-        => On(triggerObservable, c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => On(triggerObservable, sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     /// <inheritdoc/>
     public ILightTransitionReactiveNodeConfigurator<TLight> On<T>(IObservable<T> triggerObservable,

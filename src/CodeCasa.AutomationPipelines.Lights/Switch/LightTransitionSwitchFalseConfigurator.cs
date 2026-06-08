@@ -22,10 +22,10 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
         => WhenFalse(_ => lightTransition);
 
     public void WhenFalse(Func<IServiceProvider, LightParameters?> lightParametersFactory)
-        => WhenFalse(c => lightParametersFactory(c)?.AsTransition());
+        => WhenFalse(sp => lightParametersFactory(sp)?.AsTransition());
 
     public void WhenFalse(Func<IServiceProvider, LightTransition?> lightTransitionFactory)
-        => WhenFalse(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+        => WhenFalse(sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
 
     public void WhenFalse(Func<IServiceProvider, IPipelineNode<LightTransition>> nodeFactory)
     {
@@ -33,15 +33,15 @@ internal sealed class LightTransitionSwitchFalseConfigurator<TLight>(
     }
 
     public void WhenFalse<TNode>() where TNode : IPipelineNode<LightTransition>
-        => WhenFalse(c => ActivatorUtilities.CreateInstance<TNode>(c));
+        => WhenFalse(sp => ActivatorUtilities.CreateInstance<TNode>(sp));
 
     public void WhenFalse(Dictionary<ITimeline, LightParameters> timeline,
         TimeSpan? transitionTimeForTimelineState = null)
-        => WhenFalse(c => new TimelineNode(timeline, c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => WhenFalse(sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     public void WhenFalse(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
         TimeSpan? transitionTimeForTimelineState = null)
-        => WhenFalse(c => new TimelineNode(timelineFactory(c), c.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
+        => WhenFalse(sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState));
 
     public void WhenFalse(Action<ITimelineConfigurator> configure)
     {

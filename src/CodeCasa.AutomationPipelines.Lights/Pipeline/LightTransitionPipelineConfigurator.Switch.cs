@@ -31,14 +31,14 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     public ILightTransitionPipelineConfigurator<TLight> Switch<TObservable>(Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
         Func<IServiceProvider, LightParameters?> falseLightParametersFactory) where TObservable : IObservable<bool>
     {
-        return Switch<TObservable>(c => falseLightParametersFactory(c)?.AsTransition(), c => trueLightParametersFactory(c)?.AsTransition());
+        return Switch<TObservable>(sp => falseLightParametersFactory(sp)?.AsTransition(), c => trueLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> Switch(IObservable<bool> observable, Func<IServiceProvider, LightParameters?> trueLightParametersFactory,
         Func<IServiceProvider, LightParameters?> falseLightParametersFactory)
     {
-        return Switch(observable, c => trueLightParametersFactory(c)?.AsTransition(), c => falseLightParametersFactory(c)?.AsTransition());
+        return Switch(observable, sp => trueLightParametersFactory(sp)?.AsTransition(), c => falseLightParametersFactory(c)?.AsTransition());
     }
 
     /// <inheritdoc/>
@@ -60,8 +60,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         Func<IServiceProvider, LightTransition?> falseLightTransitionFactory) where TObservable : IObservable<bool>
     {
         return Switch<TObservable>(
-            c => new StaticLightTransitionNode(trueLightTransitionFactory(c), c.GetRequiredService<IScheduler>()), 
-            c => new StaticLightTransitionNode(falseLightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+            sp => new StaticLightTransitionNode(trueLightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()), 
+            sp => new StaticLightTransitionNode(falseLightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
     }
 
     /// <inheritdoc/>
@@ -70,8 +70,8 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     {
         return Switch(
             observable,
-            c => new StaticLightTransitionNode(trueLightTransitionFactory(c), c.GetRequiredService<IScheduler>()),
-            c => new StaticLightTransitionNode(falseLightTransitionFactory(c), c.GetRequiredService<IScheduler>()));
+            sp => new StaticLightTransitionNode(trueLightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()),
+            sp => new StaticLightTransitionNode(falseLightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()));
     }
 
     /// <inheritdoc/>

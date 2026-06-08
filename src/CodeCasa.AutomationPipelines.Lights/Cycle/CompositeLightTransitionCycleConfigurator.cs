@@ -36,7 +36,7 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => lightParametersFactory(c)?.AsTransition(), matchesNodeState);
+        return Add(sp => lightParametersFactory(sp)?.AsTransition(), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightParameters?> lightParametersFactory, Func<IServiceProvider, bool> matchesNodeState)
@@ -56,12 +56,12 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => new StaticLightTransitionNode(lightTransitionFactory(c), c.GetRequiredService<IScheduler>()), matchesNodeState);
+        return Add(sp => new StaticLightTransitionNode(lightTransitionFactory(sp), sp.GetRequiredService<IScheduler>()), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add(Func<IServiceProvider, LightTransition?, LightTransition?> lightTransitionFactory, Func<IServiceProvider, bool> matchesNodeState)
     {
-        return Add(c => new FactoryNode<LightTransition>(t => lightTransitionFactory(c, t)), matchesNodeState);
+        return Add(sp => new FactoryNode<LightTransition>(t => lightTransitionFactory(sp, t)), matchesNodeState);
     }
 
     public ILightTransitionCycleConfigurator<TLight> Add<TNode>(Func<IServiceProvider, bool> matchesNodeState) where TNode : IPipelineNode<LightTransition>
