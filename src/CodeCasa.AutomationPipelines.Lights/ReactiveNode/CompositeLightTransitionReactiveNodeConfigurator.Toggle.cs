@@ -76,9 +76,9 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             kvp.Value.AddNodeSource(shareableTriggerObservable.ToToggleObservable(
                 lastActivationTime =>
                 {
-                    if (lastActivationTime.HasValue &&
-                        DateTime.UtcNow - lastActivationTime > gracePeriod &&
-                        DateTime.UtcNow - kvp.Value.Light.LastChangedUtc <= gracePeriod)
+                    var utcNow = DateTime.UtcNow;
+                    if (utcNow - kvp.Value.Light.LastChangedUtc <= gracePeriod &&
+                        (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
                     {
                         return !configurators.Values.Any(c => c.Light.IsOn());
                     }

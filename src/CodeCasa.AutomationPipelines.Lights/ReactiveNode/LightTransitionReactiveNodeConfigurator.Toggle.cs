@@ -70,9 +70,9 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         AddNodeSource(triggerObservable.ToToggleObservable(
             lastActivationTime =>
             {
-                if (lastActivationTime.HasValue && 
-                    DateTime.UtcNow - lastActivationTime > gracePeriod && 
-                    DateTime.UtcNow - Light.LastChangedUtc <= gracePeriod)
+                var utcNow = DateTime.UtcNow;
+                if (utcNow - Light.LastChangedUtc <= gracePeriod &&
+                    (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
                 {
                     return !Light.IsOn();
                 }
