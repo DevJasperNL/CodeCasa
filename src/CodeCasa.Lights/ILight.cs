@@ -40,4 +40,28 @@ public interface ILight
     /// </summary>
     /// <returns>An <see cref="IObservable{T}"/> that emits <see cref="StateChange{ILight, LightParameters}"/> events.</returns>
     IObservable<StateChange<ILight, LightParameters>> StateChangesWithCurrent();
+
+    /// <summary>
+    /// Gets the UTC timestamp when the entity's actual state last changed (e.g., from 'off' to 'on').
+    /// </summary>
+    /// <value>
+    /// The <see cref="DateTime"/> in UTC of the last state change, or <see langword="null"/> if unavailable.
+    /// </value>
+    /// <remarks>
+    /// This value only updates when the primary state value changes. It does not update if only 
+    /// entity attributes (like brightness or temperature) change.
+    /// </remarks>
+    DateTime? LastChangedUtc { get; }
+
+    /// <summary>
+    /// Gets the UTC timestamp when the entity was last updated.
+    /// </summary>
+    /// <value>
+    /// The <see cref="DateTime"/> in UTC of the last update, or <see langword="null"/> if unavailable.
+    /// </value>
+    /// <remarks>
+    /// This value updates whenever the entity is processed by the system, including when 
+    /// attributes change (e.g., brightness, color) or when a sensor reports the exact same state again.
+    /// </remarks>
+    DateTime? LastUpdatedUtc { get; }
 }
