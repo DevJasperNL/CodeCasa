@@ -7,52 +7,46 @@ public static partial class EntityExtensions
 {
     /// <summary>
     /// <para>
-    /// Returns a boolean observable that emits true when the entity opens and emits false when the entity closes.
-    /// The observable is distinct until changed. Other state changes are ignored.
+    /// Returns a boolean observable that emits <see langword="true"/> when the entity opens 
+    /// and emits <see langword="false"/> when the entity closes or changes to any other state.
+    /// The observable is distinct until changed.
     /// </para>
     /// <para>
-    /// State changes other than open or closed (on or off on the entity) are ignored. This also includes a null entity state. This is typically received when an entity is removed. This will not be emitted in the observable.
+    /// Any state other than "on" (such as off, unknown, unavailable, or a null state when 
+    /// the entity is removed) is treated as closed and will emit <see langword="false"/>.
     /// </para>
     /// </summary>
     public static IObservable<bool> ToOpenClosedObservable(this Entity entity) => entity.ToBooleanObservable();
 
     /// <summary>
     /// <para>
-    /// Returns a boolean observable that emits true when the entity turns on and emits false when the entity turns off.
-    /// The observable is distinct until changed. Other state changes are ignored.
+    /// Returns a boolean observable that emits <see langword="true"/> when the entity turns on 
+    /// and emits <see langword="false"/> when the entity turns off or changes to any other state.
+    /// The observable is distinct until changed.
     /// </para>
     /// <para>
-    /// State changes other than on or off are ignored. This also includes a null entity state. This is typically received when an entity is removed. This will not be emitted in the observable.
+    /// Any state other than "on" (such as off, unknown, unavailable, or a null state when 
+    /// the entity is removed) is treated as off and will emit <see langword="false"/>.
     /// </para>
     /// </summary>
     public static IObservable<bool> ToOnOffObservable(this Entity entity) => entity.ToBooleanObservable();
 
     /// <summary>
     /// <para>
-    /// Returns a boolean observable that emits true when the entity turns on and emits false when the entity turns off.
-    /// The observable is distinct until changed. Other state changes are ignored.
+    /// Returns a boolean observable that emits true when the entity turns on and emits false when the entity changes to any other state (including off, unknown, unavailable or null).
+    /// The observable is distinct until changed. 
     /// </para>
     /// <para>
-    /// State changes other than on or off are ignored. This also includes a null entity state. This is typically received when an entity is removed. This will not be emitted in the observable.
+    /// A null entity state, which typically indicates the entity has been removed, will emit false.
     /// </para>
     /// </summary>
     public static IObservable<bool> ToBooleanObservable(this Entity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var statefulObservable = entity.Stateful();
-
-        var trueObservable = 
-            statefulObservable
-                .Where(s => s.New?.IsOn() ?? false)
-                .Select(_ => true);
-
-        var falseObservable = 
-            statefulObservable
-                .Where(s => s.New?.IsOff() ?? false)
-                .Select(_ => false);
-
-        return trueObservable.Merge(falseObservable).DistinctUntilChanged();
+        return entity.Stateful()
+            .Select(s => s.New?.IsOn() ?? false)
+            .DistinctUntilChanged();
     }
 
     /// <summary>
@@ -97,31 +91,21 @@ public static partial class EntityExtensions
 
     /// <summary>
     /// <para>
-    /// Returns a boolean observable that emits true when the entity turns on and emits false when the entity turns off.
+    /// Returns a boolean observable that emits true when the entity turns on and emits false when the entity changes to any other state (including off, unknown, unavailable or null).
     /// Predicate will be evaluated on all state changes, including attribute changes.
-    /// The observable only emits changes and will not emit the initial state.
-    /// The observable is distinct until changed. Other state changes are ignored.
     /// </para>
     /// <para>
-    /// State changes other than on or off are ignored. This also includes a null entity state. This is typically received when an entity is removed. This will not be emitted in the observable.
+    /// The observable only emits subsequent changes and will not emit the initial state.
+    /// A null entity state, which typically indicates the entity has been removed, will emit false.
     /// </para>
     /// </summary>
     public static IObservable<bool> ToChangesOnlyBooleanObservable(this Entity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var statefulObservable = entity.StateAllChanges();
-        var trueObservable =
-            statefulObservable
-                .Where(s => s.New?.IsOn() ?? false)
-                .Select(_ => true);
-
-        var falseObservable =
-            statefulObservable
-                .Where(s => s.New?.IsOff() ?? false)
-                .Select(_ => false);
-
-        return trueObservable.Merge(falseObservable).DistinctUntilChanged();
+        return entity.StateAllChanges()
+            .Select(s => s.New?.IsOn() ?? false)
+            .DistinctUntilChanged();
     }
 
     /// <summary>
