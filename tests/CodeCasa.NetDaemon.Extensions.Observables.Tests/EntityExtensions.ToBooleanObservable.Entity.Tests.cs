@@ -103,7 +103,7 @@ public class EntityExtensionsToBooleanObservableEntityTests
     }
 
     [TestMethod]
-    public void ToBooleanObservable_OtherStatesAreIgnored()
+    public void ToBooleanObservable_OtherStates_ReturnFalse()
     {
         // Arrange
         var results = new List<bool>();
@@ -113,11 +113,11 @@ public class EntityExtensionsToBooleanObservableEntityTests
         ChangeEntityState("Something else");
 
         // Assert
-        CollectionAssert.AreEqual(new[] { true }, results);
+        CollectionAssert.AreEqual(new[] { true, false }, results);
     }
 
     [TestMethod]
-    public void ToBooleanObservable_NullIgnored()
+    public void ToBooleanObservable_NullReturnsFalse()
     {
         // Arrange
         var results = new List<bool>();
@@ -127,7 +127,7 @@ public class EntityExtensionsToBooleanObservableEntityTests
         EntityStateNull();
 
         // Assert
-        CollectionAssert.AreEqual(new[] { true }, results);
+        CollectionAssert.AreEqual(new[] { true, false }, results);
     }
 
     [TestMethod]
@@ -244,7 +244,7 @@ public class EntityExtensionsToBooleanObservableEntityTests
     }
 
     [TestMethod]
-    public void ToChangesOnlyBooleanObservable_OtherStatesAreIgnored()
+    public void ToChangesOnlyBooleanObservable_OtherStates_ReturnFalse()
     {
         // Arrange
         var results = new List<bool>();
@@ -254,11 +254,11 @@ public class EntityExtensionsToBooleanObservableEntityTests
         ChangeEntityState("Something else");
 
         // Assert
-        Assert.IsEmpty(results);
+        CollectionAssert.AreEqual(new[] { false }, results);
     }
 
     [TestMethod]
-    public void ToChangesOnlyBooleanObservable_NullIgnored()
+    public void ToChangesOnlyBooleanObservable_NullReturnsFalse()
     {
         // Arrange
         var results = new List<bool>();
@@ -268,7 +268,7 @@ public class EntityExtensionsToBooleanObservableEntityTests
         EntityStateNull();
 
         // Assert
-        Assert.IsEmpty(results);
+        CollectionAssert.AreEqual(new[] { false }, results);
     }
 
     [TestMethod]
