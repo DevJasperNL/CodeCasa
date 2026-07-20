@@ -19,7 +19,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
 
     internal string? Name { get; set; } = "Pipeline";
     internal TLight Light { get; }
-    internal IEqualityComparer<LightTransition>? EqualityComparer { get; private set; }
+    internal IEqualityComparer<LightTransition>? DistinctEqualityComparer { get; private set; }
 
     public LightTransitionPipelineConfigurator(IServiceProvider serviceProvider, TLight light)
     {
@@ -50,7 +50,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer)
     {
-        EqualityComparer = equalityComparer;
+        DistinctEqualityComparer = equalityComparer;
         return this;
     }
 

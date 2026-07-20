@@ -117,14 +117,28 @@ public class LightPipelineFactory(
                 configurators);
         pipelineBuilder(configurator);
 
+        var groupContext = new GroupNodeContext();
+
         return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
             var conf = kvp.Value;
+            var nodes = conf.Nodes.ToList();
+
+            if (conf.LightGroups.Any())
+            {
+                var groupNode = new GroupNode(conf.Light, groupContext);
+                foreach (var lightGroup in conf.LightGroups)
+                {
+                    groupContext.Register(conf.Light, lightGroup.Key, lightGroup.Value, null);
+                }
+                nodes.Add(groupNode);
+            }
+
             IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
                 LightTransition.Off(),
-                conf.Nodes,
+                nodes,
                 conf.Light.ApplyTransition,
-                conf.EqualityComparer)
+                conf.DistinctEqualityComparer)
             {
                 Name = conf.Name
             };
