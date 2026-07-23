@@ -4,10 +4,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 
 internal class GroupNode : PipelineNode<LightTransition>
 {
-    private readonly IGroupNodeContext _groupNodeContext;
+    private readonly GroupNodeContext _groupNodeContext;
     private readonly ILight _light;
 
-    public GroupNode(ILight light, IGroupNodeContext groupNodeContext)
+    public GroupNode(ILight light, GroupNodeContext groupNodeContext)
     {
         _light = light;
         _groupNodeContext = groupNodeContext;
