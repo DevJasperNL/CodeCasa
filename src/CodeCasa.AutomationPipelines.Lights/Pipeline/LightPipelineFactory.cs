@@ -117,7 +117,7 @@ public class LightPipelineFactory(
                 configurators);
         pipelineBuilder(configurator);
 
-        var groupContext = new GroupNodeContext();
+        var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>());
 
         return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
