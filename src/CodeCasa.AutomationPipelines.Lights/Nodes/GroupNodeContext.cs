@@ -1,21 +1,22 @@
 ﻿using System.Reactive.Concurrency;
 using CodeCasa.Lights;
+using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
-    internal class GroupNodeContext(IScheduler scheduler)
+    internal class GroupNodeContext(IScheduler scheduler, ILogger<Pipeline<LightTransition>>? logger)
     {
         private readonly List<GroupInfo> _groups = new();
         private readonly Lock _lock = new();
 
-        public void Register(ILight light, ILight lightGroup, TimeSpan groupDuration, EqualityComparer<LightTransition>? equalityComparer)
+        public void Register(ILight light, ILight lightGroup, TimeSpan groupDuration, EqualityComparer<LightTransition> equalityComparer)
         {
             lock (_lock)
             {
                 var existingGroup = _groups.FirstOrDefault(g => g.LightGroup == lightGroup);
                 if (existingGroup == null)
                 {
-                    existingGroup = new GroupInfo(lightGroup, light, equalityComparer ?? EqualityComparer<LightTransition>.Default, groupDuration, scheduler);
+                    existingGroup = new GroupInfo(lightGroup, light, equalityComparer, groupDuration, scheduler, logger);
                     _groups.Add(existingGroup);
                 }
                 else
@@ -70,25 +71,20 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             }
         }
 
-        internal class GroupInfo : IDisposable
+        internal class GroupInfo(
+            ILight lightGroup,
+            ILight firstGroupMember,
+            IEqualityComparer<LightTransition> equalityComparer,
+            TimeSpan groupDuration,
+            IScheduler scheduler,
+            ILogger<Pipeline<LightTransition>>? logger)
+            : IDisposable
         {
-            private readonly IEqualityComparer<LightTransition> _equalityComparer;
-            public ILight LightGroup { get; }
-            private readonly List<ILight> _groupMembers;
+            public ILight LightGroup { get; } = lightGroup;
+            private readonly List<ILight> _groupMembers = [firstGroupMember];
             private readonly Dictionary<ILight, InputInfo> _groupInputs = new();
             private readonly Dictionary<ILight, IDisposable> _scheduledWork = new();
-            private readonly TimeSpan _groupDuration;
-            private readonly IScheduler _scheduler;
             private readonly Lock _lock = new();
-
-            public GroupInfo(ILight lightGroup, ILight firstGroupMember, IEqualityComparer<LightTransition> equalityComparer, TimeSpan groupDuration, IScheduler scheduler)
-            {
-                LightGroup = lightGroup;
-                _groupMembers = new List<ILight> { firstGroupMember };
-                _equalityComparer = equalityComparer;
-                _scheduler = scheduler;
-                _groupDuration = groupDuration;
-            }
 
             public void AddMember(ILight member)
             {
@@ -138,12 +134,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                         // All members are in sync - apply to the group instead
                         _groupInputs.Clear();
                         CleanupAllScheduledWork();
+                        logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
                         LightGroup.ApplyTransition(inputInfo.Transition);
                         return;
                     }
 
                     // Schedule this input for individual execution if no group consensus is reached
-                    var scheduledWork = _scheduler.Schedule(_groupDuration, () =>
+                    var scheduledWork = scheduler.Schedule(groupDuration, () =>
                     {
                         lock (_lock)
                         {
@@ -170,7 +167,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                         _groupInputs.Remove(info.Light);
                         CleanupScheduledWork(info.Light);
                     }
-                    else if (info.Timestamp + _groupDuration < currentTime)
+                    else if (info.Timestamp + groupDuration < currentTime)
                     {
                         // We waited long enough for this light to be part of the group,
                         // but it never received a transition that matched the other lights in the group.
@@ -190,7 +187,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 }
 
                 // All inputs must have matching transitions
-                return _groupInputs.Values.All(info => _equalityComparer.Equals(info.Transition, transition));
+                return _groupInputs.Values.All(info => equalityComparer.Equals(info.Transition, transition));
             }
 
             private void CleanupScheduledWork(ILight light)

@@ -117,7 +117,7 @@ public class LightPipelineFactory(
                 configurators);
         pipelineBuilder(configurator);
 
-        var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>());
+        var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>(), logger);
 
         return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
@@ -129,7 +129,7 @@ public class LightPipelineFactory(
                 var groupNode = new GroupNode(conf.Light, groupContext);
                 foreach (var lightGroup in conf.LightGroups)
                 {
-                    groupContext.Register(conf.Light, lightGroup.Key, lightGroup.Value, null);
+                    groupContext.Register(conf.Light, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
                 }
                 nodes.Add(groupNode);
             }
