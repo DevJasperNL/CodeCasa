@@ -37,7 +37,7 @@
   <ItemGroup>
     <PackageReference Include="Occurify" Version="0.10.0" />
     <PackageReference Include="Occurify.Reactive" Version="0.10.0" />
-    <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="System.Reactive" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
