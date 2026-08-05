@@ -5,11 +5,9 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 internal class GroupNode : PipelineNode<LightTransition>
 {
     private readonly GroupNodeContext _groupNodeContext;
-    private readonly ILight _light;
 
-    public GroupNode(ILight light, GroupNodeContext groupNodeContext)
+    public GroupNode(GroupNodeContext groupNodeContext)
     {
-        _light = light;
         _groupNodeContext = groupNodeContext;
         Name = "Group Node";
     }
@@ -19,14 +17,19 @@ internal class GroupNode : PipelineNode<LightTransition>
     {
         if (input != null)
         {
-            _groupNodeContext.Process(_light, input);
+            _groupNodeContext.Process(this, input);
         }
+    }
+
+    internal void SetOutput(LightTransition? output)
+    {
+        Output = output;
     }
 
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
-        _groupNodeContext.Unregister(_light);
+        _groupNodeContext.Unregister(this);
         await base.DisposeAsync();
     }
 }
