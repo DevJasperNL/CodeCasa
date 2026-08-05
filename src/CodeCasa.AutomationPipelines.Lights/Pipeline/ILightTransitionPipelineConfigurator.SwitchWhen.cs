@@ -495,7 +495,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="switchObservable">The observable that selects which timeline to apply.</param>
     /// <param name="trueTimeline">The timeline to apply when the switch observable emits true.</param>
     /// <param name="falseTimeline">The timeline to apply when the switch observable emits false.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable, Dictionary<ITimeline, LightParameters> trueTimeline,
@@ -509,7 +509,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
     /// <param name="trueTimeline">The timeline to apply when the switch observable emits true.</param>
     /// <param name="falseTimeline">The timeline to apply when the switch observable emits false.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
         Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
@@ -525,7 +525,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="switchObservable">The observable that selects which timeline to apply.</param>
     /// <param name="trueTimeline">The timeline to apply when the switch observable emits true.</param>
     /// <param name="falseTimeline">The timeline to apply when the switch observable emits false.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         Dictionary<ITimeline, LightParameters> trueTimeline, Dictionary<ITimeline, LightParameters> falseTimeline,
@@ -541,7 +541,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="switchObservable">The observable that selects which timeline to apply.</param>
     /// <param name="trueTimelineFactory">A factory function that creates the timeline for true values.</param>
     /// <param name="falseTimelineFactory">A factory function that creates the timeline for false values.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen(IObservable<bool> whenObservable,
         IObservable<bool> switchObservable,
@@ -557,7 +557,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <typeparam name="TSwitchObservable">The type of the branch-selecting observable to resolve from the service provider.</typeparam>
     /// <param name="trueTimelineFactory">A factory function that creates the timeline for true values.</param>
     /// <param name="falseTimelineFactory">A factory function that creates the timeline for false values.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable, TSwitchObservable>(
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,
@@ -574,7 +574,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// <param name="switchObservable">The observable that selects which timeline to apply.</param>
     /// <param name="trueTimelineFactory">A factory function that creates the timeline for true values.</param>
     /// <param name="falseTimelineFactory">A factory function that creates the timeline for false values.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> SwitchWhen<TWhenObservable>(IObservable<bool> switchObservable,
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> trueTimelineFactory,

@@ -18,7 +18,7 @@ internal static class SchedulerExtensions
         DateTime? startOfTransition,
         DateTime? endOfTransition,
         Action<LightTransition?> transitionAction,
-        int defaultTransitionTimeMs = 500)
+        int defaultTransitionTimeMs = 400)
     {
         if (destinationLightParameters == null)
         {

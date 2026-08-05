@@ -19,7 +19,7 @@ internal class TimelineNode : LightTransitionNode
     /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
     /// <param name="scheduler">The Rx scheduler used to manage timing.</param>
     /// <param name="transitionTimeForTimelineState">
-    /// The duration of the initial fade from the current state. Defaults to 500ms if null.
+    /// The duration of the initial fade from the current state. Defaults to 400ms if null.
     /// </param>
     public TimelineNode(
         Dictionary<ITimeline, LightParameters> timeline,

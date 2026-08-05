@@ -98,7 +98,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
     /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
@@ -110,7 +110,7 @@ public partial interface ILightTransitionReactiveNodeConfigurator<TLight> where 
     /// <typeparam name="T">The type of values emitted by the trigger observable.</typeparam>
     /// <param name="triggerObservable">The observable that triggers toggling to the next state.</param>
     /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionReactiveNodeConfigurator<TLight> AddToggle<T>(IObservable<T> triggerObservable,
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,

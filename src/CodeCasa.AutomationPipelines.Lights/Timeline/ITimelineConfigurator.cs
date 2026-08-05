@@ -27,9 +27,9 @@ public interface ITimelineConfigurator
     ITimelineConfigurator Add(ITimeline timeline, Func<IServiceProvider, LightParameters?> lightParametersFactory);
 
     /// <summary>
-    /// Sets the duration of the initial fade from the current state when entering a timeline state. Defaults to 500ms if not set.
+    /// Sets the duration of the initial fade from the current state when entering a timeline state. Defaults to 400ms if not set.
     /// </summary>
     /// <param name="transitionTime">The transition duration.</param>
     /// <returns>The configurator instance for method chaining.</returns>
-    ITimelineConfigurator SetTransitionTime(TimeSpan transitionTime);
+    ITimelineConfigurator SetTransitionTime(TimeSpan? transitionTime);
 }
