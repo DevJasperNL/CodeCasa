@@ -126,10 +126,10 @@ public class LightPipelineFactory(
 
             if (conf.LightGroups.Any())
             {
-                var groupNode = new GroupNode(conf.Light, groupContext);
+                var groupNode = new GroupNode(groupContext);
                 foreach (var lightGroup in conf.LightGroups)
                 {
-                    groupContext.Register(conf.Light, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
+                    groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
                 }
                 nodes.Add(groupNode);
             }
