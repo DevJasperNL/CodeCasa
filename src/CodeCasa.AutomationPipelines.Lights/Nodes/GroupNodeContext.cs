@@ -9,26 +9,26 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         private readonly List<GroupInfo> _groups = new();
         private readonly Lock _lock = new();
 
-        public void Register(ILight light, ILight lightGroup, TimeSpan groupDuration, EqualityComparer<LightTransition> equalityComparer)
+        public void Register(GroupNode groupNode, ILight lightGroup, TimeSpan groupDuration, EqualityComparer<LightTransition> equalityComparer)
         {
             lock (_lock)
             {
                 var existingGroup = _groups.FirstOrDefault(g => g.LightGroup == lightGroup);
                 if (existingGroup == null)
                 {
-                    existingGroup = new GroupInfo(lightGroup, light, equalityComparer, groupDuration, scheduler, logger);
+                    existingGroup = new GroupInfo(lightGroup, groupNode, equalityComparer, groupDuration, scheduler, logger);
                     _groups.Add(existingGroup);
                 }
                 else
                 {
-                    existingGroup.AddMember(light);
+                    existingGroup.AddMember(groupNode);
                 }
             }
         }
 
-        public void Process(ILight light, LightTransition transition)
+        public void Process(GroupNode groupNode, LightTransition transition)
         {
-            var inputInfo = new InputInfo(DateTime.UtcNow, light, transition);
+            var inputInfo = new InputInfo(DateTime.UtcNow, groupNode, transition);
             lock (_lock)
             {
                 foreach (var group in _groups)
@@ -39,13 +39,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             
         }
 
-        public void Unregister(ILight light)
+        public void Unregister(GroupNode groupNode)
         {
             lock (_lock)
             {
                 foreach (var group in _groups.ToArray())
                 {
-                    if (group.RemoveMember(light))
+                    if (group.RemoveMember(groupNode))
                     {
                         _groups.Remove(group);
                         group.Dispose();
@@ -54,10 +54,10 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             }
         }
 
-        internal class InputInfo(DateTime timestamp, ILight light, LightTransition lightTransition)
+        internal class InputInfo(DateTime timestamp, GroupNode groupNode, LightTransition lightTransition)
         {
             public LightTransition Transition { get; } = lightTransition;
-            public ILight Light { get; } = light;
+            public GroupNode GroupNode { get; } = groupNode;
             public DateTime Timestamp { get; } = timestamp;
             public bool HasExecuted { get; private set; }
             public void Execute()
@@ -66,14 +66,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 {
                     return;
                 }
-                Light.ApplyTransition(Transition);
+                GroupNode.SetOutput(Transition);
                 HasExecuted = true;
             }
         }
 
         internal class GroupInfo(
             ILight lightGroup,
-            ILight firstGroupMember,
+            GroupNode firstGroupNode,
             IEqualityComparer<LightTransition> equalityComparer,
             TimeSpan groupDuration,
             IScheduler scheduler,
@@ -81,28 +81,28 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             : IDisposable
         {
             public ILight LightGroup { get; } = lightGroup;
-            private readonly List<ILight> _groupMembers = [firstGroupMember];
-            private readonly Dictionary<ILight, InputInfo> _groupInputs = new();
-            private readonly Dictionary<ILight, IDisposable> _scheduledWork = new();
+            private readonly List<GroupNode> _groupNodes = [firstGroupNode];
+            private readonly Dictionary<GroupNode, InputInfo> _groupInputs = new();
+            private readonly Dictionary<GroupNode, IDisposable> _scheduledWork = new();
             private readonly Lock _lock = new();
 
-            public void AddMember(ILight member)
+            public void AddMember(GroupNode groupNode)
             {
                 lock (_lock)
                 {
-                    _groupMembers.Add(member);
+                    _groupNodes.Add(groupNode);
                 }
             }
 
-            public bool RemoveMember(ILight member)
+            public bool RemoveMember(GroupNode groupNode)
             {
                 lock (_lock)
                 {
-                    _groupMembers.Remove(member);
-                    _groupInputs.Remove(member);
-                    CleanupScheduledWork(member);
+                    _groupNodes.Remove(groupNode);
+                    _groupInputs.Remove(groupNode);
+                    CleanupScheduledWork(groupNode);
 
-                    return !_groupMembers.Any();
+                    return !_groupNodes.Any();
                 }
             }
 
@@ -110,7 +110,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             {
                 lock (_lock)
                 {
-                    if (!_groupMembers.Contains(inputInfo.Light))
+                    if (!_groupNodes.Contains(inputInfo.GroupNode))
                     {
                         return;
                     }
@@ -119,14 +119,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     CleanupExpiredInputs(inputInfo.Timestamp);
 
                     // If there's an existing input for this light, execute it first
-                    if (_groupInputs.TryGetValue(inputInfo.Light, out var existingInput))
+                    if (_groupInputs.TryGetValue(inputInfo.GroupNode, out var existingInput))
                     {
                         existingInput.Execute();
-                        CleanupScheduledWork(inputInfo.Light);
+                        CleanupScheduledWork(inputInfo.GroupNode);
                     }
 
                     // Add the new input
-                    _groupInputs[inputInfo.Light] = inputInfo;
+                    _groupInputs[inputInfo.GroupNode] = inputInfo;
 
                     // Check if all group members now have matching transitions
                     if (AllMembersHaveMatchingTransitions(inputInfo.Transition))
@@ -144,15 +144,15 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     {
                         lock (_lock)
                         {
-                            if (_groupInputs.TryGetValue(inputInfo.Light, out var info) && !info.HasExecuted)
+                            if (_groupInputs.TryGetValue(inputInfo.GroupNode, out var info) && !info.HasExecuted)
                             {
                                 info.Execute();
-                                _groupInputs.Remove(inputInfo.Light);
+                                _groupInputs.Remove(inputInfo.GroupNode);
                             }
-                            _scheduledWork.Remove(inputInfo.Light);
+                            _scheduledWork.Remove(inputInfo.GroupNode);
                         }
                     });
-                    _scheduledWork[inputInfo.Light] = scheduledWork;
+                    _scheduledWork[inputInfo.GroupNode] = scheduledWork;
                 }
             }
 
@@ -164,24 +164,24 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     if (info.HasExecuted)
                     {
                         // This can occur if the light is in multiple groups at once.
-                        _groupInputs.Remove(info.Light);
-                        CleanupScheduledWork(info.Light);
+                        _groupInputs.Remove(info.GroupNode);
+                        CleanupScheduledWork(info.GroupNode);
                     }
                     else if (info.Timestamp + groupDuration < currentTime)
                     {
                         // We waited long enough for this light to be part of the group,
                         // but it never received a transition that matched the other lights in the group.
                         info.Execute();
-                        _groupInputs.Remove(info.Light);
-                        CleanupScheduledWork(info.Light);
+                        _groupInputs.Remove(info.GroupNode);
+                        CleanupScheduledWork(info.GroupNode);
                     }
                 }
             }
 
             private bool AllMembersHaveMatchingTransitions(LightTransition transition)
             {
-                // We need inputs from ALL group members
-                if (_groupInputs.Count != _groupMembers.Count)
+                // We need inputs from ALL group nodes
+                if (_groupInputs.Count != _groupNodes.Count)
                 {
                     return false;
                 }
@@ -190,12 +190,12 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 return _groupInputs.Values.All(info => equalityComparer.Equals(info.Transition, transition));
             }
 
-            private void CleanupScheduledWork(ILight light)
+            private void CleanupScheduledWork(GroupNode groupNode)
             {
-                if (_scheduledWork.TryGetValue(light, out var disposable))
+                if (_scheduledWork.TryGetValue(groupNode, out var disposable))
                 {
                     disposable.Dispose();
-                    _scheduledWork.Remove(light);
+                    _scheduledWork.Remove(groupNode);
                 }
             }
 
