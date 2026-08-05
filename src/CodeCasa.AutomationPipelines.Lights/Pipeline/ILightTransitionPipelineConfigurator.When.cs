@@ -257,7 +257,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
     /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When<TObservable>(Dictionary<ITimeline, LightParameters> timeline,
         TimeSpan? transitionTimeForTimelineState = null)
@@ -270,7 +270,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <param name="observable">The observable that determines when to apply the timeline.</param>
     /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
         Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null);
@@ -283,7 +283,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <typeparam name="TObservable">The type of the observable to resolve from the service provider.</typeparam>
     /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When<TObservable>(
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
@@ -297,7 +297,7 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     /// </summary>
     /// <param name="observable">The observable that determines when to apply the timeline.</param>
     /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     ILightTransitionPipelineConfigurator<TLight> When(IObservable<bool> observable,
         Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,

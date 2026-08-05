@@ -18,9 +18,9 @@ public record DimmerOptions
     public int BrightnessStep { get; set; } = 51;
 
     /// <summary>
-    /// Gets or sets the time delay between each brightness step. Defaults to 500 milliseconds.
+    /// Gets or sets the time delay between each brightness step. Defaults to 400 milliseconds.
     /// </summary>
-    public TimeSpan TimeBetweenSteps { get; set; } = TimeSpan.FromMilliseconds(500);
+    public TimeSpan TimeBetweenSteps { get; set; } = TimeSpan.FromMilliseconds(400);
 
     /// <summary>
     /// Gets or sets the collection of light IDs that define the order for dimming operations.

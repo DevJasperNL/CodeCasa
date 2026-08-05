@@ -33,7 +33,7 @@ internal class TimelineConfigurator : ITimelineConfigurator
         return this;
     }
 
-    public ITimelineConfigurator SetTransitionTime(TimeSpan transitionTime)
+    public ITimelineConfigurator SetTransitionTime(TimeSpan? transitionTime)
     {
         TransitionTime = transitionTime;
         return this;

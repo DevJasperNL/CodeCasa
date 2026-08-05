@@ -20,7 +20,7 @@ public static class TimelineValueCollectionExtensions
     /// <param name="sceneTimeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
     /// <param name="scheduler">The Rx scheduler used to manage timing and initial delay.</param>
     /// <param name="transitionTimeForTimelineState">
-    /// The duration of the initial fade from current state. Defaults to 500ms if null.
+    /// The duration of the initial fade from current state. Defaults to 400ms if null.
     /// </param>
     /// <returns>An observable that emits the current interpolated state, then follows the scheduled timeline.</returns>
     public static IObservable<LightTransition> ToLightTransitionObservableIncludingCurrent(
@@ -43,7 +43,7 @@ public static class TimelineValueCollectionExtensions
     /// <param name="sceneTimeline">A dictionary mapping timeline points to a collection of light states keyed by ID.</param>
     /// <param name="scheduler">The Rx scheduler used to manage timing and initial delay.</param>
     /// <param name="transitionTimeForTimelineState">
-    /// The duration of the initial fade for all lights in the scene. Defaults to 500ms if null.
+    /// The duration of the initial fade for all lights in the scene. Defaults to 400ms if null.
     /// </param>
     /// <returns>An observable that emits a dictionary of transitions representing the current scene state, followed by scheduled updates.</returns>
     /// <remarks>
@@ -93,7 +93,7 @@ public static class TimelineValueCollectionExtensions
 
         var initialSceneTransition = interpolator(previousScene, nextScene, fraction);
 
-        var timeSpan = transitionTimeForTimelineState ?? TimeSpan.FromMilliseconds(500);
+        var timeSpan = transitionTimeForTimelineState ?? TimeSpan.FromMilliseconds(400);
         // We delay the timeline observable to allow the initial scene transition to be emitted/activated first.
         var delayedTimelineObservable = Observable
             .Timer(timeSpan, scheduler)

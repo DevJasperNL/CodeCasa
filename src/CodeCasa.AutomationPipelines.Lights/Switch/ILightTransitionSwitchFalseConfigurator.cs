@@ -65,7 +65,7 @@ public interface ILightTransitionSwitchFalseConfigurator<TLight> where TLight : 
     /// The timeline drives the output automatically as time progresses.
     /// </summary>
     /// <param name="timeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     void WhenFalse(Dictionary<ITimeline, LightParameters> timeline,
         TimeSpan? transitionTimeForTimelineState = null);
 
@@ -74,7 +74,7 @@ public interface ILightTransitionSwitchFalseConfigurator<TLight> where TLight : 
     /// The timeline drives the output automatically as time progresses.
     /// </summary>
     /// <param name="timelineFactory">A factory function that creates the timeline mapping based on the pipeline context.</param>
-    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 500ms if null.</param>
+    /// <param name="transitionTimeForTimelineState">The duration of the initial fade from the current state. Defaults to 400ms if null.</param>
     void WhenFalse(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory,
         TimeSpan? transitionTimeForTimelineState = null);
 
