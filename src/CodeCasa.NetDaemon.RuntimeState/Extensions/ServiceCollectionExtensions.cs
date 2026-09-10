@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NetDaemon.Client;
 using NetDaemon.Runtime;
 
@@ -16,20 +17,20 @@ public static class ServiceCollectionExtensions
     {
         services.VerifyNetDaemonDependencies();
 
-        services.AddTransient<NetDaemonRuntimeStateService>();
+        // Singleton: every instance subscribes to the runner's connect/disconnect events for the lifetime of the container.
+        services.TryAddSingleton<NetDaemonRuntimeStateService>();
         return services;
     }
 
     private static void VerifyNetDaemonDependencies(this IServiceCollection services)
     {
-        var serviceProvider = services.BuildServiceProvider();
-
+        // Registrations are inspected rather than resolved: building a throwaway provider would instantiate NetDaemon's singletons a second time.
         List<string> missing = [];
-        if (serviceProvider.GetService<INetDaemonRuntime>() == null)
+        if (services.All(sd => sd.ServiceType != typeof(INetDaemonRuntime)))
         {
             missing.Add(nameof(INetDaemonRuntime));
         }
-        if (serviceProvider.GetService<IHomeAssistantRunner>() == null)
+        if (services.All(sd => sd.ServiceType != typeof(IHomeAssistantRunner)))
         {
             missing.Add(nameof(IHomeAssistantRunner));
         }
