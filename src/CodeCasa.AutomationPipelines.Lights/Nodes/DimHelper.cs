@@ -91,12 +91,6 @@ internal class DimHelper(
 
     private ILight? ShouldTurnOnToBrighten()
     {
-        Console.WriteLine($"What node for {subject.Id} sees:");
-        foreach (var light in _lightsInDimOrder.Reverse())
-        {
-            Console.WriteLine($"{light.Id}: {light.GetParameters()}");
-        }
-
         // This method is a bit more specific: it will only return true if lights are turned on in the correct order. If not, we want to keep the lights that are off, off.
         ILight? lightToTurnOn = null;
         foreach (var light in _lightsInDimOrder.Reverse())
