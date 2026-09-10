@@ -19,6 +19,7 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     private LightTransition? _output;
     private bool _passThroughNextInput;
     private IDisposable? _scheduledAction;
+    private bool _isDisposed;
 
     /// <summary>
     /// Gets the source light parameters from the previous input, useful for interpolating transitions.
@@ -39,6 +40,11 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
         get;
         set
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             _scheduledAction?.Dispose(); // Always cancel scheduled actions when the input changes.
             // We save additional information on the light transition that we can later use to continue the transition if it would be interrupted.
             InputLightSourceParameters = _inputLightDestinationParameters;
@@ -90,6 +96,11 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
         get => _output;
         protected set
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             _scheduledAction?.Dispose(); // Always cancel scheduled actions when the output is changed directly.
             PassThrough = false;
 
@@ -118,6 +129,11 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
         get;
         set
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             // Always reset _passThroughNextInput when PassThrough is explicitly called.
             _passThroughNextInput = false;
 
@@ -165,6 +181,12 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
 
     private void SetOutputInternal(LightTransition? output)
     {
+        // Scheduled continuations may still fire after disposal; a disposed subject would throw on the scheduler thread.
+        if (_isDisposed)
+        {
+            return;
+        }
+
         _output = output;
         _newOutputSubject.OnNext(output);
     }
@@ -175,10 +197,13 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     /// <inheritdoc />
     public virtual ValueTask DisposeAsync()
     {
-        if (_newOutputSubject.IsDisposed)
+        if (_isDisposed)
         {
             return ValueTask.CompletedTask;
         }
+        _isDisposed = true;
+        _scheduledAction?.Dispose();
+        _scheduledAction = null;
         _newOutputSubject.OnCompleted();
         _newOutputSubject.Dispose();
         return ValueTask.CompletedTask;

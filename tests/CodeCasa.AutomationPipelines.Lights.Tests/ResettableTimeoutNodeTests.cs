@@ -28,14 +28,14 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void Constructor_InitializesWithChildNodeOutput()
+    public async Task Constructor_InitializesWithChildNodeOutput()
     {
         // Arrange
         var expectedTransition = LightTransition.On();
         _childNodeMock.Setup(x => x.Output).Returns(expectedTransition);
 
         // Act
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -48,10 +48,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void TimeoutElapsed_TurnsOffLight()
+    public async Task TimeoutElapsed_TurnsOffLight()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -69,10 +69,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void ChildOutputChange_RestartsTimer()
+    public async Task ChildOutputChange_RestartsTimer()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -97,10 +97,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void ChildOutputChange_RestartsTimer_EventuallyTurnsOff()
+    public async Task ChildOutputChange_RestartsTimer_EventuallyTurnsOff()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -125,10 +125,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void PersistTrue_StopsTimer()
+    public async Task PersistTrue_StopsTimer()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -149,10 +149,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void PersistFalse_RestartsTimer()
+    public async Task PersistFalse_RestartsTimer()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -180,10 +180,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void PersistTrue_ChildOutputChange_DoesNotRestartTimer()
+    public async Task PersistTrue_ChildOutputChange_DoesNotRestartTimer()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -205,10 +205,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void PersistDuplicateValues_IgnoredDueToDistinctUntilChanged()
+    public async Task PersistDuplicateValues_IgnoredDueToDistinctUntilChanged()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -234,7 +234,7 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void Dispose_CleansUpSubscriptions()
+    public async Task Dispose_CleansUpSubscriptions()
     {
         // Arrange
         var node = new ResettableTimeoutNode(
@@ -247,7 +247,7 @@ public sealed class ResettableTimeoutNodeTests
         _scheduler.AdvanceBy(1);
 
         // Act
-        node.Dispose();
+        await node.DisposeAsync();
 
         // Assert - no exceptions should occur when subjects complete after disposal
         _childOutputSubject.OnCompleted();
@@ -255,10 +255,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void MultipleChildOutputChanges_OnlyLastTimerIsActive()
+    public async Task MultipleChildOutputChanges_OnlyLastTimerIsActive()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
@@ -286,10 +286,10 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
-    public void NullChildOutput_HandledCorrectly()
+    public async Task NullChildOutput_HandledCorrectly()
     {
         // Arrange
-        using var node = new ResettableTimeoutNode(
+        await using var node = new ResettableTimeoutNode(
             _childNodeMock.Object,
             DefaultTimeout,
             _persistSubject,
