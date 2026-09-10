@@ -59,11 +59,7 @@ public class ReactiveNodeFactory(IServiceProvider rootServiceProvider, ISchedule
         return lightsAndProviders.Keys
             .ToDictionary(
                 l => l.Id,
-                l =>
-                    (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
-                        sp => new ScopedPipelineNode<LightTransition>(
-                            baseFactory.GetOrCreateNode(sp, l.Id),
-                            Disposable.Create(() => baseFactory.Clear()))));
+                l => (Func<IServiceProvider, IPipelineNode<LightTransition>>)(sp => baseFactory.TakeNode(sp, l.Id)));
     }
 
     /// <summary>
@@ -264,32 +260,48 @@ public class ReactiveNodeFactory(IServiceProvider rootServiceProvider, ISchedule
             .Select(kvp => (kvp.Key, kvp.Value.Output?.LightParameters)).ToArray());
     }
 
+    /// <summary>
+    /// Creates the reactive nodes for all lights in one go (a "generation") and hands each light its own instance exactly once.
+    /// A light asking again means a new trigger arrived, so a fresh generation is created. Ownership of a handed-out node
+    /// moves to the caller; instances nobody picked up are disposed when the next generation starts.
+    /// </summary>
     private class CompositeReactiveNodeFactory<TLight>(Action<ILightTransitionReactiveNodeConfigurator<TLight>> reactiveNodeConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
     {
         private readonly Lock _lock = new();
-        private Dictionary<string, IPipelineNode<LightTransition>>? _nodes;
+        private Dictionary<string, IPipelineNode<LightTransition>>? _pending;
 
-        public IPipelineNode<LightTransition> GetOrCreateNode(IServiceProvider serviceProvider, string lightId)
+        public IPipelineNode<LightTransition> TakeNode(IServiceProvider serviceProvider, string lightId)
         {
             lock (_lock)
             {
-                if (_nodes == null)
+                if (_pending == null || !_pending.ContainsKey(lightId))
                 {
-                    var pipelineFactory = serviceProvider.GetRequiredService<ReactiveNodeFactory>();
-                    _nodes = pipelineFactory.CreateReactiveNodes(serviceProvider, lightsAndProviders, reactiveNodeConfigurator);
+                    DisposePending();
+                    var reactiveNodeFactory = serviceProvider.GetRequiredService<ReactiveNodeFactory>();
+                    _pending = reactiveNodeFactory.CreateReactiveNodes(serviceProvider, lightsAndProviders, reactiveNodeConfigurator);
                 }
 
-                return _nodes[lightId];
+                _pending.Remove(lightId, out var node);
+                if (_pending.Count == 0)
+                {
+                    _pending = null;
+                }
+                return node!;
             }
         }
 
-        public void Clear()
+        private void DisposePending()
         {
-            lock (_lock)
+            if (_pending == null)
             {
-                // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
-                _nodes = null;
+                return;
             }
+
+            foreach (var node in _pending.Values)
+            {
+                node.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            _pending = null;
         }
     }
 

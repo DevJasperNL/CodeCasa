@@ -6,7 +6,6 @@ using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
@@ -76,11 +75,7 @@ public class LightPipelineFactory(
         return lightsAndProviders.Keys
             .ToDictionary(
                 l => l.Id,
-                l =>
-                    (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
-                        sp => new ScopedPipelineNode<LightTransition>(
-                            baseFactory.GetOrCreatePipeline(sp, l.Id),
-                            Disposable.Create(() => baseFactory.Clear()))));
+                l => (Func<IServiceProvider, IPipelineNode<LightTransition>>)(sp => baseFactory.TakePipeline(sp, l.Id)));
     }
 
     /// <summary>
@@ -212,32 +207,48 @@ public class LightPipelineFactory(
         });
     }
 
+    /// <summary>
+    /// Creates the pipelines for all lights in one go (a "generation") and hands each light its own instance exactly once.
+    /// A light asking again means a new trigger arrived, so a fresh generation is created. Ownership of a handed-out
+    /// pipeline moves to the caller; instances nobody picked up are disposed when the next generation starts.
+    /// </summary>
     private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
     {
         private readonly Lock _lock = new();
-        private Dictionary<string, IPipeline<LightTransition>>? _pipelines;
+        private Dictionary<string, IPipeline<LightTransition>>? _pending;
 
-        public IPipeline<LightTransition> GetOrCreatePipeline(IServiceProvider serviceProvider, string lightId)
+        public IPipeline<LightTransition> TakePipeline(IServiceProvider serviceProvider, string lightId)
         {
             lock (_lock)
             {
-                if (_pipelines == null)
+                if (_pending == null || !_pending.ContainsKey(lightId))
                 {
+                    DisposePending();
                     var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-                    _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
+                    _pending = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
                 }
 
-                return _pipelines[lightId];
+                _pending.Remove(lightId, out var pipeline);
+                if (_pending.Count == 0)
+                {
+                    _pending = null;
+                }
+                return pipeline!;
             }
         }
 
-        public void Clear()
+        private void DisposePending()
         {
-            lock (_lock)
+            if (_pending == null)
             {
-                // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
-                _pipelines = null;
+                return;
             }
+
+            foreach (var pipeline in _pending.Values)
+            {
+                pipeline.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            _pending = null;
         }
     }
 }
