@@ -99,8 +99,9 @@ public class LightPipelineFactory(
             return new Dictionary<string, IPipeline<LightTransition>>();
         }
 
+        var ownsPipelineContext = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.OwnsLightPipelineContext(kvp.Key));
         var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightPipelineContextScope(kvp.Key));
-        var configurators = 
+        var configurators =
             lightArray.ToDictionary(l => l.Id,
                 l =>
                 {
@@ -119,29 +120,54 @@ public class LightPipelineFactory(
 
         var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>(), logger);
 
+        // All group members must be registered before any pipeline pushes its default state, otherwise the first
+        // pipeline reaches "consensus" on its own and the group entity is driven with partial membership.
+        var groupNodes = new Dictionary<string, GroupNode>();
+        foreach (var (lightId, conf) in configurators)
+        {
+            if (!conf.LightGroups.Any())
+            {
+                continue;
+            }
+
+            var groupNode = new GroupNode(groupContext);
+            foreach (var lightGroup in conf.LightGroups)
+            {
+                groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
+            }
+            groupNodes[lightId] = groupNode;
+        }
+
         return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
             var conf = kvp.Value;
             var nodes = conf.Nodes.ToList();
+            var light = conf.Light;
+            Action<LightTransition> outputHandler = light.ApplyTransition;
 
-            if (conf.LightGroups.Any())
+            if (groupNodes.TryGetValue(kvp.Key, out var groupNode))
             {
-                var groupNode = new GroupNode(groupContext);
-                foreach (var lightGroup in conf.LightGroups)
-                {
-                    groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
-                }
                 nodes.Add(groupNode);
+                outputHandler = transition =>
+                {
+                    if (!groupNode.OutputAppliedByGroup)
+                    {
+                        light.ApplyTransition(transition);
+                    }
+                };
             }
 
-            IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
-                LightTransition.Off(),
-                nodes,
-                conf.Light.ApplyTransition,
-                conf.DistinctEqualityComparer)
+            // The handler is installed before the default state flows so group consensus during start-up is respected.
+            // Nested pipelines only feed their parent; the root pipeline is the single place the light is driven.
+            IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(nodes)
             {
                 Name = conf.Name
             };
+            if (ownsPipelineContext[kvp.Key])
+            {
+                pipeline.SetOutputHandler(outputHandler, conf.DistinctEqualityComparer);
+            }
+            pipeline.SetDefault(LightTransition.Off());
             if (conf.LoggingEnabled ?? false)
             {
                 var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
@@ -159,15 +185,23 @@ public class LightPipelineFactory(
                 .Select(factory => factory(telemetryStream))
                 .ToArray();
 
-            var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
-            var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
-            var scheduler = scopedSp.GetRequiredService<IScheduler>();
-            var contextSubscription = pipeline.OnNewOutput
-                .Subscribe(output =>
+            // Only the root pipeline of a light updates the shared context; nested pipeline outputs are not what the light receives.
+            if (ownsPipelineContext[kvp.Key])
+            {
+                var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
+                var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
+                var scheduler = scopedSp.GetRequiredService<IScheduler>();
+                if (pipeline.Output != null)
                 {
-                    pipelineContext.Update(output, scheduler.Now);
-                });
-            subscriptions = [.. subscriptions, contextSubscription];
+                    pipelineContext.Update(pipeline.Output, scheduler.Now);
+                }
+                var contextSubscription = pipeline.OnNewOutput
+                    .Subscribe(output =>
+                    {
+                        pipelineContext.Update(output, scheduler.Now);
+                    });
+                subscriptions = [.. subscriptions, contextSubscription];
+            }
 
             foreach (var completedCallback in conf.PipelineCompletedCallbacks)
             {
