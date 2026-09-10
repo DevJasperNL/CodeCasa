@@ -52,14 +52,21 @@ internal class InputSelectNotificationHandler : IDisposable
             .Where(e =>
                 e.Data != null &&
                 e.Data.NotificationEntity != null &&
-                e.Data.NotificationEntity.Equals(inputSelectEntity.EntityId, StringComparison.OrdinalIgnoreCase) &&
-                e.Data.NotificationIndex < _notifications.Count)
+                e.Data.NotificationEntity.Equals(inputSelectEntity.EntityId, StringComparison.OrdinalIgnoreCase))
             .Subscribe(e =>
             {
+                Action? action;
                 lock (_lock)
                 {
-                    _notifications[e.Data!.NotificationIndex].Action?.Invoke();
+                    // Bounds are checked under the lock: a click can race with a removal or carry a malformed index.
+                    var index = e.Data!.NotificationIndex;
+                    if (index < 0 || index >= _notifications.Count)
+                    {
+                        return;
+                    }
+                    action = _notifications[index].Action;
                 }
+                action?.Invoke();
             });
 
         UpdateOptionsInHomeAssistant();
