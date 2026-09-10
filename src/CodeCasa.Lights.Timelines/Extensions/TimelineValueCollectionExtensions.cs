@@ -94,10 +94,19 @@ public static class TimelineValueCollectionExtensions
         var initialSceneTransition = interpolator(previousScene, nextScene, fraction);
 
         var timeSpan = transitionTimeForTimelineState ?? TimeSpan.FromMilliseconds(400);
+
+        // The timeline is a continuous ramp: every sample emits the *next* value with the time until it is reached.
+        // After the initial catch-up fade the ramp towards the next instant has to be resumed explicitly, otherwise the
+        // light would hold the interpolated value until that instant arrives.
+        var remainingUntilNext = valuesAtCurrentOrNext.Key.Value - utcNow - timeSpan;
+        var resumeRamp = remainingUntilNext > TimeSpan.Zero && !comparer.Equals(previousScene, nextScene)
+            ? Observable.Return(transformer(nextScene, remainingUntilNext))
+            : Observable.Empty<TOut>();
+
         // We delay the timeline observable to allow the initial scene transition to be emitted/activated first.
         var delayedTimelineObservable = Observable
             .Timer(timeSpan, scheduler)
-            .SelectMany(_ => transitionObservable);
+            .SelectMany(_ => resumeRamp.Concat(transitionObservable));
 
         return Observable.Return(transformer(initialSceneTransition, timeSpan)).Concat(delayedTimelineObservable);
     }
