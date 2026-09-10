@@ -30,9 +30,16 @@ public static class ILightTransitionPipelineConfiguratorExtensions
         {
             return stream.SelectMany(async t =>
             {
-                await PublishPipelineState(publisher, t.Pipeline, t.Light.Id);
+                try
+                {
+                    await PublishPipelineState(publisher, t.Pipeline, t.Light.Id);
+                }
+                catch (Exception)
+                {
+                    // A single failed publish (broker hiccup, disconnect) must not terminate the telemetry stream for good.
+                }
                 return Unit.Default;
-            }).Subscribe();
+            }).Subscribe(_ => { }, _ => { });
         });
         return configurator;
     }
