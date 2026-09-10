@@ -38,7 +38,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <InternalsVisibleTo Include="NetDaemon.Notifications.InputSelect.Tests" />
+    <InternalsVisibleTo Include="CodeCasa.Notifications.InputSelect.NetDaemon.Tests" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,6 +18,7 @@ internal class InputSelectNotificationHandler : IDisposable
     private readonly IEntityCore _inputSelectEntity;
     private readonly IEntityCore? _inputNumberEntity;
     private readonly IDisposable _eventSubscriptionDisposable;
+    private readonly IDisposable _commandSubscriptionDisposable;
 
     private readonly List<ManagedNotification> _notifications = [];
 
@@ -34,8 +35,18 @@ internal class InputSelectNotificationHandler : IDisposable
         _inputSelectEntity = inputSelectEntity;
         _inputNumberEntity = inputNumberEntity;
 
-        inputSelectNotificationEntity.NotifyObservable.Subscribe(x => Notify(x.id, x.config));
-        inputSelectNotificationEntity.RemoveNotificationObservable.Subscribe(RemoveNotification);
+        _commandSubscriptionDisposable = inputSelectNotificationEntity.Commands.Subscribe(command =>
+        {
+            switch (command)
+            {
+                case NotifyCommand notify:
+                    Notify(notify.Id, notify.Config);
+                    break;
+                case RemoveCommand remove:
+                    RemoveNotification(remove.Id);
+                    break;
+            }
+        });
 
         _eventSubscriptionDisposable = haContext.Events.Filter<NotificationClickedEventData>(NotificationClicked)
             .Where(e =>
@@ -152,7 +163,15 @@ internal class InputSelectNotificationHandler : IDisposable
 
     public void Dispose()
     {
+        _commandSubscriptionDisposable.Dispose();
         _eventSubscriptionDisposable.Dispose();
+        lock (_lock)
+        {
+            foreach (var notification in _notifications)
+            {
+                notification.ScheduleDisposable?.Dispose();
+            }
+        }
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
