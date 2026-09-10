@@ -40,7 +40,7 @@ public static partial class BooleanObservableExtensions
             entityArray.CallService("homeassistant.turn_on");
         }, () =>
         {
-            entityArray.CallService("homeassistant.turn_on");
+            entityArray.CallService("homeassistant.turn_off");
         });
     }
 }
