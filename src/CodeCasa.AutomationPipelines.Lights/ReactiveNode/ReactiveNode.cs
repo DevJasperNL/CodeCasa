@@ -68,6 +68,17 @@ public class ReactiveNode : PipelineNode<LightTransition>
 
                     _nodeChangedSubject.OnNext(Unit.Default);
                 });
+            }, error =>
+            {
+                // Without an error handler Rx rethrows on the producer thread and the node silently stops reacting.
+                // Fall back to pass-through so the rest of the pipeline keeps working.
+                _logger?.LogError(error, $"{LogPrefix}Node source failed. Deactivating and passing through data.");
+                _stateQueue.OnNext(() =>
+                {
+                    DeactivateActiveNode();
+                    PassThrough = true;
+                    _nodeChangedSubject.OnNext(Unit.Default);
+                });
             });
     }
 
