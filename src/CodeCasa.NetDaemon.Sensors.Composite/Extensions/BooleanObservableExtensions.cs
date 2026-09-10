@@ -1,4 +1,4 @@
-﻿using System.Reactive.Concurrency;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
 namespace CodeCasa.NetDaemon.Sensors.Composite.Extensions;
@@ -45,29 +45,25 @@ internal static class BooleanObservableExtensions
     {
         return Observable.Create<bool>(observer =>
         {
+            // Stays null until the first decisive combination so that "motion in bright light" at start-up emits nothing.
             bool? triggered = null;
             return motion.CombineLatest(brightnessLessThanThreshold, (motionTriggered, brightnessTriggered) =>
-            {
-                if (motionTriggered && brightnessTriggered)
                 {
-                    triggered = true;
-                }
-                else
-                {
-                    if (triggered == false)
+                    if (motionTriggered && brightnessTriggered)
                     {
-                        // Prevent duplicate false emissions.
-                        return null;
+                        triggered = true;
                     }
-
-                    if (!motionTriggered)
+                    else if (!motionTriggered)
                     {
                         triggered = false;
                     }
-                }
 
-                return triggered;
-            }).Where(b => b != null).Select(b => b!.Value).Subscribe(observer);
+                    return triggered;
+                })
+                .Where(b => b != null)
+                .Select(b => b!.Value)
+                .DistinctUntilChanged()
+                .Subscribe(observer);
         });
     }
 }
