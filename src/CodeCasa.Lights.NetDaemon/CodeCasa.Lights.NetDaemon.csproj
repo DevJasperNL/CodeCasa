@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="CodeCasa.Lights.NetDaemon.Scenes" />
+    <InternalsVisibleTo Include="CodeCasa.Lights.NetDaemon.Tests" />
   </ItemGroup>
 
   <ItemGroup>
