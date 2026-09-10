@@ -75,23 +75,8 @@ internal class InputSelectNotificationHandler : IDisposable
 
         lock (_lock)
         {
-           
-            var internalId = _nextInternalId++;
-
-            IDisposable? scheduleDisposable = null;
-            if (notificationConfig.Timeout != null)
-            {
-                scheduleDisposable = _scheduler.Schedule(notificationConfig.Timeout.Value, () =>
-                {
-                    lock (_lock)
-                    {
-                        _notifications.RemoveAt(_notifications.FindIndex(n => n.InternalId == internalId));
-
-                        UpdateOptionsInHomeAssistant();
-                    }
-                });
-            }
-
+            // Validate before scheduling the removal timer, otherwise a rejected notification leaves a timer behind
+            // that later removes index -1.
             var inputSelectOptionString = notificationConfig.ToInputSelectOptionString();
             if (string.IsNullOrEmpty(inputSelectOptionString))
             {
@@ -104,6 +89,27 @@ internal class InputSelectNotificationHandler : IDisposable
             if (_notifications.Any(n => n.InputSelectOption.Equals(inputSelectOptionString)))
             {
                 throw new ArgumentException("No duplicate input select options allowed.");
+            }
+
+            var internalId = _nextInternalId++;
+
+            IDisposable? scheduleDisposable = null;
+            if (notificationConfig.Timeout != null)
+            {
+                scheduleDisposable = _scheduler.Schedule(notificationConfig.Timeout.Value, () =>
+                {
+                    lock (_lock)
+                    {
+                        var expiredIndex = _notifications.FindIndex(n => n.InternalId == internalId);
+                        if (expiredIndex == -1)
+                        {
+                            return;
+                        }
+                        _notifications.RemoveAt(expiredIndex);
+
+                        UpdateOptionsInHomeAssistant();
+                    }
+                });
             }
 
             var managedNotificationToInsert = new ManagedNotification(
