@@ -25,7 +25,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight> : IPipelineHi
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> EnableLogging(string? pipelineName = null)
     {
-        Name = pipelineName;
+        Name = pipelineName ?? Name;
         LoggingEnabled = true;
         return this;
     }
