@@ -112,7 +112,8 @@ public class ReactiveNodeFactory(IServiceProvider rootServiceProvider, ISchedule
             return lightArray.ToDictionary(l => l.Id, l =>
             {
                 var reactiveNode = CreateReactiveNodeInternal(compositeServiceProvider, reactiveConfigurators[l.Id]);
-                return (IPipelineNode<LightTransition>)reactiveNode;
+                // The light context scope must be disposed with the node, just like the dimmer path does via ReactiveDimmerPipeline.
+                return (IPipelineNode<LightTransition>)new ScopedPipelineNode<LightTransition>(reactiveNode, lightContextScopes[l.Id]);
             });
         }
 
@@ -185,8 +186,9 @@ public class ReactiveNodeFactory(IServiceProvider rootServiceProvider, ISchedule
         {
             dimSubscriptionDisposables.Dispose();
         });
-            
+
         dimSubscriptionDisposables.Add(lastUnregisteredSubscription);
+        dimSubscriptionDisposables.Add(registrationManager);
 
         return result;
     }
