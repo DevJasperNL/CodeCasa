@@ -60,14 +60,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             public GroupNode GroupNode { get; } = groupNode;
             public DateTime Timestamp { get; } = timestamp;
             public bool HasExecuted { get; private set; }
-            public void Execute()
+            public void Execute(bool appliedByGroup = false)
             {
                 if (HasExecuted)
                 {
                     return;
                 }
-                GroupNode.SetOutput(Transition);
                 HasExecuted = true;
+                GroupNode.SetOutput(Transition, appliedByGroup);
             }
         }
 
@@ -132,10 +132,18 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     if (AllMembersHaveMatchingTransitions(inputInfo.Transition))
                     {
                         // All members are in sync - apply to the group instead
+                        var groupInputs = _groupInputs.Values.ToArray();
                         _groupInputs.Clear();
                         CleanupAllScheduledWork();
                         logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
                         LightGroup.ApplyTransition(inputInfo.Transition);
+
+                        // Member pipelines still need to see the transition as their output (distinct comparison,
+                        // telemetry, LightPipelineContext); only the individual light call is skipped.
+                        foreach (var groupInput in groupInputs)
+                        {
+                            groupInput.Execute(appliedByGroup: true);
+                        }
                         return;
                     }
 

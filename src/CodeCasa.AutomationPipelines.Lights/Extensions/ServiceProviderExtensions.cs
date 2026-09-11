@@ -26,8 +26,19 @@ public static class ServiceProviderExtensions
         });
     }
 
+    /// <summary>
+    /// Returns true when <paramref name="serviceProvider"/> does not yet carry a <see cref="LightPipelineContext"/> for
+    /// <paramref name="light"/>, i.e. a pipeline created from it is the root pipeline for that light.
+    /// </summary>
+    internal static bool OwnsLightPipelineContext<TLight>(this IServiceProvider serviceProvider, TLight light) where TLight : ILight
+    {
+        var existingContext = serviceProvider.GetService<LightPipelineContext>();
+        return existingContext == null || existingContext.Light.Id != light.Id;
+    }
+
     internal static IServiceScope CreateLightPipelineContextScope<TLight>(this IServiceProvider serviceProvider, TLight light) where TLight : ILight
     {
+        var ownsContext = serviceProvider.OwnsLightPipelineContext(light);
         return serviceProvider.CreateScope(cb =>
         {
             cb.AddTransient(typeof(ILight), _ => light);
@@ -38,7 +49,11 @@ public static class ServiceProviderExtensions
                 cb.AddTransient(typeof(TLight), _ => light);
             }
 
-            cb.AddSingleton(new LightPipelineContext(light));
+            // Nested pipelines share the root pipeline's context: it must describe what was actually sent to the light.
+            if (ownsContext)
+            {
+                cb.AddSingleton(new LightPipelineContext(light));
+            }
         });
     }
 

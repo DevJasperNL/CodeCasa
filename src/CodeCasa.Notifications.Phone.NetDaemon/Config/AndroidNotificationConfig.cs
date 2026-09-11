@@ -103,7 +103,7 @@ public record AndroidNotificationConfig : PhoneNotificationConfig
             color = Color?.ToHex(),
             sticky = Sticky,
             channel = Channel,
-            importance = ChannelImportance.ToString()?.ToLowerInvariant(),
+            importance = ChannelImportance?.ToString().ToLowerInvariant(),
             vibrationPattern = ChannelVibrationPattern == null ? null : string.Join(", ", ChannelVibrationPattern),
             ledColor = ChannelLedColor?.ToHex(),
             persistent = Persistent,

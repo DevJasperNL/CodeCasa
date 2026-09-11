@@ -1,0 +1,90 @@
+using CodeCasa.AutomationPipelines.Lights.Pipeline;
+using CodeCasa.Lights;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Reactive.Testing;
+using System.Reactive.Concurrency;
+using System.Reactive.Subjects;
+
+namespace CodeCasa.AutomationPipelines.Lights.Tests;
+
+[TestClass]
+public sealed class LightPipelineFactoryGroupTests
+{
+    [TestMethod]
+    public async Task LightGroup_Consensus_UpdatesMemberPipelineOutputs()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        var scheduler = new TestScheduler();
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var triggerA = new Subject<int>();
+        var turnOffAll = new Subject<int>();
+        var pipelines = new Dictionary<string, IPipeline<LightTransition>>();
+
+        var disposable = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .UseLightGroup(group, TimeSpan.FromMilliseconds(20))
+            .WithDistinctOutput()
+            .ForLight("a", c => c.AddReactiveNode(r => r.On(triggerA, new LightParameters { Brightness = 200 })))
+            .AddReactiveNode(r => r.TurnOffWhen(turnOffAll))
+            .OnCompleted(e => pipelines[e.Light.Id] = e.Pipeline));
+
+        // Startup: both members default to off, so the group is used once and no member is driven individually.
+        Assert.AreEqual(1, group.CountApplied(0));
+        Assert.IsEmpty(a.Applied);
+        Assert.IsEmpty(b.Applied);
+        Assert.AreEqual(LightTransition.Off(), pipelines["a"].Output);
+        Assert.AreEqual(LightTransition.Off(), pipelines["b"].Output);
+
+        triggerA.OnNext(1);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+        Assert.AreEqual(1, a.CountApplied(200));
+        Assert.AreEqual(200, pipelines["a"].Output?.LightParameters.Brightness);
+
+        turnOffAll.OnNext(1);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+        Assert.AreEqual(2, group.CountApplied(0));
+        Assert.AreEqual(0, a.CountApplied(0), "Member should not be driven individually when the group was used.");
+        Assert.AreEqual(LightTransition.Off(), pipelines["a"].Output);
+        Assert.AreEqual(LightTransition.Off(), pipelines["b"].Output);
+
+        triggerA.OnNext(2);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+        Assert.AreEqual(2, a.CountApplied(200), "Distinct output must compare against the group-applied off state.");
+
+        await disposable.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task NestedPipeline_SharesLightPipelineContextWithRoot()
+    {
+        var light = new TestLight("a");
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(Scheduler.Immediate);
+        var trigger = new Subject<int>();
+        LightPipelineContext? rootContext = null;
+        LightPipelineContext? nestedContext = null;
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(light, p => p
+            .AddNode(psp =>
+            {
+                rootContext = psp.GetRequiredService<LightPipelineContext>();
+                return new BrightnessNode(10);
+            })
+            .AddPipeline(n => n.AddNode(nsp =>
+            {
+                nestedContext = nsp.GetRequiredService<LightPipelineContext>();
+                return new BrightnessNode(20);
+            }))
+            .AddReactiveNode(r => r.On(trigger, new LightParameters { Brightness = 30 })));
+
+        Assert.IsNotNull(rootContext);
+        Assert.AreSame(rootContext, nestedContext);
+        Assert.AreEqual(20, rootContext.State?.Output?.LightParameters.Brightness);
+
+        trigger.OnNext(1);
+        Assert.AreEqual(30, light.Current.Brightness);
+        Assert.AreEqual(30, rootContext.State?.Output?.LightParameters.Brightness, "Context must reflect what was sent to the light, not the nested pipeline output.");
+
+        await pipelines.DisposeAsync();
+    }
+}

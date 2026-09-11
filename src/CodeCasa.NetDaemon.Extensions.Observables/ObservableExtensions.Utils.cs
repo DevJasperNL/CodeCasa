@@ -1,4 +1,4 @@
-﻿using System.Reactive.Linq;
+using System.Reactive.Linq;
 using NetDaemon.HassModel.Entities;
 
 namespace CodeCasa.NetDaemon.Extensions.Observables;
@@ -19,24 +19,28 @@ public static class ObservableExtensions
     /// </summary>
     public static IObservable<T> RepeatWhenEntitiesBecomeAvailable<T>(this IObservable<T> observable,
         IEnumerable<Entity> entities) => InternalRepeatWhenEntitiesBecomeAvailable(observable, entities);
-        
+
     private static IObservable<T>
         InternalRepeatWhenEntitiesBecomeAvailable<T>(
             this IObservable<T> observable, IEnumerable<Entity> entities)
     {
-        // Note: This might cause a duplicate emit if the source observable is not emitting before any of the entities go from unavailable to available.
-        var triggers = entities
-            .StateChanges()
-            .CombineLatest(observable)
-            .Where(values =>
-                values.First.Old?.State != null &&
-                values.First.New?.State != null &&
-                Constants.EntityUnavailableStates.Contains(values.First.Old.State,
-                    StringComparer.OrdinalIgnoreCase) &&
-                !Constants.EntityUnavailableStates.Contains(values.First.New.State,
-                    StringComparer.OrdinalIgnoreCase))
-            .Select(values => values.Second);
+        // Publish(selector) subscribes both consumers before connecting, so the source is subscribed exactly once and
+        // a value emitted synchronously on subscribe still reaches the CombineLatest.
+        return observable.Publish(shared =>
+        {
+            var triggers = entities
+                .StateChanges()
+                .CombineLatest(shared)
+                .Where(values =>
+                    values.First.Old?.State != null &&
+                    values.First.New?.State != null &&
+                    Constants.EntityUnavailableStates.Contains(values.First.Old.State,
+                        StringComparer.OrdinalIgnoreCase) &&
+                    !Constants.EntityUnavailableStates.Contains(values.First.New.State,
+                        StringComparer.OrdinalIgnoreCase))
+                .Select(values => values.Second);
 
-        return observable.Merge(triggers);
+            return shared.Merge(triggers);
+        });
     }
 }

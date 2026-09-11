@@ -61,12 +61,7 @@ internal sealed class ManagedPipeline<TNode>(IServiceScope scope, IPipeline<TNod
 
     public void Dispose()
     {
-        foreach (var subscription in pipelineSubscriptions)
-        {
-            subscription.Dispose();
-        }
-        (_instance as IDisposable)?.Dispose();
-        _scope.Dispose();
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 
     public async ValueTask DisposeAsync()

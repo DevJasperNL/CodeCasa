@@ -15,8 +15,7 @@ public static class LightParametersExtensions
     /// <param name="fromLightParameters">The starting light parameters.</param>
     /// <param name="toLightParameters">The ending light parameters.</param>
     /// <param name="progress">The interpolation progress between 0 and 1, where 0 returns fromLightParameters and 1 returns toLightParameters.</param>
-    /// <returns>A new <see cref="LightParameters"/> object representing the interpolated light state.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the parameters cannot be interpolated due to missing color or color temperature values.</exception>
+    /// <returns>A new <see cref="LightParameters"/> object representing the interpolated light state. When neither side carries colour information only the brightness is interpolated.</returns>
     public static LightParameters Interpolate(this LightParameters fromLightParameters,
             LightParameters toLightParameters, double progress)
     {
@@ -60,9 +59,18 @@ public static class LightParametersExtensions
             };
         }
 
+        // Brightness-only lights (dimmable white, On()/Off() templates) have no colour information to blend.
+        if (fromLightParameters.ColorTempKelvin == null && toLightParameters.ColorTempKelvin == null)
+        {
+            return result;
+        }
+
         if (fromLightParameters.ColorTempKelvin == null || toLightParameters.ColorTempKelvin == null)
         {
-            throw new InvalidOperationException("Interpolation requires either RGB or ColorTempKelvin value");
+            return result with
+            {
+                ColorTempKelvin = fromLightParameters.ColorTempKelvin ?? toLightParameters.ColorTempKelvin
+            };
         }
 
         var fromColorTemp = fromLightParameters.ColorTempKelvin.Value;

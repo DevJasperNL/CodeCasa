@@ -86,11 +86,10 @@ public class BooleanObservableExtensionsTests : ReactiveTest
 
         var res = scheduler.Start(() => motion.StartWith(false).CombineWithBrightness(brightness.StartWith(true)));
 
-        // Triggered at +10, brightness change at +30 re-emits the latched true (does not reset), only motion clearing at +80 resets
+        // Triggered at +10; the brightness change at +30 neither resets nor re-emits the latched true, only motion clearing at +80 resets
         res.Messages.AssertEqual(
             OnNext(Subscribed, false),
             OnNext(Subscribed + 10, true),
-            OnNext(Subscribed + 30, true),
             OnNext(Subscribed + 80, false)
         );
     }

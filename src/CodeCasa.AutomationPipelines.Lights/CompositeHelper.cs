@@ -8,7 +8,7 @@ internal static class CompositeHelper
     public static string[] ValidateLightsSupported(IEnumerable<string> lightIds, IEnumerable<string> supportedLightIds)
     {
         var supportedLightIdsArray = supportedLightIds.ToArray();
-        var lightIdsArray = lightIds.ToArray();
+        var lightIdsArray = lightIds.Distinct().ToArray();
         if (!lightIdsArray.Any())
         {
             throw new ArgumentException("At least one id should be provided.", nameof(lightIdsArray));

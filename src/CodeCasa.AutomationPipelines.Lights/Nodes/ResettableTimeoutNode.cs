@@ -1,4 +1,4 @@
-﻿using CodeCasa.Lights;
+using CodeCasa.Lights;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -6,16 +6,20 @@ using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 
-internal class ResettableTimeoutNode : LightTransitionNode, IDisposable
+internal class ResettableTimeoutNode : LightTransitionNode
 {
+    private readonly IPipelineNode<LightTransition> _childNode;
     private readonly CompositeDisposable _disposables = new();
-    private IDisposable? _timerSubscription;
+    private readonly SerialDisposable _timerSubscription = new();
     private bool _isPersisting;
+    private bool _isDisposed;
 
     public ResettableTimeoutNode(IPipelineNode<LightTransition> childNode, TimeSpan turnOffTime,
         IObservable<bool> persistObservable, IScheduler scheduler) : base(scheduler)
     {
+        _childNode = childNode;
         Name = $"{childNode.Name} (resets after timeout)";
+        _timerSubscription.DisposeWith(_disposables);
 
         childNode.OnNewOutput
             .Prepend(childNode.Output)
@@ -34,7 +38,7 @@ internal class ResettableTimeoutNode : LightTransitionNode, IDisposable
                 _isPersisting = persist;
                 if (persist)
                 {
-                    _timerSubscription?.Dispose();
+                    _timerSubscription.Disposable = null;
                 }
                 else
                 {
@@ -49,11 +53,21 @@ internal class ResettableTimeoutNode : LightTransitionNode, IDisposable
                 return;
             }
 
-            _timerSubscription?.Dispose();
-            _timerSubscription = Observable.Timer(turnOffTime, scheduler)
+            _timerSubscription.Disposable = Observable.Timer(turnOffTime, scheduler)
                 .Subscribe(_ => ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition.Off()));
         }
     }
 
-    public void Dispose() => _disposables.Dispose();
+    public override async ValueTask DisposeAsync()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+        _isDisposed = true;
+
+        _disposables.Dispose();
+        await _childNode.DisposeAsync();
+        await base.DisposeAsync();
+    }
 }

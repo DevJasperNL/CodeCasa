@@ -16,7 +16,8 @@ public static class ServiceCollectionExtensions
     {
         return serviceCollection
             .AddSingleton<LightNotificationManager>()
-            .AddTransient<LightNotificationManagerContext>()
+            // Scoped so the context's subscription to the manager is disposed together with the pipeline scope that resolved it.
+            .AddScoped<LightNotificationManagerContext>()
             .AddTransient<LightNotificationContext>();
     }
 }

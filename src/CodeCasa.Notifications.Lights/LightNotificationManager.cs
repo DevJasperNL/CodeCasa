@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using CodeCasa.Notifications.Lights.Config;
 
@@ -12,7 +12,8 @@ public class LightNotificationManager
     private readonly Lock _lock = new();
     private readonly BehaviorSubject<ILightNotificationConfig?> _subject = new(null);
 
-    private readonly Dictionary<string, ILightNotificationConfig> _activeNotifications = new();
+    private readonly Dictionary<string, ActiveNotification> _activeNotifications = new();
+    private long _sequence;
 
     /// <summary>
     /// Gets an observable sequence of the current active light notification configuration.
@@ -47,13 +48,14 @@ public class LightNotificationManager
     {
         lock (_lock)
         {
-            var highestPrio = _activeNotifications.Any() ? (int?)_activeNotifications.Values.Max(n => n.Priority) : null;
-            if (highestPrio == null || lightNotificationConfig.Priority >= highestPrio)
+            _activeNotifications[id] = new ActiveNotification(lightNotificationConfig, ++_sequence);
+            var highest = GetHighestPriority();
+            // A (re)notified config that wins is always emitted so re-notifying re-triggers the notification.
+            if (ReferenceEquals(highest, lightNotificationConfig) || !ReferenceEquals(highest, _subject.Value))
             {
-                _subject.OnNext(lightNotificationConfig);
+                _subject.OnNext(highest);
             }
 
-            _activeNotifications[id] = lightNotificationConfig;
             return new LightNotification(id, Disposable.Create(() => Remove(id)));
         }
     }
@@ -67,25 +69,28 @@ public class LightNotificationManager
     {
         lock (_lock)
         {
-            if (!_activeNotifications.Remove(id, out var configAndDisposable))
+            if (!_activeNotifications.Remove(id))
             {
                 return false;
             }
 
-            if (!_activeNotifications.Any())
+            var highest = GetHighestPriority();
+            if (!ReferenceEquals(highest, _subject.Value))
             {
-                _subject.OnNext(null);
-                return true;
+                _subject.OnNext(highest);
             }
-
-            var highestKvp = _activeNotifications.MaxBy(kvp => kvp.Value.Priority);
-            if (configAndDisposable.Priority < highestKvp.Value.Priority)
-            {
-                return true;
-            }
-
-            _subject.OnNext(highestKvp.Value);
             return true;
         }
     }
+
+    private ILightNotificationConfig? GetHighestPriority()
+    {
+        // On equal priority the most recently notified wins.
+        return _activeNotifications.Values
+            .OrderByDescending(n => n.Config.Priority)
+            .ThenByDescending(n => n.Sequence)
+            .FirstOrDefault()?.Config;
+    }
+
+    private sealed record ActiveNotification(ILightNotificationConfig Config, long Sequence);
 }

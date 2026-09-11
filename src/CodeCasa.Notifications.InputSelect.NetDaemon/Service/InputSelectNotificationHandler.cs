@@ -18,6 +18,7 @@ internal class InputSelectNotificationHandler : IDisposable
     private readonly IEntityCore _inputSelectEntity;
     private readonly IEntityCore? _inputNumberEntity;
     private readonly IDisposable _eventSubscriptionDisposable;
+    private readonly IDisposable _commandSubscriptionDisposable;
 
     private readonly List<ManagedNotification> _notifications = [];
 
@@ -34,21 +35,38 @@ internal class InputSelectNotificationHandler : IDisposable
         _inputSelectEntity = inputSelectEntity;
         _inputNumberEntity = inputNumberEntity;
 
-        inputSelectNotificationEntity.NotifyObservable.Subscribe(x => Notify(x.id, x.config));
-        inputSelectNotificationEntity.RemoveNotificationObservable.Subscribe(RemoveNotification);
+        _commandSubscriptionDisposable = inputSelectNotificationEntity.Commands.Subscribe(command =>
+        {
+            switch (command)
+            {
+                case NotifyCommand notify:
+                    Notify(notify.Id, notify.Config);
+                    break;
+                case RemoveCommand remove:
+                    RemoveNotification(remove.Id);
+                    break;
+            }
+        });
 
         _eventSubscriptionDisposable = haContext.Events.Filter<NotificationClickedEventData>(NotificationClicked)
             .Where(e =>
                 e.Data != null &&
                 e.Data.NotificationEntity != null &&
-                e.Data.NotificationEntity.Equals(inputSelectEntity.EntityId, StringComparison.OrdinalIgnoreCase) &&
-                e.Data.NotificationIndex < _notifications.Count)
+                e.Data.NotificationEntity.Equals(inputSelectEntity.EntityId, StringComparison.OrdinalIgnoreCase))
             .Subscribe(e =>
             {
+                Action? action;
                 lock (_lock)
                 {
-                    _notifications[e.Data!.NotificationIndex].Action?.Invoke();
+                    // Bounds are checked under the lock: a click can race with a removal or carry a malformed index.
+                    var index = e.Data!.NotificationIndex;
+                    if (index < 0 || index >= _notifications.Count)
+                    {
+                        return;
+                    }
+                    action = _notifications[index].Action;
                 }
+                action?.Invoke();
             });
 
         UpdateOptionsInHomeAssistant();
@@ -64,23 +82,8 @@ internal class InputSelectNotificationHandler : IDisposable
 
         lock (_lock)
         {
-           
-            var internalId = _nextInternalId++;
-
-            IDisposable? scheduleDisposable = null;
-            if (notificationConfig.Timeout != null)
-            {
-                scheduleDisposable = _scheduler.Schedule(notificationConfig.Timeout.Value, () =>
-                {
-                    lock (_lock)
-                    {
-                        _notifications.RemoveAt(_notifications.FindIndex(n => n.InternalId == internalId));
-
-                        UpdateOptionsInHomeAssistant();
-                    }
-                });
-            }
-
+            // Validate before scheduling the removal timer, otherwise a rejected notification leaves a timer behind
+            // that later removes index -1.
             var inputSelectOptionString = notificationConfig.ToInputSelectOptionString();
             if (string.IsNullOrEmpty(inputSelectOptionString))
             {
@@ -93,6 +96,27 @@ internal class InputSelectNotificationHandler : IDisposable
             if (_notifications.Any(n => n.InputSelectOption.Equals(inputSelectOptionString)))
             {
                 throw new ArgumentException("No duplicate input select options allowed.");
+            }
+
+            var internalId = _nextInternalId++;
+
+            IDisposable? scheduleDisposable = null;
+            if (notificationConfig.Timeout != null)
+            {
+                scheduleDisposable = _scheduler.Schedule(notificationConfig.Timeout.Value, () =>
+                {
+                    lock (_lock)
+                    {
+                        var expiredIndex = _notifications.FindIndex(n => n.InternalId == internalId);
+                        if (expiredIndex == -1)
+                        {
+                            return;
+                        }
+                        _notifications.RemoveAt(expiredIndex);
+
+                        UpdateOptionsInHomeAssistant();
+                    }
+                });
             }
 
             var managedNotificationToInsert = new ManagedNotification(
@@ -152,7 +176,15 @@ internal class InputSelectNotificationHandler : IDisposable
 
     public void Dispose()
     {
+        _commandSubscriptionDisposable.Dispose();
         _eventSubscriptionDisposable.Dispose();
+        lock (_lock)
+        {
+            foreach (var notification in _notifications)
+            {
+                notification.ScheduleDisposable?.Dispose();
+            }
+        }
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local

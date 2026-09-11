@@ -37,11 +37,20 @@ internal class DashboardNotificationBackgroundService(
                 serviceProvider
                     .GetRequiredKeyedService<InputSelectNotificationEntityMediator>(config.InputSelectEntityId))).ToArray();
 
-        await Task.Delay(Timeout.Infinite, cancellationToken);
-
-        foreach (var handler in handlers)
+        try
         {
-            handler.Dispose();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Shutdown requested; fall through to dispose the handlers.
+        }
+        finally
+        {
+            foreach (var handler in handlers)
+            {
+                handler.Dispose();
+            }
         }
     }
 }

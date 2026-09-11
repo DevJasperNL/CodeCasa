@@ -1,4 +1,4 @@
-﻿using System.Reactive.Linq;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace CodeCasa.AutomationPipelines;
@@ -13,6 +13,7 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
     private TState? _input;
     private TState? _output;
     private bool _passThroughNextInput;
+    private bool _isDisposed;
 
     /// <inheritdoc />
     public IObservable<TState?> OnNewOutput => _newOutputSubject.AsObservable();
@@ -29,6 +30,11 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
         get => _input;
         set
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             _input = value;
             if (_passThroughNextInput)
             {
@@ -61,6 +67,11 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
         get => _output;
         protected set
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             PassThrough = false;
             _passThroughNextInput = false;
 
@@ -77,6 +88,11 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
         get;
         set
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             // Always reset _passThroughNextInput when PassThrough is explicitly called.
             _passThroughNextInput = false;
 
@@ -92,6 +108,11 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
             }
         }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the node has been disposed. Once disposed, input and output changes are ignored.
+    /// </summary>
+    protected bool IsDisposed => _isDisposed;
 
     /// <summary>
     /// Changes the output state of the node and enables pass-through mode after the next input.
@@ -119,6 +140,12 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
 
     private void SetOutputInternal(TState? output)
     {
+        // Scheduler-driven nodes may still fire after the pipeline was torn down; a disposed subject would throw.
+        if (_isDisposed)
+        {
+            return;
+        }
+
         _output = output;
         _newOutputSubject.OnNext(output);
     }
@@ -129,10 +156,11 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
     /// <inheritdoc />
     public virtual ValueTask DisposeAsync()
     {
-        if (_newOutputSubject.IsDisposed)
+        if (_isDisposed)
         {
             return ValueTask.CompletedTask;
         }
+        _isDisposed = true;
         _newOutputSubject.OnCompleted();
         _newOutputSubject.Dispose();
         return ValueTask.CompletedTask;

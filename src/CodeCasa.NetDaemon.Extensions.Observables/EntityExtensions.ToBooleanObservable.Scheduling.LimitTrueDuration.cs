@@ -81,7 +81,7 @@ public static partial class EntityExtensions
             var lastChangedUtc = entity.EntityState?.LastChanged?.ToUniversalTime();
             if (entity.EntityState == null || !predicate(entity.EntityState) || lastChangedUtc == null)
             {
-                return entity.ToBooleanObservable().LimitTrueDuration(timeSpan, scheduler);
+                return entity.ToBooleanObservable(predicate).LimitTrueDuration(timeSpan, scheduler);
             }
 
             var moment = utcNow - timeSpan;
@@ -127,7 +127,7 @@ public static partial class EntityExtensions
             var lastChangedUtc = entity.EntityState?.LastChanged?.ToUniversalTime();
             if (entity.EntityState == null || !predicate(entity.EntityState) || lastChangedUtc == null)
             {
-                return entity.ToBooleanObservable().LimitTrueDuration(timeSpan, scheduler);
+                return entity.ToBooleanObservable(predicate).LimitTrueDuration(timeSpan, scheduler);
             }
 
             var moment = utcNow - timeSpan;

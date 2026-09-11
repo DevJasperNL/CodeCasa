@@ -1,4 +1,5 @@
-﻿using System.Reactive.Concurrency;
+﻿using System.Collections.Concurrent;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -12,6 +13,8 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
     private readonly List<IPipelineNode<TState>> _nodes = new();
     private readonly Subject<PipelineTelemetry<TState>> _telemetrySubject = new();
     private readonly List<IDisposable> _nestedPipelineSubscriptions = new();
+    private readonly ConcurrentQueue<TState?> _pendingOutputs = new();
+    private int _isDrainingOutputs;
 
     private IEqualityComparer<TState>? _equalityComparer;
     private Action<TState>? _action;
@@ -209,6 +212,35 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 
     private void SetOutputAndCallActionWhenApplicable(TState? output)
     {
+        /*
+         * Node outputs can arrive from several threads at once and can also re-enter
+         * this method synchronously from within the output emission. Outputs are queued and drained by one thread at a
+         * time so the output handler always sees them in order and the distinct comparer always compares against the
+         * value that was actually applied last. No lock is held while calling into nodes or the handler (see 0b4571e).
+         */
+        _pendingOutputs.Enqueue(output);
+        if (Interlocked.CompareExchange(ref _isDrainingOutputs, 1, 0) != 0)
+        {
+            return;
+        }
+
+        while (true)
+        {
+            while (_pendingOutputs.TryDequeue(out var pendingOutput))
+            {
+                ProcessOutput(pendingOutput);
+            }
+
+            Volatile.Write(ref _isDrainingOutputs, 0);
+            if (_pendingOutputs.IsEmpty || Interlocked.CompareExchange(ref _isDrainingOutputs, 1, 0) != 0)
+            {
+                return;
+            }
+        }
+    }
+
+    private void ProcessOutput(TState? output)
+    {
         var previousOutput = Output;
         Output = output;
         if (_action == null || output == null)
@@ -233,18 +265,21 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
         }
         _isDisposed = true;
 
-        await base.DisposeAsync();
-
-        _telemetrySubject.OnCompleted();
-        _telemetrySubject.Dispose();
-
+        _subscription?.Dispose();
         foreach (var subscription in _nestedPipelineSubscriptions)
         {
             subscription.Dispose();
         }
+
+        // Nodes may still emit while being disposed, so telemetry is completed only after all nodes are gone.
         foreach (var node in _nodes)
         {
             await node.DisposeAsync().ConfigureAwait(false);
         }
+
+        _telemetrySubject.OnCompleted();
+        _telemetrySubject.Dispose();
+
+        await base.DisposeAsync();
     }
 }

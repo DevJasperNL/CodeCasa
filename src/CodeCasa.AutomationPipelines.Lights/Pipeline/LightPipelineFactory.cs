@@ -6,7 +6,6 @@ using CodeCasa.Lights.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
@@ -76,11 +75,7 @@ public class LightPipelineFactory(
         return lightsAndProviders.Keys
             .ToDictionary(
                 l => l.Id,
-                l =>
-                    (Func<IServiceProvider, IPipelineNode<LightTransition>>)(
-                        sp => new ScopedPipelineNode<LightTransition>(
-                            baseFactory.GetOrCreatePipeline(sp, l.Id),
-                            Disposable.Create(() => baseFactory.Clear()))));
+                l => (Func<IServiceProvider, IPipelineNode<LightTransition>>)(sp => baseFactory.TakePipeline(sp, l.Id)));
     }
 
     /// <summary>
@@ -99,8 +94,9 @@ public class LightPipelineFactory(
             return new Dictionary<string, IPipeline<LightTransition>>();
         }
 
+        var ownsPipelineContext = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.OwnsLightPipelineContext(kvp.Key));
         var lightContextScopes = lightsAndProviders.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.CreateLightPipelineContextScope(kvp.Key));
-        var configurators = 
+        var configurators =
             lightArray.ToDictionary(l => l.Id,
                 l =>
                 {
@@ -119,29 +115,54 @@ public class LightPipelineFactory(
 
         var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>(), logger);
 
+        // All group members must be registered before any pipeline pushes its default state, otherwise the first
+        // pipeline reaches "consensus" on its own and the group entity is driven with partial membership.
+        var groupNodes = new Dictionary<string, GroupNode>();
+        foreach (var (lightId, conf) in configurators)
+        {
+            if (!conf.LightGroups.Any())
+            {
+                continue;
+            }
+
+            var groupNode = new GroupNode(groupContext);
+            foreach (var lightGroup in conf.LightGroups)
+            {
+                groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
+            }
+            groupNodes[lightId] = groupNode;
+        }
+
         return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
             var conf = kvp.Value;
             var nodes = conf.Nodes.ToList();
+            var light = conf.Light;
+            Action<LightTransition> outputHandler = light.ApplyTransition;
 
-            if (conf.LightGroups.Any())
+            if (groupNodes.TryGetValue(kvp.Key, out var groupNode))
             {
-                var groupNode = new GroupNode(groupContext);
-                foreach (var lightGroup in conf.LightGroups)
-                {
-                    groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
-                }
                 nodes.Add(groupNode);
+                outputHandler = transition =>
+                {
+                    if (!groupNode.OutputAppliedByGroup)
+                    {
+                        light.ApplyTransition(transition);
+                    }
+                };
             }
 
-            IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(
-                LightTransition.Off(),
-                nodes,
-                conf.Light.ApplyTransition,
-                conf.DistinctEqualityComparer)
+            // The handler is installed before the default state flows so group consensus during start-up is respected.
+            // Nested pipelines only feed their parent; the root pipeline is the single place the light is driven.
+            IPipeline<LightTransition> pipeline = new Pipeline<LightTransition>(nodes)
             {
                 Name = conf.Name
             };
+            if (ownsPipelineContext[kvp.Key])
+            {
+                pipeline.SetOutputHandler(outputHandler, conf.DistinctEqualityComparer);
+            }
+            pipeline.SetDefault(LightTransition.Off());
             if (conf.LoggingEnabled ?? false)
             {
                 var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
@@ -159,15 +180,23 @@ public class LightPipelineFactory(
                 .Select(factory => factory(telemetryStream))
                 .ToArray();
 
-            var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
-            var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
-            var scheduler = scopedSp.GetRequiredService<IScheduler>();
-            var contextSubscription = pipeline.OnNewOutput
-                .Subscribe(output =>
+            // Only the root pipeline of a light updates the shared context; nested pipeline outputs are not what the light receives.
+            if (ownsPipelineContext[kvp.Key])
+            {
+                var scopedSp = lightContextScopes[kvp.Key].ServiceProvider;
+                var pipelineContext = scopedSp.GetRequiredService<LightPipelineContext>();
+                var scheduler = scopedSp.GetRequiredService<IScheduler>();
+                if (pipeline.Output != null)
                 {
-                    pipelineContext.Update(output, scheduler.Now);
-                });
-            subscriptions = [.. subscriptions, contextSubscription];
+                    pipelineContext.Update(pipeline.Output, scheduler.Now);
+                }
+                var contextSubscription = pipeline.OnNewOutput
+                    .Subscribe(output =>
+                    {
+                        pipelineContext.Update(output, scheduler.Now);
+                    });
+                subscriptions = [.. subscriptions, contextSubscription];
+            }
 
             foreach (var completedCallback in conf.PipelineCompletedCallbacks)
             {
@@ -178,32 +207,48 @@ public class LightPipelineFactory(
         });
     }
 
+    /// <summary>
+    /// Creates the pipelines for all lights in one go (a "generation") and hands each light its own instance exactly once.
+    /// A light asking again means a new trigger arrived, so a fresh generation is created. Ownership of a handed-out
+    /// pipeline moves to the caller; instances nobody picked up are disposed when the next generation starts.
+    /// </summary>
     private class CompositePipelineFactory<TLight>(Action<ILightTransitionPipelineConfigurator<TLight>> pipelineConfigurator, Dictionary<TLight, IServiceProvider> lightsAndProviders) where TLight : ILight
     {
         private readonly Lock _lock = new();
-        private Dictionary<string, IPipeline<LightTransition>>? _pipelines;
+        private Dictionary<string, IPipeline<LightTransition>>? _pending;
 
-        public IPipeline<LightTransition> GetOrCreatePipeline(IServiceProvider serviceProvider, string lightId)
+        public IPipeline<LightTransition> TakePipeline(IServiceProvider serviceProvider, string lightId)
         {
             lock (_lock)
             {
-                if (_pipelines == null)
+                if (_pending == null || !_pending.ContainsKey(lightId))
                 {
+                    DisposePending();
                     var pipelineFactory = serviceProvider.GetRequiredService<LightPipelineFactory>();
-                    _pipelines = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
+                    _pending = pipelineFactory.CreateLightPipelines(serviceProvider, lightsAndProviders, pipelineConfigurator);
                 }
 
-                return _pipelines[lightId];
+                _pending.Remove(lightId, out var pipeline);
+                if (_pending.Count == 0)
+                {
+                    _pending = null;
+                }
+                return pipeline!;
             }
         }
 
-        public void Clear()
+        private void DisposePending()
         {
-            lock (_lock)
+            if (_pending == null)
             {
-                // Note: this class is not responsible for the lifetime of the pipelines, it just manages their creation and provides access to them.
-                _pipelines = null;
+                return;
             }
+
+            foreach (var pipeline in _pending.Values)
+            {
+                pipeline.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            _pending = null;
         }
     }
 }

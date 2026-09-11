@@ -79,8 +79,8 @@ public static class ServiceCollectionExtensions
 
     private static void VerifyNetDaemonDependencies(this IServiceCollection services)
     {
-        var serviceProvider = services.BuildServiceProvider();
-        if (serviceProvider.GetService<IHaContext>() == null)
+        // Registrations are inspected rather than resolved: building a throwaway provider would instantiate NetDaemon's singletons a second time.
+        if (services.All(sd => sd.ServiceType != typeof(IHaContext)))
         {
             throw new InvalidOperationException(
                 $"Cannot register input notifications. Missing required NetDaemon services. " +

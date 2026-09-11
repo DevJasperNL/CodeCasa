@@ -124,11 +124,15 @@ public sealed class LightParametersExtensionsTests
     }
 
     [TestMethod]
-    public void Interpolate_MissingBothRgbAndTemp_Throws()
+    public void Interpolate_MissingBothRgbAndTemp_InterpolatesBrightnessOnly()
     {
         var from = new LightParameters { Brightness = 50 };
-        var to = new LightParameters { Brightness = 50 };
+        var to = new LightParameters { Brightness = 150 };
 
-        Assert.Throws<InvalidOperationException>(() => from.Interpolate(to, 0.5));
+        var result = from.Interpolate(to, 0.5);
+
+        Assert.AreEqual(100, result.Brightness);
+        Assert.IsNull(result.RgbColor);
+        Assert.IsNull(result.ColorTempKelvin);
     }
 }
