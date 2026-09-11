@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DependencyInjection.Composite" Version="1.0.1" />
+    <PackageReference Include="DependencyInjection.Composite" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
