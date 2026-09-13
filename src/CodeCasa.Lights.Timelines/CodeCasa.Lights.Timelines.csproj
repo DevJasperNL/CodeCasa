@@ -44,4 +44,8 @@
     <ProjectReference Include="..\CodeCasa.Lights\CodeCasa.Lights.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="CodeCasa.Lights.Timelines.Tests" />
+  </ItemGroup>
+
 </Project>
