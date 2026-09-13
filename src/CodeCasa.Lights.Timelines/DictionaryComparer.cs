@@ -1,4 +1,4 @@
-﻿namespace CodeCasa.Lights.Timelines;
+namespace CodeCasa.Lights.Timelines;
 
 internal sealed class DictionaryComparer<TKey, TValue>(IEqualityComparer<TValue>? valueComparer = null)
     : IEqualityComparer<Dictionary<TKey, TValue>>
@@ -22,12 +22,12 @@ internal sealed class DictionaryComparer<TKey, TValue>(IEqualityComparer<TValue>
 
     public int GetHashCode(Dictionary<TKey, TValue> obj)
     {
-        var hash = new HashCode();
+        // Combined order-independently: dictionaries that compare equal may enumerate in a different order.
+        var hash = 0;
         foreach (var (key, value) in obj)
         {
-            hash.Add(key);
-            hash.Add(value, _valueComparer);
+            hash = unchecked(hash + HashCode.Combine(key, value is null ? 0 : _valueComparer.GetHashCode(value)));
         }
-        return hash.ToHashCode();
+        return hash;
     }
 }
