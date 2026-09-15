@@ -28,7 +28,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
         public void Process(GroupNode groupNode, LightTransition transition)
         {
-            var inputInfo = new InputInfo(DateTime.UtcNow, groupNode, transition);
+            var inputInfo = new InputInfo(scheduler.Now.UtcDateTime, groupNode, transition);
             lock (_lock)
             {
                 foreach (var group in _groups)

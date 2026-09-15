@@ -39,7 +39,8 @@ internal static class ObservableExtensions
         Func<TValue> offValueFactory,
         IEnumerable<Func<TValue>> valueFactories,
         TimeSpan timeout,
-        bool? includeOff)
+        bool? includeOff,
+        IScheduler scheduler)
     {
         var valueFactoryArray = valueFactories.ToArray();
         var includeOffBool = includeOff ?? valueFactoryArray.Length <= 1;
@@ -53,7 +54,7 @@ internal static class ObservableExtensions
         return triggerObservable
             .Select(_ =>
             {
-                var utcNow = DateTime.UtcNow;
+                var utcNow = scheduler.Now.UtcDateTime;
                 var consecutive = previousLastChanged != null && utcNow - previousLastChanged < timeout;
                 
                 if (!consecutive)

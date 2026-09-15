@@ -76,7 +76,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             kvp.Value.AddNodeSource(shareableTriggerObservable.ToToggleObservable(
                 lastActivationTime =>
                 {
-                    var utcNow = DateTime.UtcNow;
+                    var utcNow = scheduler.Now.UtcDateTime;
                     if (utcNow - kvp.Value.Light.LastChangedUtc <= gracePeriod &&
                         (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
                     {
@@ -94,7 +94,8 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
                     );
                 }),
                 toggleConfig.ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
-                toggleConfig.IncludeOffValue));
+                toggleConfig.IncludeOffValue,
+                scheduler));
         });
         return this;
     }

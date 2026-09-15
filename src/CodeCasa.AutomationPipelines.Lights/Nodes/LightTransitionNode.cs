@@ -51,7 +51,7 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
             field = value;
             _inputLightDestinationParameters = value?.LightParameters;
             var transitionTime = value?.TransitionTime;
-            _inputStartOfTransition = DateTime.UtcNow;
+            _inputStartOfTransition = scheduler.Now.UtcDateTime;
             _inputEndOfTransition = _inputStartOfTransition + transitionTime;
 
             if (_passThroughNextInput)

@@ -70,7 +70,7 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
         AddNodeSource(triggerObservable.ToToggleObservable(
             lastActivationTime =>
             {
-                var utcNow = DateTime.UtcNow;
+                var utcNow = _scheduler.Now.UtcDateTime;
                 if (utcNow - Light.LastChangedUtc <= gracePeriod &&
                     (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
                 {
@@ -87,7 +87,8 @@ internal partial class LightTransitionReactiveNodeConfigurator<TLight>
                     );
             }),
             toggleConfigurator.ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
-            toggleConfigurator.IncludeOffValue));
+            toggleConfigurator.IncludeOffValue,
+            _scheduler));
         return this;
     }
 
