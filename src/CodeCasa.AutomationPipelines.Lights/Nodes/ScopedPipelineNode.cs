@@ -25,7 +25,8 @@ internal class ScopedPipelineNode<TState>(IPipelineNode<TState> innerNode, IDisp
 
     public async ValueTask DisposeAsync()
     {
-        await disposable.DisposeOrDisposeAsync();
+        // The node may still use services from its scope while it is being disposed.
         await innerNode.DisposeOrDisposeAsync();
+        await disposable.DisposeOrDisposeAsync();
     }
 }
