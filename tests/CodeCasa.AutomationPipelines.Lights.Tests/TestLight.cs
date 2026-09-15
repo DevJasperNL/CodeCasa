@@ -36,8 +36,19 @@ public sealed class TestLight(string id, params ILight[] children) : ILight, ILi
 
     public ILight[] GetChildren() => children;
 
-    public IObservable<StateChange<ILight, LightParameters>> StateChanges() =>
-        Observable.Never<StateChange<ILight, LightParameters>>();
+    private readonly Subject<StateChange<ILight, LightParameters>> _stateChanges = new();
+
+    public IObservable<StateChange<ILight, LightParameters>> StateChanges() => _stateChanges;
+
+    /// <summary>
+    /// Simulates the light reporting a state that was set outside of the pipeline.
+    /// </summary>
+    public void ReportExternalState(LightParameters parameters)
+    {
+        var old = Current;
+        Current = parameters;
+        _stateChanges.OnNext(new StateChange<ILight, LightParameters>(this, old, parameters));
+    }
 
     public IObservable<StateChange<ILight, LightParameters>> StateChangesWithCurrent() =>
         Observable.Never<StateChange<ILight, LightParameters>>();
