@@ -58,6 +58,42 @@ public sealed class LightPipelineFactorySharedScopeTests
     }
 
     [TestMethod]
+    public async Task SharedScope_PipelineSwitchWhen_BuildsNestedPipelineOnceForAllLights()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(Scheduler.Immediate);
+        var when = new BehaviorSubject<bool>(false);
+        var sw = new BehaviorSubject<bool>(true);
+        var trueConfigurations = 0;
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .AddPipelineSwitchWhen(when, sw,
+                t =>
+                {
+                    trueConfigurations++;
+                    t.AddNode(_ => new BrightnessNode(200));
+                },
+                f => f.AddNode(_ => new BrightnessNode(50))));
+
+        when.OnNext(true);
+
+        Assert.AreEqual(1, trueConfigurations, "A shared nested pipeline should be configured once for all lights.");
+        Assert.AreEqual(1, a.CountApplied(200));
+        Assert.AreEqual(1, b.CountApplied(200));
+
+        sw.OnNext(false);
+        Assert.AreEqual(1, a.CountApplied(50));
+        Assert.AreEqual(1, b.CountApplied(50));
+
+        when.OnNext(false);
+        Assert.AreEqual(0, a.Current.Brightness);
+
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
     public async Task SharedScope_NestedPipeline_DisposesPreviousGenerationOnRetrigger()
     {
         var a = new TestLight("a");
