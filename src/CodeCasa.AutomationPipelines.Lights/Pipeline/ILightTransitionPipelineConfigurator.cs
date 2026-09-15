@@ -35,6 +35,15 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     ILightTransitionPipelineConfigurator<TLight> WithDistinctOutput(IEqualityComparer<LightTransition> equalityComparer);
 
     /// <summary>
+    /// Configures whether the pipeline re-applies its current output when the light becomes available again, for example after
+    /// a power cut. Transitions sent while a light is unavailable are lost, so this is enabled by default.
+    /// Only applies to lights implementing <see cref="ILightAvailability"/> and to the root pipeline of a light.
+    /// </summary>
+    /// <param name="enabled"><see langword="true"/> to re-apply the output when the light becomes available; <see langword="false"/> to leave the light as it comes back.</param>
+    /// <returns>The configurator instance for method chaining.</returns>
+    ILightTransitionPipelineConfigurator<TLight> ReapplyOutputWhenAvailable(bool enabled = true);
+
+    /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.
     /// The node is resolved from the service provider.
     /// </summary>

@@ -8,7 +8,7 @@ namespace CodeCasa.Lights.NetDaemon;
 /// <summary>
 /// Adapts a NetDaemon light entity core to the <see cref="ILight"/> interface.
 /// </summary>
-public class NetDaemonLight : ILight
+public class NetDaemonLight : ILight, ILightAvailability
 {
     private readonly LightEntity _lightEntity;
 
@@ -77,4 +77,16 @@ public class NetDaemonLight : ILight
 
     /// <inheritdoc />
     public DateTime? LastUpdatedUtc => _lightEntity.EntityState?.LastUpdated?.ToUniversalTime();
+
+    /// <inheritdoc />
+    public bool IsAvailable => IsAvailableState(_lightEntity.State);
+
+    /// <inheritdoc />
+    public IObservable<bool> AvailabilityChanges() =>
+        _lightEntity.StateChanges()
+            .Where(sc => IsAvailableState(sc.Old?.State) != IsAvailableState(sc.New?.State))
+            .Select(sc => IsAvailableState(sc.New?.State));
+
+    private static bool IsAvailableState(string? state) =>
+        state != null && state != "unknown" && state != "unavailable";
 }

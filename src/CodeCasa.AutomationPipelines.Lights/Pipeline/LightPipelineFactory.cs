@@ -203,6 +203,22 @@ public class LightPipelineFactory(
                         pipelineContext.Update(output, scheduler.Now);
                     });
                 subscriptions = [.. subscriptions, contextSubscription];
+
+                if (conf.ReapplyOutputOnAvailable && light is ILightAvailability lightAvailability)
+                {
+                    // Deliberately bypasses the distinct comparer: the light missed whatever was sent while it was unavailable.
+                    var availabilitySubscription = lightAvailability.AvailabilityChanges()
+                        .Where(isAvailable => isAvailable)
+                        .Subscribe(_ =>
+                        {
+                            var output = pipeline.Output;
+                            if (output != null)
+                            {
+                                light.ApplyTransition(output);
+                            }
+                        });
+                    subscriptions = [.. subscriptions, availabilitySubscription];
+                }
             }
 
             foreach (var completedCallback in conf.PipelineCompletedCallbacks)

@@ -54,6 +54,15 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         return this;
     }
 
+    internal bool ReapplyOutputOnAvailable { get; private set; } = true;
+
+    /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> ReapplyOutputWhenAvailable(bool enabled = true)
+    {
+        ReapplyOutputOnAvailable = enabled;
+        return this;
+    }
+
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>()
         where TNode : IPipelineNode<LightTransition>

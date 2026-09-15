@@ -1,12 +1,25 @@
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using CodeCasa.Abstractions;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Tests;
 
-public sealed class TestLight(string id, params ILight[] children) : ILight
+public sealed class TestLight(string id, params ILight[] children) : ILight, ILightAvailability
 {
+    private readonly Subject<bool> _availabilityChanges = new();
+
     public string Id => id;
+    public bool IsAvailable { get; private set; } = true;
+
+    public IObservable<bool> AvailabilityChanges() => _availabilityChanges;
+
+    public void SetAvailable(bool isAvailable)
+    {
+        IsAvailable = isAvailable;
+        _availabilityChanges.OnNext(isAvailable);
+    }
+
     public List<LightTransition> Applied { get; } = new();
     public LightParameters Current { get; set; } = LightParameters.Off();
 
