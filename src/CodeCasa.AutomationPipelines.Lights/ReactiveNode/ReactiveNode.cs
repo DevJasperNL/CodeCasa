@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System.Collections.Concurrent;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CodeCasa.AutomationPipelines.Lights.Utils;
@@ -17,8 +18,9 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private readonly ILogger<ReactiveNode>? _logger;
     private readonly IEqualityComparer<LightTransition>? _equalityComparer;
     private readonly Subject<Unit> _nodeChangedSubject = new();
-    private readonly Subject<Action> _stateQueue = new();
-    private readonly IDisposable _queueSubscription;
+    private readonly ConcurrentQueue<Action> _stateQueue = new();
+    private int _drainingThreadId;
+    private volatile bool _isDisposed;
     private IDisposable? _nodeObservableSubscription;
     private IDisposable? _activeNodeSubscription;
 
@@ -46,14 +48,10 @@ public class ReactiveNode : PipelineNode<LightTransition>
         _equalityComparer = equalityComparer;
         PassThrough = true;
 
-        _queueSubscription = _stateQueue
-            .Synchronize()
-            .Subscribe(action => action());
-
         _nodeObservableSubscription = nodeObservable
             .Subscribe(n =>
             {
-                _stateQueue.OnNext(() =>
+                EnqueueStateChange(() =>
                 {
                     if (n == null)
                     {
@@ -73,7 +71,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
                 // Without an error handler Rx rethrows on the producer thread and the node silently stops reacting.
                 // Fall back to pass-through so the rest of the pipeline keeps working.
                 _logger?.LogError(error, $"{LogPrefix}Node source failed. Deactivating and passing through data.");
-                _stateQueue.OnNext(() =>
+                EnqueueStateChange(() =>
                 {
                     DeactivateActiveNode();
                     PassThrough = true;
@@ -96,13 +94,51 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// <inheritdoc />
     protected override void InputReceived(LightTransition? input)
     {
-        _stateQueue.OnNext(() =>
+        EnqueueStateChange(() =>
         {
             if (ActiveNode != null)
             {
                 ActiveNode.Input = input;
             }
         });
+    }
+
+    /*
+     * All state mutation is serialised through this queue. Unlike a lock, a caller on another thread never waits:
+     * it enqueues and returns, and the thread that is already draining runs the action. Holding a lock while calling
+     * into child nodes deadlocked nested reactive nodes (outer input vs. inner trigger, see 0b4571e for the same
+     * problem in Pipeline). Actions enqueued from within a running action execute inline, which keeps synchronous
+     * emissions during activation ordered exactly as before.
+     */
+    private void EnqueueStateChange(Action action)
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        var currentThreadId = Environment.CurrentManagedThreadId;
+        if (Volatile.Read(ref _drainingThreadId) == currentThreadId)
+        {
+            action();
+            return;
+        }
+
+        _stateQueue.Enqueue(action);
+        while (!_stateQueue.IsEmpty && Interlocked.CompareExchange(ref _drainingThreadId, currentThreadId, 0) == 0)
+        {
+            try
+            {
+                while (_stateQueue.TryDequeue(out var next))
+                {
+                    next();
+                }
+            }
+            finally
+            {
+                Volatile.Write(ref _drainingThreadId, 0);
+            }
+        }
     }
 
     private void DeactivateActiveNode()
@@ -129,7 +165,14 @@ public class ReactiveNode : PipelineNode<LightTransition>
         _activeNodeSubscription = node.OnNewOutput.Subscribe(output =>
         {
             outputReceived = true;
-            _stateQueue.OnNext(() => UpdateOutput(output));
+            EnqueueStateChange(() =>
+            {
+                // An output queued by a node that has since been replaced must not overwrite the new node's output.
+                if (ReferenceEquals(ActiveNode, node))
+                {
+                    UpdateOutput(output);
+                }
+            });
         });
         node.Input = Input;
         if (!outputReceived)
@@ -153,16 +196,18 @@ public class ReactiveNode : PipelineNode<LightTransition>
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
+        _isDisposed = true;
         _nodeObservableSubscription?.Dispose();
         _nodeObservableSubscription = null;
+        _activeNodeSubscription?.Dispose();
+        _activeNodeSubscription = null;
 
         if (ActiveNode != null)
         {
             await ActiveNode.DisposeOrDisposeAsync();
         }
 
-        _queueSubscription.Dispose();
-        _stateQueue.Dispose();
+        _stateQueue.Clear();
         _nodeChangedSubject.Dispose();
 
         await base.DisposeAsync();
