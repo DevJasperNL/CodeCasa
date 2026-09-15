@@ -120,7 +120,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
         var currentThreadId = Environment.CurrentManagedThreadId;
         if (Volatile.Read(ref _drainingThreadId) == currentThreadId)
         {
-            action();
+            RunStateChange(action);
             return;
         }
 
@@ -131,13 +131,26 @@ public class ReactiveNode : PipelineNode<LightTransition>
             {
                 while (_stateQueue.TryDequeue(out var next))
                 {
-                    next();
+                    RunStateChange(next);
                 }
             }
             finally
             {
                 Volatile.Write(ref _drainingThreadId, 0);
             }
+        }
+    }
+
+    private void RunStateChange(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception e)
+        {
+            // A throwing child node or downstream handler must not take the reactive node, or the trigger that fed it, down with it.
+            _logger?.LogError(e, $"{LogPrefix}Processing a state change failed.");
         }
     }
 
