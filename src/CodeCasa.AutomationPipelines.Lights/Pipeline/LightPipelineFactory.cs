@@ -112,6 +112,7 @@ public class LightPipelineFactory(
                 compositeServiceProvider.GetRequiredService<ReactiveNodeFactory>(),
                 configurators);
         pipelineBuilder(configurator);
+        ValidateLightGroupMembership(configurators);
 
         var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>(), logger);
 
@@ -211,6 +212,38 @@ public class LightPipelineFactory(
 
             return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
         });
+    }
+
+    private static void ValidateLightGroupMembership<TLight>(Dictionary<string, LightTransitionPipelineConfigurator<TLight>> configurators) where TLight : ILight
+    {
+        var registrationsByGroupId = configurators
+            .SelectMany(kvp => kvp.Value.LightGroups.Keys.Select(lightGroup => (LightGroup: lightGroup, LightId: kvp.Key)))
+            .GroupBy(registration => registration.LightGroup.Id);
+
+        foreach (var registrations in registrationsByGroupId)
+        {
+            var lightGroup = registrations.First().LightGroup;
+            if (!lightGroup.GetChildren().Any())
+            {
+                // Membership is unknown (for example a group entity without an entity_id attribute), so it cannot be validated.
+                continue;
+            }
+
+            // Consensus between the registered lights drives the group entity, so every member of the group must be one of them.
+            var memberIds = lightGroup.Flatten().Select(l => l.Id).ToHashSet();
+            var registeredIds = registrations.Select(r => r.LightId).ToHashSet();
+            if (memberIds.SetEquals(registeredIds))
+            {
+                continue;
+            }
+
+            var missing = memberIds.Except(registeredIds).ToArray();
+            var extra = registeredIds.Except(memberIds).ToArray();
+            throw new InvalidOperationException(
+                $"Light group {lightGroup.Id} must be used for exactly its member lights. " +
+                (missing.Any() ? $"Members not using the group: {string.Join(", ", missing)}. " : "") +
+                (extra.Any() ? $"Lights using the group that are not members: {string.Join(", ", extra)}." : ""));
+        }
     }
 
     /// <summary>

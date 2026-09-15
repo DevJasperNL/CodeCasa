@@ -69,6 +69,66 @@ public sealed class LightPipelineFactoryGroupTests
     }
 
     [TestMethod]
+    public async Task LightGroup_UsedForSubsetOfItsMembers_Throws()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var c = new TestLight("c");
+        var group = new TestLight("group", a, b, c);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() => sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .ForLights(["a", "b"], l => l.UseLightGroup(group))));
+        StringAssert.Contains(exception.Message, "c");
+    }
+
+    [TestMethod]
+    public async Task LightGroup_WithUnknownMembership_IsAllowed()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var pipelineLights = new TestLight("lights", a, b);
+        var groupEntity = new TestLight("zigbee_group");
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(pipelineLights, p => p.UseLightGroup(groupEntity));
+
+        Assert.AreEqual(1, groupEntity.CountApplied(0));
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task LightGroup_SeparateInstancesForSameGroupId_AreTreatedAsOneGroup()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var pipelineLights = new TestLight("lights", a, b);
+        var groupForA = new TestLight("group", a, b);
+        var groupForB = new TestLight("group", a, b);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(pipelineLights, p => p
+            .ForLight("a", l => l.UseLightGroup(groupForA))
+            .ForLight("b", l => l.UseLightGroup(groupForB)));
+
+        Assert.AreEqual(1, groupForA.Applied.Count + groupForB.Applied.Count);
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task LightGroup_ConflictingTimeSpans_Throws()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .ForLight("a", l => l.UseLightGroup(group, TimeSpan.FromMilliseconds(20)))
+            .ForLight("b", l => l.UseLightGroup(group, TimeSpan.FromMilliseconds(50)))));
+    }
+
+    [TestMethod]
     public async Task NestedPipeline_SharesLightPipelineContextWithRoot()
     {
         var light = new TestLight("a");

@@ -13,7 +13,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         {
             lock (_lock)
             {
-                var existingGroup = _groups.FirstOrDefault(g => g.LightGroup == lightGroup);
+                // Matched by id: separate UseLightGroup calls may pass different instances for the same group entity.
+                var existingGroup = _groups.FirstOrDefault(g => g.LightGroup.Id == lightGroup.Id);
                 if (existingGroup == null)
                 {
                     existingGroup = new GroupInfo(lightGroup, groupNode, equalityComparer, groupDuration, scheduler, logger);
@@ -21,6 +22,11 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 }
                 else
                 {
+                    if (existingGroup.GroupDuration != groupDuration || !Equals(existingGroup.EqualityComparer, equalityComparer))
+                    {
+                        throw new InvalidOperationException(
+                            $"Light group {lightGroup.Id} is used with different time spans or comparers. Use the same settings for every light in the group.");
+                    }
                     existingGroup.AddMember(groupNode);
                 }
             }
@@ -81,6 +87,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             : IDisposable
         {
             public ILight LightGroup { get; } = lightGroup;
+            public TimeSpan GroupDuration { get; } = groupDuration;
+            public IEqualityComparer<LightTransition> EqualityComparer { get; } = equalityComparer;
             private readonly List<GroupNode> _groupNodes = [firstGroupNode];
             private readonly Dictionary<GroupNode, InputInfo> _groupInputs = new();
             private readonly Dictionary<GroupNode, IDisposable> _scheduledWork = new();
@@ -148,7 +156,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     }
 
                     // Schedule this input for individual execution if no group consensus is reached
-                    var scheduledWork = scheduler.Schedule(groupDuration, () =>
+                    var scheduledWork = scheduler.Schedule(GroupDuration, () =>
                     {
                         lock (_lock)
                         {
@@ -175,7 +183,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                         _groupInputs.Remove(info.GroupNode);
                         CleanupScheduledWork(info.GroupNode);
                     }
-                    else if (info.Timestamp + groupDuration < currentTime)
+                    else if (info.Timestamp + GroupDuration < currentTime)
                     {
                         // We waited long enough for this light to be part of the group,
                         // but it never received a transition that matched the other lights in the group.
@@ -195,7 +203,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 }
 
                 // All inputs must have matching transitions
-                return _groupInputs.Values.All(info => equalityComparer.Equals(info.Transition, transition));
+                return _groupInputs.Values.All(info => EqualityComparer.Equals(info.Transition, transition));
             }
 
             private void CleanupScheduledWork(GroupNode groupNode)
