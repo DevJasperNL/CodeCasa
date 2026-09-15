@@ -49,6 +49,13 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>(
     }
 
     /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> SetStartupBehaviour(PipelineStartupBehaviour startupBehaviour)
+    {
+        NodeContainers.Values.ForEach(b => b.SetStartupBehaviour(startupBehaviour));
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
     {
         NodeContainers.Values.ForEach(b => b.AddNode<TNode>());
