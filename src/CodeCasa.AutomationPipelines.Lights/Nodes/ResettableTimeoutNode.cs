@@ -21,8 +21,12 @@ internal class ResettableTimeoutNode : LightTransitionNode
         Name = $"{childNode.Name} (resets after timeout)";
         _timerSubscription.DisposeWith(_disposables);
 
+        // The initial output is set synchronously: a reactive node reads Output right after activating this node, and would
+        // otherwise briefly pass null downstream until the scheduler delivered it.
+        Output = childNode.Output;
+        RestartTimer();
+
         childNode.OnNewOutput
-            .Prepend(childNode.Output)
             .ObserveOn(scheduler)
             .Subscribe(output =>
             {
@@ -56,6 +60,11 @@ internal class ResettableTimeoutNode : LightTransitionNode
             _timerSubscription.Disposable = Observable.Timer(turnOffTime, scheduler)
                 .Subscribe(_ => ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition.Off()));
         }
+    }
+
+    protected override void OnInputChanged(LightTransition? input)
+    {
+        _childNode.Input = input;
     }
 
     public override async ValueTask DisposeAsync()

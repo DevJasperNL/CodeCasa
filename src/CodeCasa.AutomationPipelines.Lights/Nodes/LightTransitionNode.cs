@@ -54,6 +54,8 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
             _inputStartOfTransition = scheduler.Now.UtcDateTime;
             _inputEndOfTransition = _inputStartOfTransition + transitionTime;
 
+            OnInputChanged(field);
+
             if (_passThroughNextInput)
             {
                 PassThrough = true;
@@ -68,6 +70,15 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
 
             InputReceived(field);
         }
+    }
+
+    /// <summary>
+    /// Called for every new input, regardless of pass-through mode and before the input is passed through or handed to
+    /// <see cref="InputReceived"/>. Override this method to observe all inputs, for example to forward them to a wrapped node.
+    /// </summary>
+    /// <param name="input">The light transition input that was received.</param>
+    protected virtual void OnInputChanged(LightTransition? input)
+    {
     }
 
     /// <summary>

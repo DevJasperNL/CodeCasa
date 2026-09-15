@@ -48,6 +48,40 @@ public sealed class ResettableTimeoutNodeTests
     }
 
     [TestMethod]
+    public async Task Constructor_ChildOutputAvailableWithoutAdvancingScheduler()
+    {
+        _childNodeMock.Setup(x => x.Output).Returns(LightTransition.On());
+
+        await using var node = new ResettableTimeoutNode(_childNodeMock.Object, DefaultTimeout, _persistSubject, _scheduler);
+
+        Assert.AreEqual(LightTransition.On(), node.Output);
+    }
+
+    [TestMethod]
+    public async Task Input_IsForwardedToChildNode()
+    {
+        await using var node = new ResettableTimeoutNode(_childNodeMock.Object, DefaultTimeout, _persistSubject, _scheduler);
+        var input = new LightParameters { Brightness = 80 }.AsTransition();
+
+        node.Input = input;
+
+        _childNodeMock.VerifySet(x => x.Input = input, Times.Once);
+    }
+
+    [TestMethod]
+    public async Task Input_AfterTimeout_IsStillForwardedToChildNode()
+    {
+        await using var node = new ResettableTimeoutNode(_childNodeMock.Object, DefaultTimeout, _persistSubject, _scheduler);
+        _childOutputSubject.OnNext(LightTransition.On());
+        _scheduler.AdvanceBy(DefaultTimeout.Ticks + 2);
+        var input = new LightParameters { Brightness = 80 }.AsTransition();
+
+        node.Input = input;
+
+        _childNodeMock.VerifySet(x => x.Input = input, Times.Once);
+    }
+
+    [TestMethod]
     public async Task TimeoutElapsed_TurnsOffLight()
     {
         // Arrange
