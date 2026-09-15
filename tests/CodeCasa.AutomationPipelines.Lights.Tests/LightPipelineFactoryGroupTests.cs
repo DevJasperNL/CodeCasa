@@ -56,6 +56,19 @@ public sealed class LightPipelineFactoryGroupTests
     }
 
     [TestMethod]
+    public async Task LightGroup_OnNestedPipeline_Throws()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .AddPipeline(n => n.UseLightGroup(group))));
+        Assert.AreEqual(0, group.Applied.Count);
+    }
+
+    [TestMethod]
     public async Task NestedPipeline_SharesLightPipelineContextWithRoot()
     {
         var light = new TestLight("a");

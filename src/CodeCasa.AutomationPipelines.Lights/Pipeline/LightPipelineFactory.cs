@@ -124,6 +124,12 @@ public class LightPipelineFactory(
             {
                 continue;
             }
+            if (!ownsPipelineContext[lightId])
+            {
+                // A group node drives the group entity directly, which would bypass the root pipeline and any node after this nested pipeline.
+                throw new InvalidOperationException(
+                    $"{nameof(ILightTransitionPipelineConfigurator<TLight>.UseLightGroup)} can only be used on the root pipeline of a light, not on a nested pipeline ({conf.HierarchyPath}, light {lightId}).");
+            }
 
             var groupNode = new GroupNode(groupContext);
             foreach (var lightGroup in conf.LightGroups)
