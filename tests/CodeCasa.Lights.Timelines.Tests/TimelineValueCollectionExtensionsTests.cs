@@ -186,6 +186,28 @@ public sealed class TimelineValueCollectionExtensionsTests
     }
 
     [TestMethod]
+    public void GetLightParametersAt_BetweenInstants_ReturnsInterpolatedValue()
+    {
+        var parameters = Timeline((At(20), Brightness(100)), (At(22), Brightness(200))).GetLightParametersAt(Now);
+
+        Assert.AreEqual(150, parameters?.Brightness);
+    }
+
+    [TestMethod]
+    public void GetLightParametersAt_BeforeFirstInstant_ReturnsNull()
+    {
+        Assert.IsNull(Timeline((At(22), Brightness(100)), (At(23), Brightness(200))).GetLightParametersAt(Now));
+    }
+
+    [TestMethod]
+    public void GetLightParametersAt_AfterLastInstant_ReturnsLastValue()
+    {
+        var parameters = Timeline((At(19), Brightness(100)), (At(20), Brightness(200))).GetLightParametersAt(Now);
+
+        Assert.AreEqual(200, parameters?.Brightness);
+    }
+
+    [TestMethod]
     public void IncludingCurrent_EmptyTimeline_EmitsNothing()
     {
         var scheduler = CreateScheduler(Now);

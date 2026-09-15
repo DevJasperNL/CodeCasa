@@ -88,18 +88,19 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
     public ILightTransitionCycleConfigurator<TLight> AddTimeline(Dictionary<ITimeline, LightParameters> timeline, TimeSpan? transitionTimeForTimelineState = null)
     {
         activeConfigurators.Values.ForEach(c => c.AddTimeline(timeline, transitionTimeForTimelineState));
-        inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(sp => EqualityComparer<LightParameters>.Default.Equals(
-            sp.GetRequiredService<ILight>().GetParameters(),
-            timeline.GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First())));
+        inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(sp =>
+            activeConfigurators.Values.All(active => CycleTimelineMatcher.LightMatchesTimeline(active.Light, timeline, sp))));
         return this;
     }
 
     public ILightTransitionCycleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
     {
         activeConfigurators.Values.ForEach(c => c.AddTimeline(timelineFactory, transitionTimeForTimelineState));
-        inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(sp => EqualityComparer<LightParameters>.Default.Equals(
-            sp.GetRequiredService<ILight>().GetParameters(),
-            timelineFactory(sp).GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First())));
+        inactiveConfigurators.Values.ForEach(c => c.AddPassThrough(sp =>
+        {
+            var timeline = timelineFactory(sp);
+            return activeConfigurators.Values.All(active => CycleTimelineMatcher.LightMatchesTimeline(active.Light, timeline, sp));
+        }));
         return this;
     }
 
