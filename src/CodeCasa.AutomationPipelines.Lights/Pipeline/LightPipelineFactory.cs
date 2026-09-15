@@ -152,7 +152,7 @@ public class LightPipelineFactory(
                 nodes.Add(groupNode);
                 outputHandler = transition =>
                 {
-                    if (!groupNode.OutputAppliedByGroup)
+                    if (!groupNode.WasAppliedByGroup(transition))
                     {
                         light.ApplyTransition(transition);
                     }
