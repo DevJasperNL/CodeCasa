@@ -77,6 +77,74 @@ public sealed class LightPipelineFactoryGroupTests
     }
 
     [TestMethod]
+    public async Task LightGroup_NewInputWithinWindow_SupersedesPendingInput()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        var scheduler = new TestScheduler();
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var first = new Subject<int>();
+        var second = new Subject<int>();
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .UseLightGroup(group, TimeSpan.FromMilliseconds(20))
+            .ForLight("a", l => l
+                .AddReactiveNode(r => r.On(first, new LightParameters { Brightness = 100 }))
+                .AddReactiveNode(r => r.On(second, new LightParameters { Brightness = 200 }))));
+
+        first.OnNext(1);
+        second.OnNext(1);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+
+        Assert.AreEqual(0, a.CountApplied(100), "The superseded transition should not be applied.");
+        Assert.AreEqual(1, a.CountApplied(200));
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task LightGroup_ApplyTransitionWaitsForInputFromAnotherThread_DoesNotDeadlock()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var pipelineLights = new TestLight("lights", a, b);
+        var feedback = new Subject<int>();
+        var feedbackCompleted = false;
+        var group = new CallbackLight("group", [a, b], transition =>
+        {
+            if (transition.LightParameters.Brightness == 100)
+            {
+                feedbackCompleted = Task.Run(() => feedback.OnNext(1)).Wait(TimeSpan.FromSeconds(5));
+            }
+        });
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+        var allOn = new Subject<int>();
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(pipelineLights, p => p
+            .UseLightGroup(group)
+            .AddReactiveNode(r => r.On(allOn, new LightParameters { Brightness = 100 }))
+            .ForLight("a", l => l.AddReactiveNode(r => r.On(feedback, new LightParameters { Brightness = 50 }))));
+
+        allOn.OnNext(1);
+
+        Assert.IsTrue(feedbackCompleted, "Input from another thread was blocked while the group entity was being driven.");
+        await pipelines.DisposeAsync();
+    }
+
+    private sealed class CallbackLight(string id, ILight[] children, Action<LightTransition> onApply) : ILight
+    {
+        public string Id => id;
+        public LightParameters GetParameters() => LightParameters.Off();
+        public void ApplyTransition(LightTransition transition) => onApply(transition);
+        public ILight[] GetChildren() => children;
+        public IObservable<CodeCasa.Abstractions.StateChange<ILight, LightParameters>> StateChanges() =>
+            System.Reactive.Linq.Observable.Never<CodeCasa.Abstractions.StateChange<ILight, LightParameters>>();
+        public IObservable<CodeCasa.Abstractions.StateChange<ILight, LightParameters>> StateChangesWithCurrent() => StateChanges();
+        public DateTime? LastChangedUtc => null;
+        public DateTime? LastUpdatedUtc => null;
+    }
+
+    [TestMethod]
     public async Task LightGroup_OnNestedPipeline_Throws()
     {
         var a = new TestLight("a");

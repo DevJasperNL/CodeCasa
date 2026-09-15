@@ -1,13 +1,25 @@
-﻿using System.Reactive.Concurrency;
+using System.Collections.Concurrent;
+using System.Reactive.Concurrency;
 using CodeCasa.Lights;
 using Microsoft.Extensions.Logging;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes
 {
+    /*
+     * Group bookkeeping is protected by a single lock, but nothing that calls out of this class (applying a transition to
+     * the group entity or setting a member's output, which runs the member pipeline and its output handler) is executed
+     * while holding it. Those actions are queued in order while the lock is held and drained afterwards by one thread at a
+     * time, so a feedback path back into Process from another thread cannot deadlock and outputs keep their order.
+     */
     internal class GroupNodeContext(IScheduler scheduler, ILogger<Pipeline<LightTransition>>? logger)
     {
         private readonly List<GroupInfo> _groups = new();
         private readonly Lock _lock = new();
+        private readonly ConcurrentQueue<Action> _pendingActions = new();
+        private int _drainingThreadId;
+
+        private IScheduler Scheduler => scheduler;
+        private ILogger<Pipeline<LightTransition>>? Logger => logger;
 
         public void Register(GroupNode groupNode, ILight lightGroup, TimeSpan groupDuration, EqualityComparer<LightTransition> equalityComparer)
         {
@@ -17,7 +29,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 var existingGroup = _groups.FirstOrDefault(g => g.LightGroup.Id == lightGroup.Id);
                 if (existingGroup == null)
                 {
-                    existingGroup = new GroupInfo(lightGroup, groupNode, equalityComparer, groupDuration, scheduler, logger);
+                    existingGroup = new GroupInfo(this, lightGroup, groupNode, equalityComparer, groupDuration);
                     _groups.Add(existingGroup);
                 }
                 else
@@ -42,7 +54,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     group.Process(inputInfo);
                 }
             }
-            
+            RunPendingActions();
         }
 
         public void Unregister(GroupNode groupNode)
@@ -60,30 +72,70 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             }
         }
 
+        private void OnGroupWindowElapsed(GroupInfo group, InputInfo inputInfo)
+        {
+            lock (_lock)
+            {
+                group.ExecuteIfStillPending(inputInfo);
+            }
+            RunPendingActions();
+        }
+
+        private void EnqueueAction(Action action) => _pendingActions.Enqueue(action);
+
+        private void RunPendingActions()
+        {
+            var currentThreadId = Environment.CurrentManagedThreadId;
+            while (!_pendingActions.IsEmpty && Interlocked.CompareExchange(ref _drainingThreadId, currentThreadId, 0) == 0)
+            {
+                try
+                {
+                    while (_pendingActions.TryDequeue(out var action))
+                    {
+                        try
+                        {
+                            action();
+                        }
+                        catch (Exception e)
+                        {
+                            logger?.LogError(e, "Applying a light group transition failed.");
+                        }
+                    }
+                }
+                finally
+                {
+                    Volatile.Write(ref _drainingThreadId, 0);
+                }
+            }
+        }
+
         internal class InputInfo(DateTime timestamp, GroupNode groupNode, LightTransition lightTransition)
         {
             public LightTransition Transition { get; } = lightTransition;
             public GroupNode GroupNode { get; } = groupNode;
             public DateTime Timestamp { get; } = timestamp;
             public bool HasExecuted { get; private set; }
-            public void Execute(bool appliedByGroup = false)
+
+            public void Execute(GroupNodeContext context, bool appliedByGroup = false)
             {
                 if (HasExecuted)
                 {
                     return;
                 }
                 HasExecuted = true;
-                GroupNode.SetOutput(Transition, appliedByGroup);
+                context.EnqueueAction(() => GroupNode.SetOutput(Transition, appliedByGroup));
             }
         }
 
+        /// <summary>
+        /// Tracks the pending inputs of one light group. All members are only accessed while holding the context lock.
+        /// </summary>
         internal class GroupInfo(
+            GroupNodeContext context,
             ILight lightGroup,
             GroupNode firstGroupNode,
             IEqualityComparer<LightTransition> equalityComparer,
-            TimeSpan groupDuration,
-            IScheduler scheduler,
-            ILogger<Pipeline<LightTransition>>? logger)
+            TimeSpan groupDuration)
             : IDisposable
         {
             public ILight LightGroup { get; } = lightGroup;
@@ -92,92 +144,76 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             private readonly List<GroupNode> _groupNodes = [firstGroupNode];
             private readonly Dictionary<GroupNode, InputInfo> _groupInputs = new();
             private readonly Dictionary<GroupNode, IDisposable> _scheduledWork = new();
-            private readonly Lock _lock = new();
 
             public void AddMember(GroupNode groupNode)
             {
-                lock (_lock)
-                {
-                    _groupNodes.Add(groupNode);
-                }
+                _groupNodes.Add(groupNode);
             }
 
             public bool RemoveMember(GroupNode groupNode)
             {
-                lock (_lock)
-                {
-                    _groupNodes.Remove(groupNode);
-                    _groupInputs.Remove(groupNode);
-                    CleanupScheduledWork(groupNode);
+                _groupNodes.Remove(groupNode);
+                _groupInputs.Remove(groupNode);
+                CleanupScheduledWork(groupNode);
 
-                    return !_groupNodes.Any();
-                }
+                return !_groupNodes.Any();
             }
 
             public void Process(InputInfo inputInfo)
             {
-                lock (_lock)
+                if (!_groupNodes.Contains(inputInfo.GroupNode))
                 {
-                    if (!_groupNodes.Contains(inputInfo.GroupNode))
-                    {
-                        return;
-                    }
-
-                    // Clean up expired or executed inputs
-                    CleanupExpiredInputs(inputInfo.Timestamp);
-
-                    // If there's an existing input for this light, execute it first
-                    if (_groupInputs.TryGetValue(inputInfo.GroupNode, out var existingInput))
-                    {
-                        existingInput.Execute();
-                        CleanupScheduledWork(inputInfo.GroupNode);
-                    }
-
-                    // Add the new input
-                    _groupInputs[inputInfo.GroupNode] = inputInfo;
-
-                    // Check if all group members now have matching transitions
-                    if (AllMembersHaveMatchingTransitions(inputInfo.Transition))
-                    {
-                        // All members are in sync - apply to the group instead
-                        var groupInputs = _groupInputs.Values.ToArray();
-                        _groupInputs.Clear();
-                        CleanupAllScheduledWork();
-                        if (groupInputs.All(groupInput => groupInput.GroupNode.IsSuppressedAsDuplicate(groupInput.Transition)))
-                        {
-                            // Every member pipeline would suppress this transition as a duplicate, so the group should not receive it either.
-                            logger?.LogTrace($"Group [{LightGroup.Id}] not used. Transition equals the current output of all members: {inputInfo.Transition}");
-                        }
-                        else
-                        {
-                            logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
-                            LightGroup.ApplyTransition(inputInfo.Transition);
-                        }
-
-                        // Member pipelines still need to see the transition as their output (distinct comparison,
-                        // telemetry, LightPipelineContext); only the individual light call is skipped.
-                        foreach (var groupInput in groupInputs)
-                        {
-                            groupInput.Execute(appliedByGroup: true);
-                        }
-                        return;
-                    }
-
-                    // Schedule this input for individual execution if no group consensus is reached
-                    var scheduledWork = scheduler.Schedule(GroupDuration, () =>
-                    {
-                        lock (_lock)
-                        {
-                            if (_groupInputs.TryGetValue(inputInfo.GroupNode, out var info) && !info.HasExecuted)
-                            {
-                                info.Execute();
-                                _groupInputs.Remove(inputInfo.GroupNode);
-                            }
-                            _scheduledWork.Remove(inputInfo.GroupNode);
-                        }
-                    });
-                    _scheduledWork[inputInfo.GroupNode] = scheduledWork;
+                    return;
                 }
+
+                CleanupExpiredInputs(inputInfo.Timestamp);
+
+                // A newer input for the same light supersedes the pending one; the pending transition is never applied.
+                CleanupScheduledWork(inputInfo.GroupNode);
+                _groupInputs[inputInfo.GroupNode] = inputInfo;
+
+                if (AllMembersHaveMatchingTransitions(inputInfo.Transition))
+                {
+                    var groupInputs = _groupInputs.Values.ToArray();
+                    _groupInputs.Clear();
+                    CleanupAllScheduledWork();
+
+                    if (groupInputs.All(groupInput => groupInput.GroupNode.IsSuppressedAsDuplicate(groupInput.Transition)))
+                    {
+                        // Every member pipeline would suppress this transition as a duplicate, so the group should not receive it either.
+                        context.Logger?.LogTrace($"Group [{LightGroup.Id}] not used. Transition equals the current output of all members: {inputInfo.Transition}");
+                    }
+                    else
+                    {
+                        context.Logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
+                        var transition = inputInfo.Transition;
+                        context.EnqueueAction(() => LightGroup.ApplyTransition(transition));
+                    }
+
+                    // Member pipelines still need to see the transition as their output (distinct comparison,
+                    // telemetry, LightPipelineContext); only the individual light call is skipped.
+                    foreach (var groupInput in groupInputs)
+                    {
+                        groupInput.Execute(context, appliedByGroup: true);
+                    }
+                    return;
+                }
+
+                // Apply this input individually if no group consensus is reached within the window.
+                _scheduledWork[inputInfo.GroupNode] = context.Scheduler.Schedule(GroupDuration, () => context.OnGroupWindowElapsed(this, inputInfo));
+            }
+
+            public void ExecuteIfStillPending(InputInfo inputInfo)
+            {
+                if (!_groupInputs.TryGetValue(inputInfo.GroupNode, out var pendingInput) || !ReferenceEquals(pendingInput, inputInfo))
+                {
+                    // Superseded or already applied; any scheduled work for the newer input stays in place.
+                    return;
+                }
+
+                pendingInput.Execute(context);
+                _groupInputs.Remove(inputInfo.GroupNode);
+                _scheduledWork.Remove(inputInfo.GroupNode);
             }
 
             private void CleanupExpiredInputs(DateTime currentTime)
@@ -195,7 +231,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     {
                         // We waited long enough for this light to be part of the group,
                         // but it never received a transition that matched the other lights in the group.
-                        info.Execute();
+                        info.Execute(context);
                         _groupInputs.Remove(info.GroupNode);
                         CleanupScheduledWork(info.GroupNode);
                     }
@@ -204,22 +240,19 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             private bool AllMembersHaveMatchingTransitions(LightTransition transition)
             {
-                // We need inputs from ALL group nodes
                 if (_groupInputs.Count != _groupNodes.Count)
                 {
                     return false;
                 }
 
-                // All inputs must have matching transitions
                 return _groupInputs.Values.All(info => EqualityComparer.Equals(info.Transition, transition));
             }
 
             private void CleanupScheduledWork(GroupNode groupNode)
             {
-                if (_scheduledWork.TryGetValue(groupNode, out var disposable))
+                if (_scheduledWork.Remove(groupNode, out var disposable))
                 {
                     disposable.Dispose();
-                    _scheduledWork.Remove(groupNode);
                 }
             }
 
@@ -234,10 +267,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             public void Dispose()
             {
-                lock (_lock)
-                {
-                    CleanupAllScheduledWork();
-                }
+                CleanupAllScheduledWork();
             }
         }
     }
