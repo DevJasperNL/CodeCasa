@@ -46,7 +46,7 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTr
 
     public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
     {
-        comparer ??= EqualityComparer<LightParameters>.Default;
+        comparer ??= LightParametersComparer.Tolerant;
         return Add(sp => new StaticLightTransitionNode(lightTransition, sp.GetRequiredService<IScheduler>()), _ => comparer.Equals(
             Light.GetParameters(),
             lightTransition.LightParameters));

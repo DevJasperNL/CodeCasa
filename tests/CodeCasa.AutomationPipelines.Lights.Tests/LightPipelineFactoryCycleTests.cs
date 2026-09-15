@@ -38,6 +38,47 @@ public sealed class LightPipelineFactoryCycleTests
     }
 
     [TestMethod]
+    public async Task CompositeCycle_EveryPress_AllLightsMoveToTheSameEntry()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+        var trigger = new Subject<int>();
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .AddCycle(trigger, new LightParameters { Brightness = 100 }, new LightParameters { Brightness = 200 }));
+
+        for (var press = 1; press <= 3; press++)
+        {
+            trigger.OnNext(press);
+            Assert.AreEqual(a.Current.Brightness, b.Current.Brightness, $"Lights diverged after press {press}.");
+        }
+        Assert.AreEqual(100, a.Current.Brightness);
+
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task Cycle_ReportedStateSlightlyOff_StillAdvances()
+    {
+        var light = new TestLight("a");
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+        var trigger = new Subject<int>();
+
+        var pipeline = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(light, p => p
+            .AddCycle(trigger, new LightParameters { Brightness = 255, ColorTempKelvin = 2700 }, new LightParameters { Brightness = 100 }));
+
+        trigger.OnNext(1);
+        light.Current = new LightParameters { Brightness = 254, ColorTempKelvin = 2702 };
+
+        trigger.OnNext(2);
+        Assert.AreEqual(100, light.Current.Brightness);
+
+        await pipeline.DisposeAsync();
+    }
+
+    [TestMethod]
     public async Task Cycle_LightFollowsTimelineMidRamp_AdvancesToNextEntry()
     {
         await AssertTimelineEntryIsRecognised(Timeline((At(20), 100), (At(22), 200)), expectedTimelineBrightness: 150);

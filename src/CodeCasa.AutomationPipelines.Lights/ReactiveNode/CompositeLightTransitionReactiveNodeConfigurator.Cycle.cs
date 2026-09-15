@@ -3,6 +3,7 @@ using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Occurify;
+using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -49,16 +50,44 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             kvp => new LightTransitionCycleConfigurator<TLight>(kvp.Value.Light));
         var compositeCycleConfigurator = new CompositeLightTransitionCycleConfigurator<TLight>(cycleConfigurators, []);
         configure(compositeCycleConfigurator);
-        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
-        configurators.ForEach(kvp => kvp.Value.AddNodeSource(shareableTriggerObservable.ToCycleObservable(cycleConfigurators[kvp.Key].CycleNodeFactories.Select(tuple =>
+
+        var entriesByLight = cycleConfigurators.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.CycleNodeFactories.ToArray());
+        var entryCounts = entriesByLight.Values.Select(entries => entries.Length).Distinct().ToArray();
+        if (entryCounts.Length != 1)
         {
-            var factory = new Func<IPipelineNode<LightTransition>>(() => 
-                tuple.nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
-                );
-            var valueIsActiveFunc = () => tuple.matchesNodeState(kvp.Value.ServiceProvider);
-            return (factory, valueIsActiveFunc);
-        }))));
+            // ForLights without ExcludedLightBehaviours.PassThrough gives lights cycles of different lengths, so they can only cycle independently.
+            var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
+            configurators.ForEach(kvp => kvp.Value.AddNodeSource(shareableTriggerObservable.ToCycleObservable(entriesByLight[kvp.Key].Select(tuple =>
+            {
+                var factory = new Func<IPipelineNode<LightTransition>>(() =>
+                    tuple.nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
+                    );
+                var valueIsActiveFunc = () => tuple.matchesNodeState(kvp.Value.ServiceProvider);
+                return (factory, valueIsActiveFunc);
+            }))));
+            return this;
+        }
+
+        var entryCount = entryCounts[0];
+        if (entryCount == 0)
+        {
+            return this;
+        }
+
+        // The next entry is determined once per trigger for all lights. Evaluating it per light let lights end up on different
+        // entries, because the first light's new node already changed the state the next light was matched against.
+        var shareableIndexObservable = _observableSharingStrategy.Apply(triggerObservable.Select(_ => NextCycleIndex()));
+        configurators.ForEach(kvp => kvp.Value.AddNodeSource(shareableIndexObservable.Select(index =>
+            (IPipelineNode<LightTransition>?)entriesByLight[kvp.Key][index].nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider))));
         return this;
+
+        int NextCycleIndex()
+        {
+            var activeIndex = Enumerable.Range(0, entryCount).FirstOrDefault(
+                i => configurators.All(kvp => entriesByLight[kvp.Key][i].matchesNodeState(kvp.Value.ServiceProvider)),
+                -1);
+            return (activeIndex + 1) % entryCount;
+        }
     }
 
     /// <inheritdoc/>

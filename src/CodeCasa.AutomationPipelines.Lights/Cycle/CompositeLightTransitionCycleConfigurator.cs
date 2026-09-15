@@ -46,7 +46,7 @@ internal class CompositeLightTransitionCycleConfigurator<TLight>(
 
     public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
     {
-        comparer ??= EqualityComparer<LightParameters>.Default;
+        comparer ??= LightParametersComparer.Tolerant;
         return Add(
             _ => lightTransition,
             _ => activeConfigurators.Values.All(c => comparer.Equals(
