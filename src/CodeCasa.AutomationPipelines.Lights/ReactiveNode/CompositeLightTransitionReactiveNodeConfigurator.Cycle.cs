@@ -55,7 +55,7 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             var factory = new Func<IPipelineNode<LightTransition>>(() => 
                 tuple.nodeFactory.CreateScopedNode(kvp.Value.ServiceProvider) // Note: This service provider already has the light registered. We scope it further for node lifetime.
                 );
-            var valueIsActiveFunc = () => tuple.matchesNodeState(serviceProvider);
+            var valueIsActiveFunc = () => tuple.matchesNodeState(kvp.Value.ServiceProvider);
             return (factory, valueIsActiveFunc);
         }))));
         return this;
