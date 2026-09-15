@@ -29,7 +29,7 @@ public sealed class TestLight(string id, params ILight[] children) : ILight
     public IObservable<StateChange<ILight, LightParameters>> StateChangesWithCurrent() =>
         Observable.Never<StateChange<ILight, LightParameters>>();
 
-    public DateTime? LastChangedUtc => null;
+    public DateTime? LastChangedUtc { get; set; }
     public DateTime? LastUpdatedUtc => null;
 
     public int CountApplied(int brightness)
