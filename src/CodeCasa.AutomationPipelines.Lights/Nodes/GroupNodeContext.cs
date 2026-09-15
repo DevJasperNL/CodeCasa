@@ -143,8 +143,16 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                         var groupInputs = _groupInputs.Values.ToArray();
                         _groupInputs.Clear();
                         CleanupAllScheduledWork();
-                        logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
-                        LightGroup.ApplyTransition(inputInfo.Transition);
+                        if (groupInputs.All(groupInput => groupInput.GroupNode.IsSuppressedAsDuplicate(groupInput.Transition)))
+                        {
+                            // Every member pipeline would suppress this transition as a duplicate, so the group should not receive it either.
+                            logger?.LogTrace($"Group [{LightGroup.Id}] not used. Transition equals the current output of all members: {inputInfo.Transition}");
+                        }
+                        else
+                        {
+                            logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
+                            LightGroup.ApplyTransition(inputInfo.Transition);
+                        }
 
                         // Member pipelines still need to see the transition as their output (distinct comparison,
                         // telemetry, LightPipelineContext); only the individual light call is skipped.

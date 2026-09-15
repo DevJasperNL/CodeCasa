@@ -56,6 +56,27 @@ public sealed class LightPipelineFactoryGroupTests
     }
 
     [TestMethod]
+    public async Task LightGroup_WithDistinctOutput_DuplicateConsensusDoesNotDriveTheGroup()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+        var turnOffAll = new Subject<int>();
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .UseLightGroup(group)
+            .WithDistinctOutput()
+            .AddReactiveNode(r => r.TurnOffWhen(turnOffAll)));
+        Assert.AreEqual(1, group.CountApplied(0));
+
+        turnOffAll.OnNext(1);
+
+        Assert.AreEqual(1, group.CountApplied(0), "The lights are already off, so the group should not be turned off again.");
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
     public async Task LightGroup_OnNestedPipeline_Throws()
     {
         var a = new TestLight("a");

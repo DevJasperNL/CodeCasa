@@ -132,7 +132,7 @@ public class LightPipelineFactory(
                     $"{nameof(ILightTransitionPipelineConfigurator<TLight>.UseLightGroup)} can only be used on the root pipeline of a light, not on a nested pipeline ({conf.HierarchyPath}, light {lightId}).");
             }
 
-            var groupNode = new GroupNode(groupContext);
+            var groupNode = new GroupNode(groupContext, conf.DistinctEqualityComparer);
             foreach (var lightGroup in conf.LightGroups)
             {
                 groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
