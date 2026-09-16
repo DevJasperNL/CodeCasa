@@ -12,8 +12,10 @@ public sealed class LightPipelineFactoryToggleTests
     [TestMethod]
     public async Task CompositeToggle_ConsecutivePresses_AllLightsGetTheSameValue()
     {
-        var a = new TestLight("a");
-        var b = new TestLight("b");
+        // The lights do not report their new state back within the press, as a real light would not either. This passes on
+        // the implementation before the shared toggle step as well; it documents that both lights always take the same step.
+        var a = new TestLight("a") { ReportsStateWhenApplied = false };
+        var b = new TestLight("b") { ReportsStateWhenApplied = false };
         var group = new TestLight("group", a, b);
         await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
         var trigger = new Subject<int>();
@@ -22,15 +24,17 @@ public sealed class LightPipelineFactoryToggleTests
             .AddToggle(trigger, new LightParameters { Brightness = 100 }, new LightParameters { Brightness = 200 }));
 
         trigger.OnNext(1);
-        Assert.AreEqual(100, a.Current.Brightness);
-        Assert.AreEqual(100, b.Current.Brightness);
+        Assert.AreEqual(100, LastApplied(a));
+        Assert.AreEqual(100, LastApplied(b));
 
         trigger.OnNext(2);
-        Assert.AreEqual(200, a.Current.Brightness);
-        Assert.AreEqual(200, b.Current.Brightness);
+        Assert.AreEqual(200, LastApplied(a));
+        Assert.AreEqual(200, LastApplied(b));
 
         await pipelines.DisposeAsync();
     }
+
+    private static double? LastApplied(TestLight light) => light.Applied[^1].LightParameters.Brightness;
 
     [TestMethod]
     public async Task CompositeToggle_OneLightChangedWithinGracePeriod_AllLightsTakeTheSameStep()

@@ -25,13 +25,22 @@ public sealed class TestLight(string id, params ILight[] children) : ILight, ILi
 
     public LightParameters GetParameters() => Current;
 
+    /// <summary>
+    /// When false, applying a transition does not update the reported state, like a real light that only reports back
+    /// once Home Assistant has processed the call.
+    /// </summary>
+    public bool ReportsStateWhenApplied { get; set; } = true;
+
     public void ApplyTransition(LightTransition transition)
     {
         lock (Applied)
         {
             Applied.Add(transition);
         }
-        Current = transition.LightParameters;
+        if (ReportsStateWhenApplied)
+        {
+            Current = transition.LightParameters;
+        }
     }
 
     public ILight[] GetChildren() => children;
