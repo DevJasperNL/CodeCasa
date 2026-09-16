@@ -17,7 +17,6 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         private readonly Lock _lock = new();
         private readonly ConcurrentQueue<Action> _pendingActions = new();
         private int _drainingThreadId;
-        private volatile bool _isStarting = true;
 
         private IScheduler Scheduler => scheduler;
         private ILogger<Pipeline<LightTransition>>? Logger => logger;
@@ -45,21 +44,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             }
         }
 
-        /// <summary>
-        /// Marks all pipelines sharing this context as created. Until then, inputs of members that skip their initial output
-        /// bypass the group so that neither the group entity nor a delayed individual apply drives the light at startup.
-        /// </summary>
-        public void CompleteStartup() => _isStarting = false;
-
         public void Process(GroupNode groupNode, LightTransition transition)
         {
-            if (_isStarting && groupNode.SkipsInitialOutput)
-            {
-                EnqueueAction(() => groupNode.SetOutput(transition));
-                RunPendingActions();
-                return;
-            }
-
             var inputInfo = new InputInfo(scheduler.Now.UtcDateTime, groupNode, transition);
             lock (_lock)
             {

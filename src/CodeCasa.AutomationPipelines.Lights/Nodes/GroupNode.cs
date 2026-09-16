@@ -18,11 +18,6 @@ internal class GroupNode : PipelineNode<LightTransition>
     }
 
     /// <summary>
-    /// True when the pipeline's startup behaviour leaves the light alone, so its startup outputs must not reach the group entity.
-    /// </summary>
-    internal bool SkipsInitialOutput { get; init; }
-
-    /// <summary>
     /// True when the pipeline uses distinct output and would not send <paramref name="transition"/> to the light because it
     /// equals the current output.
     /// </summary>

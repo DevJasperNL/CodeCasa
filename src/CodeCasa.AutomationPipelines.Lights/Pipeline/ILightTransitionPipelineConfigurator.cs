@@ -44,14 +44,6 @@ public partial interface ILightTransitionPipelineConfigurator<TLight> where TLig
     ILightTransitionPipelineConfigurator<TLight> ReapplyOutputWhenAvailable(bool enabled = true);
 
     /// <summary>
-    /// Configures what the pipeline does with the light when it is created. Defaults to <see cref="PipelineStartupBehaviour.TurnOff"/>.
-    /// Only applies to the root pipeline of a light; nested pipelines always start from off.
-    /// </summary>
-    /// <param name="startupBehaviour">The startup behaviour to use.</param>
-    /// <returns>The configurator instance for method chaining.</returns>
-    ILightTransitionPipelineConfigurator<TLight> SetStartupBehaviour(PipelineStartupBehaviour startupBehaviour);
-
-    /// <summary>
     /// Adds a pipeline node of type <typeparamref name="TNode"/> to the pipeline.
     /// The node is resolved from the service provider.
     /// </summary>

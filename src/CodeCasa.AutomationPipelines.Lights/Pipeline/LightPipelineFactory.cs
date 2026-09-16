@@ -132,10 +132,7 @@ public class LightPipelineFactory(
                     $"{nameof(ILightTransitionPipelineConfigurator<TLight>.UseLightGroup)} can only be used on the root pipeline of a light, not on a nested pipeline ({conf.HierarchyPath}, light {lightId}).");
             }
 
-            var groupNode = new GroupNode(groupContext, conf.DistinctEqualityComparer)
-            {
-                SkipsInitialOutput = conf.StartupBehaviour != PipelineStartupBehaviour.TurnOff
-            };
+            var groupNode = new GroupNode(groupContext, conf.DistinctEqualityComparer);
             foreach (var lightGroup in conf.LightGroups)
             {
                 groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
@@ -143,7 +140,7 @@ public class LightPipelineFactory(
             groupNodes[lightId] = groupNode;
         }
 
-        var result = configurators.ToDictionary(kvp => kvp.Key, kvp =>
+        return configurators.ToDictionary(kvp => kvp.Key, kvp =>
         {
             var conf = kvp.Value;
             var nodes = conf.Nodes.ToList();
@@ -168,34 +165,11 @@ public class LightPipelineFactory(
             {
                 Name = conf.Name
             };
-            var startupBehaviour = ownsPipelineContext[kvp.Key] ? conf.StartupBehaviour : PipelineStartupBehaviour.TurnOff;
-            var defaultState = startupBehaviour == PipelineStartupBehaviour.StartFromCurrentLightState
-                ? light.GetParameters().AsTransition()
-                : LightTransition.Off();
-            if (!ownsPipelineContext[kvp.Key])
-            {
-                pipeline.SetDefault(defaultState);
-            }
-            else if (startupBehaviour == PipelineStartupBehaviour.TurnOff)
+            if (ownsPipelineContext[kvp.Key])
             {
                 pipeline.SetOutputHandler(outputHandler, conf.DistinctEqualityComparer);
-                pipeline.SetDefault(defaultState);
             }
-            else
-            {
-                // The handler is installed after the default state has flowed, and SetOutputHandler's immediate call with
-                // the initial output is ignored, so the light is left alone until the output changes.
-                pipeline.SetDefault(defaultState);
-                var initializing = true;
-                pipeline.SetOutputHandler(transition =>
-                {
-                    if (!initializing)
-                    {
-                        outputHandler(transition);
-                    }
-                }, conf.DistinctEqualityComparer);
-                initializing = false;
-            }
+            pipeline.SetDefault(LightTransition.Off());
             if (conf.LoggingEnabled ?? false)
             {
                 var pipelineLogger = new PipelineLogger<LightTransition>(logger, $"[{conf.Light.Id}] {conf.HierarchyPath}");
@@ -254,8 +228,6 @@ public class LightPipelineFactory(
 
             return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
         });
-        groupContext.CompleteStartup();
-        return result;
     }
 
     private static void ValidateLightGroupMembership<TLight>(Dictionary<string, LightTransitionPipelineConfigurator<TLight>> configurators) where TLight : ILight

@@ -55,14 +55,6 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
     }
 
     internal bool ReapplyOutputOnAvailable { get; private set; } = true;
-    internal PipelineStartupBehaviour StartupBehaviour { get; private set; } = PipelineStartupBehaviour.TurnOff;
-
-    /// <inheritdoc/>
-    public ILightTransitionPipelineConfigurator<TLight> SetStartupBehaviour(PipelineStartupBehaviour startupBehaviour)
-    {
-        StartupBehaviour = startupBehaviour;
-        return this;
-    }
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> ReapplyOutputWhenAvailable(bool enabled = true)
