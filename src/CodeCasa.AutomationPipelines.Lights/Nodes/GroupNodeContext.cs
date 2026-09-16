@@ -132,12 +132,25 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             public void Execute(GroupNodeContext context, bool appliedByGroup = false)
             {
-                if (HasExecuted)
+                if (!MarkExecuted())
                 {
                     return;
                 }
-                HasExecuted = true;
                 context.EnqueueAction(() => GroupNode.SetOutput(Transition, appliedByGroup));
+            }
+
+            /// <summary>
+            /// Marks this input as handled, so it is not applied twice when its light is part of several groups.
+            /// Returns false when it was already handled.
+            /// </summary>
+            public bool MarkExecuted()
+            {
+                if (HasExecuted)
+                {
+                    return false;
+                }
+                HasExecuted = true;
+                return true;
             }
         }
 
@@ -192,24 +205,34 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     _groupInputs.Clear();
                     CleanupAllScheduledWork();
 
+                    var inputsToApply = groupInputs.Where(groupInput => groupInput.MarkExecuted()).ToArray();
                     if (groupInputs.All(groupInput => groupInput.GroupNode.IsSuppressedAsDuplicate(groupInput.Transition)))
                     {
                         // Every member pipeline would suppress this transition as a duplicate, so the group should not receive it either.
                         context.Logger?.LogTrace($"Group [{LightGroup.Id}] not used. Transition equals the current output of all members: {inputInfo.Transition}");
+                        context.EnqueueAction(() => SetMemberOutputs(inputsToApply, appliedByGroup: true));
                     }
                     else
                     {
-                        context.Logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {inputInfo.Transition}");
                         var transition = inputInfo.Transition;
-                        context.EnqueueAction(() => LightGroup.ApplyTransition(transition));
+                        context.EnqueueAction(() =>
+                        {
+                            // Whether the members may skip their individual transition is only known once the group call succeeded.
+                            var appliedByGroup = true;
+                            try
+                            {
+                                LightGroup.ApplyTransition(transition);
+                                context.Logger?.LogInformation($"Group [{LightGroup.Id}] used. All members have matching transition: {transition}");
+                            }
+                            catch (Exception e)
+                            {
+                                context.Logger?.LogError(e, $"Group [{LightGroup.Id}] could not be used. Applying the transition to its members individually.");
+                                appliedByGroup = false;
+                            }
+                            SetMemberOutputs(inputsToApply, appliedByGroup);
+                        });
                     }
 
-                    // Member pipelines still need to see the transition as their output (distinct comparison,
-                    // telemetry, LightPipelineContext); only the individual light call is skipped.
-                    foreach (var groupInput in groupInputs)
-                    {
-                        groupInput.Execute(context, appliedByGroup: true);
-                    }
                     return;
                 }
 
@@ -228,6 +251,18 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 pendingInput.Execute(context);
                 _groupInputs.Remove(inputInfo.GroupNode);
                 _scheduledWork.Remove(inputInfo.GroupNode);
+            }
+
+            /// <summary>
+            /// Member pipelines always need to see the transition as their output (distinct comparison, telemetry,
+            /// <see cref="Pipeline.LightPipelineContext"/>). Only when the group entity received it is the individual light call skipped.
+            /// </summary>
+            private static void SetMemberOutputs(InputInfo[] inputs, bool appliedByGroup)
+            {
+                foreach (var input in inputs)
+                {
+                    input.GroupNode.SetOutput(input.Transition, appliedByGroup);
+                }
             }
 
             private void CleanupExpiredInputs(DateTime currentTime)

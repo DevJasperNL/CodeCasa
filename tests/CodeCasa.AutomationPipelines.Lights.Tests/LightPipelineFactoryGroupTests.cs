@@ -145,6 +145,38 @@ public sealed class LightPipelineFactoryGroupTests
     }
 
     [TestMethod]
+    public async Task LightGroup_ApplyingToTheGroupFails_MembersAreDrivenIndividually()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var lights = new TestLight("lights", a, b);
+        var failures = 0;
+        var group = new CallbackLight("group", [a, b], _ =>
+        {
+            failures++;
+            throw new InvalidOperationException("home assistant call failed");
+        });
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+        var trigger = new Subject<int>();
+        var pipelines = new Dictionary<string, IPipeline<LightTransition>>();
+
+        var disposable = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(lights, p => p
+            .UseLightGroup(group)
+            .WithDistinctOutput()
+            .AddReactiveNode(r => r.On(trigger, new LightParameters { Brightness = 123 }))
+            .OnCompleted(e => pipelines[e.Light.Id] = e.Pipeline));
+
+        trigger.OnNext(1);
+
+        Assert.AreEqual(1, a.CountApplied(123), "The group call failed, so the member must be driven individually.");
+        Assert.AreEqual(1, b.CountApplied(123));
+        Assert.AreEqual(123, pipelines["a"].Output?.LightParameters.Brightness);
+        Assert.IsTrue(failures > 0);
+
+        await disposable.DisposeAsync();
+    }
+
+    [TestMethod]
     public async Task LightGroup_OnNestedPipeline_Throws()
     {
         var a = new TestLight("a");
