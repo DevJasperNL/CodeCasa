@@ -38,23 +38,30 @@ public sealed class LightPipelineFactoryCycleTests
     }
 
     [TestMethod]
-    public async Task CompositeCycle_EveryPress_AllLightsMoveToTheSameEntry()
+    public async Task CompositeCycle_LightsReportDifferentStates_AllLightsMoveToTheSameEntry()
     {
+        // A timeline entry matches against each light's own reported state, so lights that report different states
+        // (one was changed by hand, or never received the last command) used to pick a different entry each.
+        var scheduler = new TestScheduler();
+        scheduler.AdvanceTo(At(21).Ticks);
         var a = new TestLight("a");
         var b = new TestLight("b");
         var group = new TestLight("group", a, b);
-        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
         var trigger = new Subject<int>();
 
         var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
-            .AddCycle(trigger, new LightParameters { Brightness = 100 }, new LightParameters { Brightness = 200 }));
+            .AddCycle(trigger, c => c
+                .AddTimeline(Timeline((At(20), 100), (At(22), 200)))
+                .Add(new LightParameters { Brightness = 10 })));
 
-        for (var press = 1; press <= 3; press++)
-        {
-            trigger.OnNext(press);
-            Assert.AreEqual(a.Current.Brightness, b.Current.Brightness, $"Lights diverged after press {press}.");
-        }
-        Assert.AreEqual(100, a.Current.Brightness);
+        // Only a follows the timeline; b reports something else, as it would after being changed by hand.
+        a.Current = new LightParameters { Brightness = 150 };
+        b.Current = new LightParameters { Brightness = 42 };
+        trigger.OnNext(1);
+
+        Assert.AreEqual(a.Current.Brightness, b.Current.Brightness, "Lights diverged.");
+        Assert.AreEqual(150, a.Current.Brightness, "Only one light follows the timeline, so the cycle should start at its first entry.");
 
         await pipelines.DisposeAsync();
     }
