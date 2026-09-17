@@ -16,12 +16,12 @@ public static partial class LightTransitionCycleConfiguratorExtensions
     /// </summary>
     /// <param name="configurator">The cycle configurator.</param>
     /// <param name="sceneEntity">The scene entity whose light parameters will be applied.</param>
-    /// <param name="comparer">An optional equality comparer for determining if light parameters match the current state. If null, the default equality comparison is used.</param>
+    /// <param name="comparer">An optional equality comparer for determining if light parameters match the current state. If null, <see cref="LightParametersComparer.Tolerant"/> is used.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     public static ILightTransitionCycleConfigurator<NetDaemonLight> AddScene(this ILightTransitionCycleConfigurator<NetDaemonLight> configurator,
         IEntityCore sceneEntity, IEqualityComparer<LightParameters>? comparer = null)
     {
-        comparer ??= EqualityComparer<LightParameters>.Default;
+        comparer ??= LightParametersComparer.Tolerant;
         return configurator.Add(
             sp =>
             {

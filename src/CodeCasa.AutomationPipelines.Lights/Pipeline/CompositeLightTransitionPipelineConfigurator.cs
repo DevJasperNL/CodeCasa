@@ -42,6 +42,13 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>(
     }
 
     /// <inheritdoc/>
+    public ILightTransitionPipelineConfigurator<TLight> ReapplyOutputWhenAvailable(bool enabled = true)
+    {
+        NodeContainers.Values.ForEach(b => b.ReapplyOutputWhenAvailable(enabled));
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddNode<TNode>() where TNode : IPipelineNode<LightTransition>
     {
         NodeContainers.Values.ForEach(b => b.AddNode<TNode>());

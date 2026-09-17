@@ -46,7 +46,7 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTr
 
     public ILightTransitionCycleConfigurator<TLight> Add(LightTransition lightTransition, IEqualityComparer<LightParameters>? comparer = null)
     {
-        comparer ??= EqualityComparer<LightParameters>.Default;
+        comparer ??= LightParametersComparer.Tolerant;
         return Add(sp => new StaticLightTransitionNode(lightTransition, sp.GetRequiredService<IScheduler>()), _ => comparer.Equals(
             Light.GetParameters(),
             lightTransition.LightParameters));
@@ -82,18 +82,14 @@ internal class LightTransitionCycleConfigurator<TLight>(TLight light) : ILightTr
     {
         return Add(
             sp => new TimelineNode(timeline, sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
-            _ => EqualityComparer<LightParameters>.Default.Equals(
-                Light.GetParameters(),
-                timeline.GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First()));
+            sp => CycleTimelineMatcher.LightMatchesTimeline(Light, timeline, sp));
     }
 
     public ILightTransitionCycleConfigurator<TLight> AddTimeline(Func<IServiceProvider, Dictionary<ITimeline, LightParameters>> timelineFactory, TimeSpan? transitionTimeForTimelineState = null)
     {
         return Add(
             sp => new TimelineNode(timelineFactory(sp), sp.GetRequiredService<IScheduler>(), transitionTimeForTimelineState),
-            sp => EqualityComparer<LightParameters>.Default.Equals(
-                Light.GetParameters(),
-                timelineFactory(sp).GetValuesAtCurrentOrNextUtcInstant(DateTime.UtcNow).Value.First()));
+            sp => CycleTimelineMatcher.LightMatchesTimeline(Light, timelineFactory(sp), sp));
     }
 
     public ILightTransitionCycleConfigurator<TLight> AddTimeline(Action<ITimelineConfigurator> configure)

@@ -102,38 +102,16 @@ public static class TimelineValueCollectionExtensions
         IObservable<TOut> Evaluate()
         {
             var now = scheduler.Now.UtcDateTime;
-            var valuesAtPrevious = timeline.GetValuesAtPreviousUtcInstant(now);
-            var valuesAtCurrentOrNext = timeline.GetValuesAtCurrentOrNextUtcInstant(now);
-
-            TIn sceneNow;
-            TIn sceneBefore;
-            if (valuesAtCurrentOrNext.Key == now)
+            if (!TryGetValueAt(timeline, now, interpolator, out var sceneBefore, out var sceneNow))
             {
-                sceneNow = valuesAtCurrentOrNext.Value.First();
-                sceneBefore = sceneNow;
-            }
-            else if (valuesAtPrevious.Key == null)
-            {
-                if (valuesAtCurrentOrNext.Key == null)
+                var firstInstant = timeline.GetValuesAtCurrentOrNextUtcInstant(now).Key;
+                if (firstInstant == null)
                 {
                     return Observable.Empty<TOut>();
                 }
 
                 // The timeline has not started yet, so there is nothing to interpolate. Re-evaluate once the first instant is reached.
-                return Observable.Timer(valuesAtCurrentOrNext.Key.Value, scheduler).SelectMany(_ => Observable.Defer(Evaluate));
-            }
-            else if (valuesAtCurrentOrNext.Key == null)
-            {
-                // The timeline has ended: hold its last value.
-                sceneNow = valuesAtPrevious.Value.First();
-                sceneBefore = sceneNow;
-            }
-            else
-            {
-                sceneBefore = valuesAtPrevious.Value.First();
-                var sceneNext = valuesAtCurrentOrNext.Value.First();
-                var fraction = CalculateFraction(valuesAtPrevious.Key.Value, valuesAtCurrentOrNext.Key.Value, now);
-                sceneNow = interpolator(sceneBefore, sceneNext, fraction);
+                return Observable.Timer(firstInstant.Value, scheduler).SelectMany(_ => Observable.Defer(Evaluate));
             }
 
             // The timeline is a continuous ramp: every sample emits the *next* value with the time until it is reached.
@@ -209,6 +187,57 @@ public static class TimelineValueCollectionExtensions
 
                 return new[] { transformer(next, transitionTimeSpan) };
             });
+    }
+
+    /// <summary>
+    /// Gets the value of the timeline at <paramref name="utcDateTime"/>: interpolated between the previous and next instant,
+    /// the value of the last instant once the timeline has ended, or <see langword="null"/> when the timeline has not started yet.
+    /// </summary>
+    /// <param name="sceneTimeline">The dictionary mapping timeline points to <see cref="LightParameters"/>.</param>
+    /// <param name="utcDateTime">The UTC time to evaluate the timeline at.</param>
+    /// <returns>The light parameters the timeline describes at that time, or <see langword="null"/> if the timeline has not started.</returns>
+    public static LightParameters? GetLightParametersAt(this Dictionary<ITimeline, LightParameters> sceneTimeline, DateTime utcDateTime)
+    {
+        return TryGetValueAt(sceneTimeline.ToArray(), utcDateTime, (previous, next, fraction) => previous.Interpolate(next, fraction), out _, out var current)
+            ? current
+            : null;
+    }
+
+    private static bool TryGetValueAt<TIn>(
+        KeyValuePair<ITimeline, TIn>[] timeline,
+        DateTime now,
+        Func<TIn, TIn, double, TIn> interpolator,
+        out TIn before,
+        out TIn current)
+    {
+        var valuesAtPrevious = timeline.GetValuesAtPreviousUtcInstant(now);
+        var valuesAtCurrentOrNext = timeline.GetValuesAtCurrentOrNextUtcInstant(now);
+
+        if (valuesAtCurrentOrNext.Key == now)
+        {
+            current = valuesAtCurrentOrNext.Value.First();
+            before = current;
+            return true;
+        }
+        if (valuesAtPrevious.Key == null)
+        {
+            before = default!;
+            current = default!;
+            return false;
+        }
+        if (valuesAtCurrentOrNext.Key == null)
+        {
+            // The timeline has ended: hold its last value.
+            current = valuesAtPrevious.Value.First();
+            before = current;
+            return true;
+        }
+
+        before = valuesAtPrevious.Value.First();
+        var next = valuesAtCurrentOrNext.Value.First();
+        var fraction = CalculateFraction(valuesAtPrevious.Key.Value, valuesAtCurrentOrNext.Key.Value, now);
+        current = interpolator(before, next, fraction);
+        return true;
     }
 
     private static double CalculateFraction(DateTime previous, DateTime next, DateTime current)

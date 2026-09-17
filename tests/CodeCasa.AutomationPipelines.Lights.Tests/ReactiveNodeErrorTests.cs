@@ -1,3 +1,4 @@
+using CodeCasa.AutomationPipelines.Lights.Nodes;
 using CodeCasa.Lights;
 using System.Reactive.Subjects;
 using ReactiveNodeClass = CodeCasa.AutomationPipelines.Lights.ReactiveNode.ReactiveNode;
@@ -20,6 +21,34 @@ public sealed class ReactiveNodeErrorTests
         var input = new LightParameters { Brightness = 100 }.AsTransition();
         node.Input = input;
         Assert.AreEqual(input, last);
+    }
+
+    [TestMethod]
+    public async Task ActiveNodeThrowsOnInput_NodeKeepsProcessingLaterInputsAndTriggers()
+    {
+        var source = new Subject<IPipelineNode<LightTransition>?>();
+        var node = new ReactiveNodeClass(source);
+        LightTransition? last = null;
+        node.OnNewOutput.Subscribe(o => last = o);
+        var calls = 0;
+        source.OnNext(new FactoryNode<LightTransition>(t =>
+        {
+            if (++calls == 2)
+            {
+                throw new InvalidOperationException("boom");
+            }
+            return t;
+        }));
+
+        node.Input = new LightParameters { Brightness = 10 }.AsTransition();
+
+        var input = new LightParameters { Brightness = 20 }.AsTransition();
+        node.Input = input;
+        Assert.AreEqual(input, last);
+
+        source.OnNext(new BrightnessNode(200));
+        Assert.AreEqual(200, last?.LightParameters.Brightness);
+        await node.DisposeAsync();
     }
 
     [TestMethod]

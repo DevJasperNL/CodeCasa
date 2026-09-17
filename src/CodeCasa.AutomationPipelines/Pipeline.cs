@@ -226,12 +226,18 @@ public class Pipeline<TState> : PipelineNode<TState>, IPipeline<TState>
 
         while (true)
         {
-            while (_pendingOutputs.TryDequeue(out var pendingOutput))
+            try
             {
-                ProcessOutput(pendingOutput);
+                while (_pendingOutputs.TryDequeue(out var pendingOutput))
+                {
+                    ProcessOutput(pendingOutput);
+                }
             }
-
-            Volatile.Write(ref _isDrainingOutputs, 0);
+            finally
+            {
+                // A throwing output handler must not leave the pipeline marked as draining, or no later output is ever handled.
+                Volatile.Write(ref _isDrainingOutputs, 0);
+            }
             if (_pendingOutputs.IsEmpty || Interlocked.CompareExchange(ref _isDrainingOutputs, 1, 0) != 0)
             {
                 return;

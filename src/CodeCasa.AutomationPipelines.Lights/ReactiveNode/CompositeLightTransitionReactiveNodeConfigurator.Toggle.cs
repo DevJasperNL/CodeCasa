@@ -5,6 +5,7 @@ using CodeCasa.AutomationPipelines.Lights.Toggle;
 using CodeCasa.Lights;
 using CodeCasa.Lights.Extensions;
 using Occurify;
+using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.ReactiveNode;
 
@@ -67,24 +68,39 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
             kvp => new LightTransitionToggleConfigurator<TLight>(kvp.Value.Light, scheduler));
         var compositeToggleConfigurator = new CompositeLightTransitionToggleConfigurator<TLight>(toggleConfigurators, []);
         configure(compositeToggleConfigurator);
-        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
 
+        var factoryCounts = toggleConfigurators.Values.Select(c => c.NodeFactories.Count).Distinct().ToArray();
+        if (factoryCounts.Length == 1)
+        {
+            // The toggle step is determined once per trigger for all lights. Evaluating it per light let lights diverge,
+            // because the first light's new node already changed the on/off state the next light was evaluated against.
+            var firstConfig = toggleConfigurators.Values.First();
+            var gracePeriod = firstConfig.GracePeriod ?? TimeSpan.FromSeconds(1);
+            var shareableIndexObservable = _observableSharingStrategy.Apply(triggerObservable.ToToggleIndexObservable(
+                lastActivationTime => IsToggleOff(lastActivationTime, gracePeriod),
+                factoryCounts[0],
+                firstConfig.ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
+                firstConfig.IncludeOffValue,
+                scheduler));
+
+            configurators.ForEach(kvp =>
+            {
+                var nodeFactories = toggleConfigurators[kvp.Key].NodeFactories.ToArray();
+                kvp.Value.AddNodeSource(shareableIndexObservable.Select(index => index == Extensions.ObservableExtensions.ToggleOffIndex
+                    ? new TurnOffThenPassThroughNode()
+                    : (IPipelineNode<LightTransition>?)nodeFactories[index].CreateScopedNode(kvp.Value.ServiceProvider)));
+            });
+            return this;
+        }
+
+        // ForLights without ExcludedLightBehaviours.PassThrough gives lights toggles of different lengths, so they can only toggle independently.
+        var shareableTriggerObservable = _observableSharingStrategy.Apply(triggerObservable);
         configurators.ForEach(kvp =>
         {
             var toggleConfig = toggleConfigurators[kvp.Key];
             var gracePeriod = toggleConfig.GracePeriod ?? TimeSpan.FromSeconds(1);
             kvp.Value.AddNodeSource(shareableTriggerObservable.ToToggleObservable(
-                lastActivationTime =>
-                {
-                    var utcNow = DateTime.UtcNow;
-                    if (utcNow - kvp.Value.Light.LastChangedUtc <= gracePeriod &&
-                        (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
-                    {
-                        return !configurators.Values.Any(c => c.Light.IsOn());
-                    }
-
-                    return configurators.Values.Any(c => c.Light.IsOn());
-                },
+                lastActivationTime => IsToggleOff(lastActivationTime, gracePeriod),
                 () => new TurnOffThenPassThroughNode(),
                 toggleConfig.NodeFactories.Select(fact =>
                 {
@@ -94,9 +110,25 @@ internal partial class CompositeLightTransitionReactiveNodeConfigurator<TLight>
                     );
                 }),
                 toggleConfig.ToggleTimeout ?? TimeSpan.FromMilliseconds(1000),
-                toggleConfig.IncludeOffValue));
+                toggleConfig.IncludeOffValue,
+                scheduler));
         });
         return this;
+    }
+
+    private bool IsToggleOff(DateTime? lastActivationTime, TimeSpan gracePeriod)
+    {
+        var utcNow = scheduler.Now.UtcDateTime;
+        var anyOn = configurators.Values.Any(c => c.Light.IsOn());
+        // The most recent change of any light decides the grace period, so all lights take the same branch.
+        var lastChangedUtc = configurators.Values.Max(c => c.Light.LastChangedUtc);
+        if (utcNow - lastChangedUtc <= gracePeriod &&
+            (!lastActivationTime.HasValue || utcNow - lastActivationTime > gracePeriod))
+        {
+            return !anyOn;
+        }
+
+        return anyOn;
     }
 
     /// <inheritdoc/>

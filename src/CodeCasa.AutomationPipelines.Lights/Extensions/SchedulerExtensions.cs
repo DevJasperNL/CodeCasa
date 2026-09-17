@@ -33,7 +33,7 @@ internal static class SchedulerExtensions
             return null;
         }
 
-        var utcNow = DateTime.UtcNow;
+        var utcNow = scheduler.Now.UtcDateTime;
         // Note: this can be negative.
         var timeToEndOfInputTransition = endOfTransition.Value - utcNow;
         // For any transition under half a second we simply don't provide a transition. Lights will just smoothly go to the corresponding state.

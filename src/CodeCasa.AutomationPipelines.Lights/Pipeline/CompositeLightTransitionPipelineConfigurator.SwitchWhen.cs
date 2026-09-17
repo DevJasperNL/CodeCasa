@@ -5,6 +5,7 @@ using CodeCasa.AutomationPipelines.Lights.Timeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using Occurify;
+using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
@@ -267,11 +268,17 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionReactiveNodeConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
-        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
-        NodeContainers.Values.ForEach(b => b.AddReactiveNodeSwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure, instantiationScope));
-        return this;
+        // Built on the composite reactive node (rather than per light) so InstantiationScope.Shared is honoured.
+        var state = CreateSwitchWhenState(whenObservable, switchObservable);
+        return AddReactiveNode(c => c
+            .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
+            .On(state.Where(s => s.When && s.Switch), trueConfigure.ApplyHierarchySettings(c), instantiationScope)
+            .On(state.Where(s => s.When && !s.Switch), falseConfigure.ApplyHierarchySettings(c), instantiationScope)
+            .PassThroughOn(state.Where(s => !s.When)));
     }
+
+    private IObservable<(bool When, bool Switch)> CreateSwitchWhenState(IObservable<bool> whenObservable, IObservable<bool> switchObservable) =>
+        _observableSharingStrategy.Apply(whenObservable.CombineLatest(switchObservable, (when, sw) => (When: when, Switch: sw)));
 
     /// <inheritdoc/>
     public ILightTransitionPipelineConfigurator<TLight> AddReactiveNodeSwitchWhen<TWhenObservable, TSwitchObservable>(
@@ -281,10 +288,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>
     {
-        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
-        var shareableSwitch = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider));
-        NodeContainers.Values.ForEach(b => b.AddReactiveNodeSwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure, instantiationScope));
-        return this;
+        return AddReactiveNodeSwitchWhen(
+            ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider),
+            ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider),
+            trueConfigure, falseConfigure, instantiationScope);
     }
 
     /// <inheritdoc/>
@@ -295,10 +302,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TWhenObservable : IObservable<bool>
     {
-        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
-        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
-        NodeContainers.Values.ForEach(b => b.AddReactiveNodeSwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure, instantiationScope));
-        return this;
+        return AddReactiveNodeSwitchWhen(
+            ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider),
+            switchObservable,
+            trueConfigure, falseConfigure, instantiationScope);
     }
 
     /// <inheritdoc/>
@@ -308,10 +315,13 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         Action<ILightTransitionPipelineConfigurator<TLight>> falseConfigure,
         InstantiationScope instantiationScope = InstantiationScope.Shared)
     {
-        var shareableWhen = _observableSharingStrategy.Apply(whenObservable);
-        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
-        NodeContainers.Values.ForEach(b => b.AddPipelineSwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure, instantiationScope));
-        return this;
+        // Built on the composite reactive node (rather than per light) so InstantiationScope.Shared is honoured.
+        var state = CreateSwitchWhenState(whenObservable, switchObservable);
+        return AddReactiveNode(c => c
+            .SetHierarchyContext(HierarchyPath, "SwitchWhen", LoggingEnabled ?? false)
+            .On(state.Where(s => s.When && s.Switch), trueConfigure.ApplyHierarchySettings(c), instantiationScope)
+            .On(state.Where(s => s.When && !s.Switch), falseConfigure.ApplyHierarchySettings(c), instantiationScope)
+            .PassThroughOn(state.Where(s => !s.When)));
     }
 
     /// <inheritdoc/>
@@ -322,10 +332,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         where TWhenObservable : IObservable<bool>
         where TSwitchObservable : IObservable<bool>
     {
-        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
-        var shareableSwitch = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider));
-        NodeContainers.Values.ForEach(b => b.AddPipelineSwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure, instantiationScope));
-        return this;
+        return AddPipelineSwitchWhen(
+            ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider),
+            ActivatorUtilities.CreateInstance<TSwitchObservable>(serviceProvider),
+            trueConfigure, falseConfigure, instantiationScope);
     }
 
     /// <inheritdoc/>
@@ -336,10 +346,10 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         InstantiationScope instantiationScope = InstantiationScope.Shared)
         where TWhenObservable : IObservable<bool>
     {
-        var shareableWhen = _observableSharingStrategy.Apply(ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider));
-        var shareableSwitch = _observableSharingStrategy.Apply(switchObservable);
-        NodeContainers.Values.ForEach(b => b.AddPipelineSwitchWhen(shareableWhen, shareableSwitch, trueConfigure, falseConfigure, instantiationScope));
-        return this;
+        return AddPipelineSwitchWhen(
+            ActivatorUtilities.CreateInstance<TWhenObservable>(serviceProvider),
+            switchObservable,
+            trueConfigure, falseConfigure, instantiationScope);
     }
 
     /// <inheritdoc/>

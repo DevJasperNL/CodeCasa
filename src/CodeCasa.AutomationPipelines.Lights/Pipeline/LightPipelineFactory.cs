@@ -112,6 +112,7 @@ public class LightPipelineFactory(
                 compositeServiceProvider.GetRequiredService<ReactiveNodeFactory>(),
                 configurators);
         pipelineBuilder(configurator);
+        ValidateLightGroupMembership(configurators);
 
         var groupContext = new GroupNodeContext(compositeServiceProvider.GetRequiredService<IScheduler>(), logger);
 
@@ -124,8 +125,14 @@ public class LightPipelineFactory(
             {
                 continue;
             }
+            if (!ownsPipelineContext[lightId])
+            {
+                // A group node drives the group entity directly, which would bypass the root pipeline and any node after this nested pipeline.
+                throw new InvalidOperationException(
+                    $"{nameof(ILightTransitionPipelineConfigurator<TLight>.UseLightGroup)} can only be used on the root pipeline of a light, not on a nested pipeline ({conf.HierarchyPath}, light {lightId}).");
+            }
 
-            var groupNode = new GroupNode(groupContext);
+            var groupNode = new GroupNode(groupContext, conf.DistinctEqualityComparer);
             foreach (var lightGroup in conf.LightGroups)
             {
                 groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
@@ -138,19 +145,28 @@ public class LightPipelineFactory(
             var conf = kvp.Value;
             var nodes = conf.Nodes.ToList();
             var light = conf.Light;
-            Action<LightTransition> outputHandler = light.ApplyTransition;
-
             if (groupNodes.TryGetValue(kvp.Key, out var groupNode))
             {
                 nodes.Add(groupNode);
-                outputHandler = transition =>
-                {
-                    if (!groupNode.OutputAppliedByGroup)
-                    {
-                        light.ApplyTransition(transition);
-                    }
-                };
             }
+
+            Action<LightTransition> outputHandler = transition =>
+            {
+                if (groupNode != null && groupNode.WasAppliedByGroup(transition))
+                {
+                    return;
+                }
+
+                // The handler runs inside an Rx subscription, which is disposed when it throws; the pipeline would never drive the light again.
+                try
+                {
+                    light.ApplyTransition(transition);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, $"[{light.Id}] Applying transition failed: {transition}");
+                }
+            };
 
             // The handler is installed before the default state flows so group consensus during start-up is respected.
             // Nested pipelines only feed their parent; the root pipeline is the single place the light is driven.
@@ -196,6 +212,22 @@ public class LightPipelineFactory(
                         pipelineContext.Update(output, scheduler.Now);
                     });
                 subscriptions = [.. subscriptions, contextSubscription];
+
+                if (conf.ReapplyOutputOnAvailable && light is ILightAvailability lightAvailability)
+                {
+                    // Deliberately bypasses the distinct comparer: the light missed whatever was sent while it was unavailable.
+                    var availabilitySubscription = lightAvailability.AvailabilityChanges()
+                        .Where(isAvailable => isAvailable)
+                        .Subscribe(_ =>
+                        {
+                            var output = pipeline.Output;
+                            if (output != null)
+                            {
+                                light.ApplyTransition(output);
+                            }
+                        });
+                    subscriptions = [.. subscriptions, availabilitySubscription];
+                }
             }
 
             foreach (var completedCallback in conf.PipelineCompletedCallbacks)
@@ -205,6 +237,38 @@ public class LightPipelineFactory(
 
             return (IPipeline<LightTransition>)new ManagedPipeline<LightTransition>(lightContextScopes[kvp.Key], pipeline, subscriptions);
         });
+    }
+
+    private static void ValidateLightGroupMembership<TLight>(Dictionary<string, LightTransitionPipelineConfigurator<TLight>> configurators) where TLight : ILight
+    {
+        var registrationsByGroupId = configurators
+            .SelectMany(kvp => kvp.Value.LightGroups.Keys.Select(lightGroup => (LightGroup: lightGroup, LightId: kvp.Key)))
+            .GroupBy(registration => registration.LightGroup.Id);
+
+        foreach (var registrations in registrationsByGroupId)
+        {
+            var lightGroup = registrations.First().LightGroup;
+            if (!lightGroup.GetChildren().Any())
+            {
+                // Membership is unknown (for example a group entity without an entity_id attribute), so it cannot be validated.
+                continue;
+            }
+
+            // Consensus between the registered lights drives the group entity, so every member of the group must be one of them.
+            var memberIds = lightGroup.Flatten().Select(l => l.Id).ToHashSet();
+            var registeredIds = registrations.Select(r => r.LightId).ToHashSet();
+            if (memberIds.SetEquals(registeredIds))
+            {
+                continue;
+            }
+
+            var missing = memberIds.Except(registeredIds).ToArray();
+            var extra = registeredIds.Except(memberIds).ToArray();
+            throw new InvalidOperationException(
+                $"Light group {lightGroup.Id} must be used for exactly its member lights. " +
+                (missing.Any() ? $"Members not using the group: {string.Join(", ", missing)}. " : "") +
+                (extra.Any() ? $"Lights using the group that are not members: {string.Join(", ", extra)}." : ""));
+        }
     }
 
     /// <summary>

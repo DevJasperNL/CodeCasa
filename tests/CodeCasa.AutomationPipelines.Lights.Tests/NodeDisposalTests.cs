@@ -83,6 +83,30 @@ public sealed class NodeDisposalTests
     }
 
     [TestMethod]
+    public async Task ScopedPipelineNode_DisposeAsync_DisposesNodeBeforeScope()
+    {
+        var scope = new TrackedDisposable();
+        var inner = new ScopeObservingNode(scope);
+        var node = new ScopedPipelineNode<LightTransition>(inner, scope);
+
+        await node.DisposeAsync();
+
+        Assert.IsFalse(inner.ScopeWasDisposedDuringNodeDisposal);
+        Assert.IsTrue(scope.IsDisposed);
+    }
+
+    private sealed class ScopeObservingNode(TrackedDisposable scope) : PipelineNode<LightTransition>
+    {
+        public bool? ScopeWasDisposedDuringNodeDisposal { get; private set; }
+
+        public override ValueTask DisposeAsync()
+        {
+            ScopeWasDisposedDuringNodeDisposal = scope.IsDisposed;
+            return base.DisposeAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task LightTransitionNode_AfterDispose_InputAndOutputIgnored()
     {
         var scheduler = new TestScheduler();
