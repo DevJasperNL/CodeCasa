@@ -11,7 +11,7 @@ namespace CodeCasa.AutomationPipelines.Lights.NetDaemon.Extensions;
 public static partial class LightTransitionPipelineConfiguratorExtensions
 {
     /// <summary>
-    /// Allows you to provide a group light entity to be used if the same transition is applied to all lights at once within 10 milliseconds.
+    /// Allows you to provide a group light entity to be used if the same transition is applied to all lights at once within 20 milliseconds.
     /// </summary>
     /// <param name="configurator">The pipeline configurator.</param>
     /// <param name="lightGroupEntity">The NetDaemon light group entity.</param>
@@ -28,7 +28,7 @@ public static partial class LightTransitionPipelineConfiguratorExtensions
     /// </summary>
     /// <param name="configurator">The pipeline configurator.</param>
     /// <param name="lightGroupEntity">The NetDaemon light group entity.</param>
-    /// <param name="timeSpan">The time span for the transition.</param>
+    /// <param name="timeSpan">The window within which all members must receive the same transition for the group entity to be used.</param>
     /// <returns>The configurator instance for method chaining.</returns>
     public static ILightTransitionPipelineConfigurator<NetDaemonLight> UseLightGroup(
         this ILightTransitionPipelineConfigurator<NetDaemonLight> configurator,

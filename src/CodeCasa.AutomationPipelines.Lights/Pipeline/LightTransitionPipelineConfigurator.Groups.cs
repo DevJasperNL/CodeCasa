@@ -11,7 +11,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         return UseLightGroup(lightGroup, TimeSpan.FromMilliseconds(20));
     }
 
-    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, EqualityComparer<LightTransition> comparer)
+    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, IEqualityComparer<LightTransition> comparer)
     {
         return UseLightGroup(lightGroup, TimeSpan.FromMilliseconds(20), comparer);
     }
@@ -21,7 +21,7 @@ internal partial class LightTransitionPipelineConfigurator<TLight>
         return UseLightGroup(lightGroup, timeSpan, EqualityComparer<LightTransition>.Default);
     }
 
-    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, TimeSpan timeSpan, EqualityComparer<LightTransition> comparer)
+    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, TimeSpan timeSpan, IEqualityComparer<LightTransition> comparer)
     {
         LightGroups[lightGroup] = new LightGroupConfig(timeSpan, comparer);
         return this;

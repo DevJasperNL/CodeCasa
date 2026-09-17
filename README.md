@@ -354,6 +354,22 @@ lightPipelineFactory.SetupLightPipeline(lightEntities.AllBedroomLights, pipeline
 });
 ```
 
+#### Using a Group Entity for Identical Transitions
+
+When all lights of a pipeline receive the same transition at once, for example when a scene is applied or everything turns off, one call to a group entity (a Zigbee group or a Home Assistant light group) is faster and avoids lights changing one after another. `UseLightGroup` holds each light's transition back for a short window (20 ms by default) and, when every member of the group received the same transition within that window, sends it once to the group entity instead of to each light:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntities.AllBedroomLights, pipeline =>
+{
+    pipeline
+        .UseLightGroup(lightEntities.BedroomZigbeeGroup)
+        .When(bedtimeRoutine, LightParameters.NightLight)
+        .TurnOffWhen(allAsleep);
+});
+```
+
+The lights using a group must be exactly the members of that group, and `UseLightGroup` can only be used on the root pipeline of a light. A newer transition for a light within the window replaces the pending one, which is then never sent. When the group call fails, the members are driven individually.
+
 ### NetDaemon Integration
 
 For NetDaemon-based automations, use the `SetupLightPipeline` extension method:

@@ -132,7 +132,7 @@ public class LightPipelineFactory(
                     $"{nameof(ILightTransitionPipelineConfigurator<TLight>.UseLightGroup)} can only be used on the root pipeline of a light, not on a nested pipeline ({conf.HierarchyPath}, light {lightId}).");
             }
 
-            var groupNode = new GroupNode(groupContext, conf.DistinctEqualityComparer);
+            var groupNode = new GroupNode(conf.Light, groupContext, conf.DistinctEqualityComparer);
             foreach (var lightGroup in conf.LightGroups)
             {
                 groupContext.Register(groupNode, lightGroup.Key, lightGroup.Value.TimeSpan, lightGroup.Value.Comparer);
@@ -150,22 +150,26 @@ public class LightPipelineFactory(
                 nodes.Add(groupNode);
             }
 
-            Action<LightTransition> outputHandler = transition =>
+            // Both callers run inside an Rx subscription, which is disposed when it throws; the pipeline would never drive the light again.
+            void ApplyLogged(LightTransition transition, string failure)
             {
-                if (groupNode != null && groupNode.WasAppliedByGroup(transition))
-                {
-                    return;
-                }
-
-                // The handler runs inside an Rx subscription, which is disposed when it throws; the pipeline would never drive the light again.
                 try
                 {
                     light.ApplyTransition(transition);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, $"[{light.Id}] Applying transition failed: {transition}");
+                    logger.LogError(e, $"[{light.Id}] {failure}: {transition}");
                 }
+            }
+
+            Action<LightTransition> outputHandler = transition =>
+            {
+                if (groupNode != null && groupNode.WasAppliedByGroup(transition))
+                {
+                    return;
+                }
+                ApplyLogged(transition, "Applying transition failed");
             };
 
             // The handler is installed before the default state flows so group consensus during start-up is respected.
@@ -221,10 +225,12 @@ public class LightPipelineFactory(
                         .Subscribe(_ =>
                         {
                             var output = pipeline.Output;
-                            if (output != null)
+                            if (output == null)
                             {
-                                light.ApplyTransition(output);
+                                return;
                             }
+
+                            ApplyLogged(output, "Re-applying transition after the light became available failed");
                         });
                     subscriptions = [.. subscriptions, availabilitySubscription];
                 }
