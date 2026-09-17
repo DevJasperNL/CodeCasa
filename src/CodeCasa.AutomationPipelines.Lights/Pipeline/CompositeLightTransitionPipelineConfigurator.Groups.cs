@@ -11,7 +11,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         return this;
     }
 
-    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, EqualityComparer<LightTransition> comparer)
+    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, IEqualityComparer<LightTransition> comparer)
     {
         NodeContainers.Values.ForEach(b => b.UseLightGroup(lightGroup, comparer));
         return this;
@@ -23,7 +23,7 @@ internal partial class CompositeLightTransitionPipelineConfigurator<TLight>
         return this;
     }
 
-    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, TimeSpan timeSpan, EqualityComparer<LightTransition> comparer)
+    public ILightTransitionPipelineConfigurator<TLight> UseLightGroup(ILight lightGroup, TimeSpan timeSpan, IEqualityComparer<LightTransition> comparer)
     {
         NodeContainers.Values.ForEach(b => b.UseLightGroup(lightGroup, timeSpan, comparer));
         return this;

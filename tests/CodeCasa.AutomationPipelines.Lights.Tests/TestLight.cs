@@ -31,8 +31,18 @@ public sealed class TestLight(string id, params ILight[] children) : ILight, ILi
     /// </summary>
     public bool ReportsStateWhenApplied { get; set; } = true;
 
+    /// <summary>
+    /// When true, the next transition applied throws instead of being recorded, like a failing Home Assistant call.
+    /// </summary>
+    public bool ThrowOnNextApply { get; set; }
+
     public void ApplyTransition(LightTransition transition)
     {
+        if (ThrowOnNextApply)
+        {
+            ThrowOnNextApply = false;
+            throw new InvalidOperationException("home assistant call failed");
+        }
         lock (Applied)
         {
             Applied.Add(transition);

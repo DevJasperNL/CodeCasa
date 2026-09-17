@@ -1,3 +1,4 @@
+using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
@@ -220,6 +221,70 @@ public sealed class LightPipelineFactoryGroupTests
         scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
 
         Assert.AreEqual(1, appliedToA.Count(t => t.LightParameters.Brightness == 50), "The pipeline of the failing member must keep handling outputs.");
+
+        await disposable.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task LightGroup_StateReportedBackDuringGroupCall_IsNotTreatedAsExternalChange()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var lights = new TestLight("lights", a, b);
+        var groupCalls = new List<LightTransition>();
+        // The members report the new state while the group call is still in progress, like Home Assistant reporting back
+        // before the pipelines were updated.
+        var group = new CallbackLight("group", [a, b], transition =>
+        {
+            groupCalls.Add(transition);
+            a.ReportExternalState(transition.LightParameters);
+            b.ReportExternalState(transition.LightParameters);
+        });
+        var scheduler = new TestScheduler();
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var allOn = new Subject<int>();
+        var turnOff = new Subject<int>();
+
+        var disposable = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(lights, p => p
+            .UseLightGroup(group)
+            .AddReactiveNode(r => r.On(allOn, new LightParameters { Brightness = 100 }))
+            .AddReactiveNode(r => r.TurnOffWhen(turnOff))
+            .AddInteractionNode());
+
+        allOn.OnNext(1);
+        turnOff.OnNext(1);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+
+        Assert.AreEqual(2, groupCalls.Count(t => t.LightParameters.Brightness == 0), "Start-up and the turn-off are the only group turn-offs; a turn-off sent through the group must not be mistaken for an external one.");
+        Assert.AreEqual(1, groupCalls.Count(t => t.LightParameters.Brightness == 100));
+        Assert.IsEmpty(a.Applied);
+        Assert.IsEmpty(b.Applied);
+
+        await disposable.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task LightGroup_MemberPipelineDisposed_RemainingMembersAreDrivenIndividually()
+    {
+        var a = new TestLight("a");
+        var b = new TestLight("b");
+        var group = new TestLight("group", a, b);
+        var scheduler = new TestScheduler();
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var bOn = new Subject<int>();
+        var pipelines = new Dictionary<string, IPipeline<LightTransition>>();
+
+        var disposable = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(group, p => p
+            .UseLightGroup(group)
+            .ForLight("b", l => l.AddReactiveNode(r => r.On(bOn, new LightParameters { Brightness = 100 })))
+            .OnCompleted(e => pipelines[e.Light.Id] = e.Pipeline));
+
+        await pipelines["a"].DisposeAsync();
+        bOn.OnNext(1);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+
+        Assert.AreEqual(0, group.CountApplied(100), "The group entity still contains the disposed light, so it must not be driven.");
+        Assert.AreEqual(1, b.CountApplied(100));
 
         await disposable.DisposeAsync();
     }

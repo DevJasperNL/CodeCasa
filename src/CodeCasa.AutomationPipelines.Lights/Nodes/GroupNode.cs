@@ -6,12 +6,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 internal class GroupNode : PipelineNode<LightTransition>
 {
     private static readonly object AppliedByGroupMarker = new();
+    private readonly ILight _light;
     private readonly GroupNodeContext _groupNodeContext;
     private readonly IEqualityComparer<LightTransition>? _distinctEqualityComparer;
     private readonly ConditionalWeakTable<LightTransition, object> _appliedByGroup = new();
 
-    public GroupNode(GroupNodeContext groupNodeContext, IEqualityComparer<LightTransition>? distinctEqualityComparer = null)
+    public GroupNode(ILight light, GroupNodeContext groupNodeContext, IEqualityComparer<LightTransition>? distinctEqualityComparer = null)
     {
+        _light = light;
         _groupNodeContext = groupNodeContext;
         _distinctEqualityComparer = distinctEqualityComparer;
         Name = "Group Node";
@@ -36,13 +38,7 @@ internal class GroupNode : PipelineNode<LightTransition>
     internal bool WasAppliedByGroup(LightTransition transition) => _appliedByGroup.TryGetValue(transition, out _);
 
     /// <inheritdoc />
-    protected override void InputReceived(LightTransition? input)
-    {
-        if (input != null)
-        {
-            _groupNodeContext.Process(this, input);
-        }
-    }
+    protected override void InputReceived(LightTransition? input) => _groupNodeContext.Process(this, input);
 
     internal void SetOutput(LightTransition? output, bool appliedByGroup = false)
     {
@@ -53,6 +49,21 @@ internal class GroupNode : PipelineNode<LightTransition>
             _appliedByGroup.AddOrUpdate(output, AppliedByGroupMarker);
         }
         Output = output;
+    }
+
+    /// <summary>
+    /// Sends <paramref name="transition"/> to the light without going through the pipeline output handler. Used when the
+    /// output was already emitted as applied by the group but the group call failed: emitting it again would be suppressed
+    /// as a duplicate by a distinct pipeline.
+    /// </summary>
+    internal void ApplyIndividually(LightTransition transition)
+    {
+        // The queued group action may run after this node's pipeline was disposed; SetOutput is already a no-op then.
+        if (IsDisposed)
+        {
+            return;
+        }
+        _light.ApplyTransition(transition);
     }
 
     /// <inheritdoc />

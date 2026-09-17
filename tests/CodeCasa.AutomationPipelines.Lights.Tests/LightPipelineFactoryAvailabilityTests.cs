@@ -51,6 +51,23 @@ public sealed class LightPipelineFactoryAvailabilityTests
     }
 
     [TestMethod]
+    public async Task ReapplyThrows_LightBecomesAvailableAgain_OutputIsStillReapplied()
+    {
+        var light = new TestLight("a");
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(new TestScheduler());
+
+        var pipeline = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(light, p => p.AddNode(_ => new BrightnessNode(100)));
+        light.ThrowOnNextApply = true;
+        light.SetAvailable(true);
+        Assert.AreEqual(1, light.CountApplied(100));
+
+        light.SetAvailable(true);
+
+        Assert.AreEqual(2, light.CountApplied(100), "A throwing re-apply must not end the availability subscription.");
+        await pipeline.DisposeAsync();
+    }
+
+    [TestMethod]
     public async Task PipelineDisposed_LightBecomesAvailable_NothingIsApplied()
     {
         var light = new TestLight("a");

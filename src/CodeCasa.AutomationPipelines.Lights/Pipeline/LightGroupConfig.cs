@@ -1,5 +1,5 @@
-﻿using CodeCasa.Lights;
+using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Pipeline;
 
-internal record LightGroupConfig(TimeSpan TimeSpan, EqualityComparer<LightTransition> Comparer);
+internal record LightGroupConfig(TimeSpan TimeSpan, IEqualityComparer<LightTransition> Comparer);

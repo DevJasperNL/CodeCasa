@@ -21,7 +21,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
         private IScheduler Scheduler => scheduler;
         private ILogger<Pipeline<LightTransition>>? Logger => logger;
 
-        public void Register(GroupNode groupNode, ILight lightGroup, TimeSpan groupDuration, EqualityComparer<LightTransition> equalityComparer)
+        public void Register(GroupNode groupNode, ILight lightGroup, TimeSpan groupDuration, IEqualityComparer<LightTransition> equalityComparer)
         {
             lock (_lock)
             {
@@ -44,8 +44,14 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             }
         }
 
-        public void Process(GroupNode groupNode, LightTransition transition)
+        public void Process(GroupNode groupNode, LightTransition? transition)
         {
+            if (transition == null)
+            {
+                Cancel(groupNode);
+                return;
+            }
+
             var inputInfo = new InputInfo(scheduler.Now.UtcDateTime, groupNode, transition);
             lock (_lock)
             {
@@ -53,6 +59,25 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                 {
                     group.Process(inputInfo);
                 }
+            }
+            RunPendingActions();
+        }
+
+        /// <summary>
+        /// Drops the pending input of <paramref name="groupNode"/> and clears its output. A newer upstream output supersedes
+        /// a pending one, also when that output is nothing at all.
+        /// </summary>
+        private void Cancel(GroupNode groupNode)
+        {
+            lock (_lock)
+            {
+                foreach (var group in _groups)
+                {
+                    group.Cancel(groupNode);
+                }
+                // Queued rather than set directly, so a consensus that already included this node's previous input and is
+                // still being drained by another thread cannot overwrite the cleared output afterwards.
+                EnqueueAction(() => groupNode.SetOutput(null));
             }
             RunPendingActions();
         }
@@ -116,13 +141,13 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             public DateTime Timestamp { get; } = timestamp;
             public bool HasExecuted { get; private set; }
 
-            public void Execute(GroupNodeContext context, bool appliedByGroup = false)
+            public void Execute(GroupNodeContext context)
             {
                 if (!MarkExecuted())
                 {
                     return;
                 }
-                context.EnqueueAction(() => GroupNode.SetOutput(Transition, appliedByGroup));
+                context.EnqueueAction(() => GroupNode.SetOutput(Transition));
             }
 
             /// <summary>
@@ -157,6 +182,7 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             private readonly List<GroupNode> _groupNodes = [firstGroupNode];
             private readonly Dictionary<GroupNode, InputInfo> _groupInputs = new();
             private readonly Dictionary<GroupNode, IDisposable> _scheduledWork = new();
+            private bool _isClosed;
 
             public void AddMember(GroupNode groupNode)
             {
@@ -165,17 +191,32 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             public bool RemoveMember(GroupNode groupNode)
             {
+                // Consensus among the remaining members would drive a group entity that still contains the removed light.
+                _isClosed = true;
                 _groupNodes.Remove(groupNode);
-                _groupInputs.Remove(groupNode);
-                CleanupScheduledWork(groupNode);
+                Cancel(groupNode);
 
                 return !_groupNodes.Any();
+            }
+
+            public void Cancel(GroupNode groupNode)
+            {
+                _groupInputs.Remove(groupNode);
+                CleanupScheduledWork(groupNode);
             }
 
             public void Process(InputInfo inputInfo)
             {
                 if (!_groupNodes.Contains(inputInfo.GroupNode))
                 {
+                    return;
+                }
+
+                if (_isClosed)
+                {
+                    // The pending input is superseded; its scheduled work would otherwise apply it after this newer one.
+                    Cancel(inputInfo.GroupNode);
+                    inputInfo.Execute(context);
                     return;
                 }
 
@@ -196,15 +237,17 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                     {
                         // Every member pipeline would suppress this transition as a duplicate, so the group should not receive it either.
                         context.Logger?.LogTrace($"Group [{LightGroup.Id}] not used. Transition equals the current output of all members: {inputInfo.Transition}");
-                        context.EnqueueAction(() => SetMemberOutputs(inputsToApply, appliedByGroup: true));
+                        context.EnqueueAction(() => SetMemberOutputs(inputsToApply));
                     }
                     else
                     {
                         var transition = inputInfo.Transition;
                         context.EnqueueAction(() =>
                         {
-                            // Whether the members may skip their individual transition is only known once the group call succeeded.
-                            var appliedByGroup = true;
+                            // Member outputs are set before the group entity is driven, as the individual path sets the pipeline
+                            // output before calling the light: nodes watching the light state (the interaction node) must find the
+                            // pipeline output up to date by the time Home Assistant reports the change back.
+                            SetMemberOutputs(inputsToApply);
                             try
                             {
                                 LightGroup.ApplyTransition(transition);
@@ -213,9 +256,8 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
                             catch (Exception e)
                             {
                                 context.Logger?.LogError(e, $"Group [{LightGroup.Id}] could not be used. Applying the transition to its members individually.");
-                                appliedByGroup = false;
+                                ApplyIndividually(inputsToApply);
                             }
-                            SetMemberOutputs(inputsToApply, appliedByGroup);
                         });
                     }
 
@@ -241,16 +283,32 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
 
             /// <summary>
             /// Member pipelines always need to see the transition as their output (distinct comparison, telemetry,
-            /// <see cref="Pipeline.LightPipelineContext"/>). Only when the group entity received it is the individual light call skipped.
+            /// <see cref="Pipeline.LightPipelineContext"/>), marked so the output handler skips the individual light call.
             /// </summary>
-            private void SetMemberOutputs(InputInfo[] inputs, bool appliedByGroup)
+            private void SetMemberOutputs(InputInfo[] inputs)
             {
                 foreach (var input in inputs)
                 {
-                    // Setting the output drives the member light, so one failing light must not keep the others from being driven.
+                    // Setting the output runs the member pipeline, so one failing pipeline must not keep the others from being updated.
                     try
                     {
-                        input.GroupNode.SetOutput(input.Transition, appliedByGroup);
+                        input.GroupNode.SetOutput(input.Transition, appliedByGroup: true);
+                    }
+                    catch (Exception e)
+                    {
+                        context.Logger?.LogError(e, $"Setting the output of a member of group [{LightGroup.Id}] failed.");
+                    }
+                }
+            }
+
+            private void ApplyIndividually(InputInfo[] inputs)
+            {
+                foreach (var input in inputs)
+                {
+                    // One failing light must not keep the others from being driven.
+                    try
+                    {
+                        input.GroupNode.ApplyIndividually(input.Transition);
                     }
                     catch (Exception e)
                     {
