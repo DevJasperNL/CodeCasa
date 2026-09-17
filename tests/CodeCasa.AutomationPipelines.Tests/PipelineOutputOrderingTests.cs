@@ -53,6 +53,27 @@ public sealed class PipelineOutputOrderingTests
     }
 
     [TestMethod]
+    public void OutputHandlerThrows_LaterOutputsStillReachHandler()
+    {
+        // Without nodes the input is handled directly; with nodes, Rx would also dispose the subscription to the throwing handler.
+        var handled = new List<string>();
+        var pipeline = new Pipeline<string>();
+        pipeline.SetOutputHandler(o =>
+        {
+            if (o == "fail")
+            {
+                throw new InvalidOperationException();
+            }
+            handled.Add(o);
+        });
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => pipeline.Input = "fail");
+        pipeline.Input = "next";
+
+        CollectionAssert.AreEqual(new[] { "next" }, handled);
+    }
+
+    [TestMethod]
     public void ConcurrentOutputs_AllReachHandler()
     {
         var node = new TestablePipelineNode<string>();

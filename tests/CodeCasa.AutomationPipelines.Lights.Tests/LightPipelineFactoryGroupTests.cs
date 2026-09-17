@@ -171,7 +171,55 @@ public sealed class LightPipelineFactoryGroupTests
         Assert.AreEqual(1, a.CountApplied(123), "The group call failed, so the member must be driven individually.");
         Assert.AreEqual(1, b.CountApplied(123));
         Assert.AreEqual(123, pipelines["a"].Output?.LightParameters.Brightness);
-        Assert.IsTrue(failures > 0);
+        Assert.AreEqual(123, pipelines["b"].Output?.LightParameters.Brightness);
+        Assert.AreEqual(2, failures, "Both the start-up off transition and the brightness transition are sent to the group.");
+
+        await disposable.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task LightGroup_GroupAndMemberCallFail_OtherMembersAreStillDrivenAndFailingMemberRecovers()
+    {
+        var failNextApply = true;
+        var appliedToA = new List<LightTransition>();
+        var a = new CallbackLight("a", [], transition =>
+        {
+            if (failNextApply)
+            {
+                failNextApply = false;
+                throw new InvalidOperationException("home assistant call failed");
+            }
+            appliedToA.Add(transition);
+        });
+        var appliedToB = new List<LightTransition>();
+        var b = new CallbackLight("b", [], appliedToB.Add);
+        var lights = new CallbackLight("lights", [a, b], _ => { });
+        var group = new CallbackLight("group", [a, b], transition =>
+        {
+            if (transition.LightParameters.Brightness == 123)
+            {
+                throw new InvalidOperationException("home assistant call failed");
+            }
+        });
+        var scheduler = new TestScheduler();
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var allOn = new Subject<int>();
+        var aOn = new Subject<int>();
+
+        var disposable = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(lights, p => p
+            .UseLightGroup(group, TimeSpan.FromMilliseconds(20))
+            .WithDistinctOutput()
+            .AddReactiveNode(r => r.On(allOn, new LightParameters { Brightness = 123 }))
+            .ForLight("a", l => l.AddReactiveNode(r => r.On(aOn, new LightParameters { Brightness = 50 }))));
+
+        allOn.OnNext(1);
+
+        Assert.AreEqual(1, appliedToB.Count(t => t.LightParameters.Brightness == 123), "A failing member must not keep the other members from being driven.");
+
+        aOn.OnNext(1);
+        scheduler.AdvanceBy(TimeSpan.FromMilliseconds(25).Ticks);
+
+        Assert.AreEqual(1, appliedToA.Count(t => t.LightParameters.Brightness == 50), "The pipeline of the failing member must keep handling outputs.");
 
         await disposable.DisposeAsync();
     }

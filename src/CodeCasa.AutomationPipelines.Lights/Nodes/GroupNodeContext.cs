@@ -243,11 +243,19 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes
             /// Member pipelines always need to see the transition as their output (distinct comparison, telemetry,
             /// <see cref="Pipeline.LightPipelineContext"/>). Only when the group entity received it is the individual light call skipped.
             /// </summary>
-            private static void SetMemberOutputs(InputInfo[] inputs, bool appliedByGroup)
+            private void SetMemberOutputs(InputInfo[] inputs, bool appliedByGroup)
             {
                 foreach (var input in inputs)
                 {
-                    input.GroupNode.SetOutput(input.Transition, appliedByGroup);
+                    // Setting the output drives the member light, so one failing light must not keep the others from being driven.
+                    try
+                    {
+                        input.GroupNode.SetOutput(input.Transition, appliedByGroup);
+                    }
+                    catch (Exception e)
+                    {
+                        context.Logger?.LogError(e, $"Applying a transition to a member of group [{LightGroup.Id}] failed.");
+                    }
                 }
             }
 

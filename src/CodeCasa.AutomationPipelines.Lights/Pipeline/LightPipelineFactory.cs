@@ -145,19 +145,28 @@ public class LightPipelineFactory(
             var conf = kvp.Value;
             var nodes = conf.Nodes.ToList();
             var light = conf.Light;
-            Action<LightTransition> outputHandler = light.ApplyTransition;
-
             if (groupNodes.TryGetValue(kvp.Key, out var groupNode))
             {
                 nodes.Add(groupNode);
-                outputHandler = transition =>
-                {
-                    if (!groupNode.WasAppliedByGroup(transition))
-                    {
-                        light.ApplyTransition(transition);
-                    }
-                };
             }
+
+            Action<LightTransition> outputHandler = transition =>
+            {
+                if (groupNode != null && groupNode.WasAppliedByGroup(transition))
+                {
+                    return;
+                }
+
+                // The handler runs inside an Rx subscription, which is disposed when it throws; the pipeline would never drive the light again.
+                try
+                {
+                    light.ApplyTransition(transition);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, $"[{light.Id}] Applying transition failed: {transition}");
+                }
+            };
 
             // The handler is installed before the default state flows so group consensus during start-up is respected.
             // Nested pipelines only feed their parent; the root pipeline is the single place the light is driven.
