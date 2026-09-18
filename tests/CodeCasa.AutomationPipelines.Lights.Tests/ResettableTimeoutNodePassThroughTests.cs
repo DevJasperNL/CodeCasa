@@ -179,6 +179,40 @@ public sealed class ResettableTimeoutNodePassThroughTests
     }
 
     [TestMethod]
+    public async Task TimeoutElapsed_DisposesChildNode()
+    {
+        await using var node = CreateNode();
+
+        _scheduler.AdvanceBy(DefaultTimeout.Ticks + 1);
+
+        _childNodeMock.Verify(x => x.DisposeAsync(), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task InputAfterTimeout_IsNotForwardedToChildNode()
+    {
+        await using var node = CreateNode();
+        node.Input = UpstreamOutput;
+        _scheduler.AdvanceBy(DefaultTimeout.Ticks + 1);
+        var newInput = new LightParameters { Brightness = 80 }.AsTransition();
+
+        node.Input = newInput;
+
+        _childNodeMock.VerifySet(x => x.Input = UpstreamOutput, Times.Once);
+        _childNodeMock.VerifySet(x => x.Input = newInput, Times.Never);
+    }
+
+    [TestMethod]
+    public async Task Name_ChildNodeWithoutToStringOverride_UsesChildNodeName()
+    {
+        _childNodeMock.Setup(x => x.Name).Returns("Movie scene");
+
+        await using var node = CreateNode();
+
+        Assert.AreEqual("Movie scene (passes through after timeout)", node.Name);
+    }
+
+    [TestMethod]
     public async Task DisposeAsync_BeforeTimeout_TimerNoLongerFiresAndChildIsDisposed()
     {
         var node = CreateNode();

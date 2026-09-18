@@ -140,7 +140,7 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
 
     private void SetOutputInternal(TState? output)
     {
-        // Scheduler-driven nodes may still fire after the pipeline was torn down; a disposed subject would throw.
+        // Scheduler-driven nodes may still fire after the pipeline was torn down and must not emit anymore.
         if (_isDisposed)
         {
             return;
@@ -161,8 +161,8 @@ public abstract class PipelineNode<TState> : IPipelineNode<TState>
             return ValueTask.CompletedTask;
         }
         _isDisposed = true;
+        // The subject is completed but not disposed: an output that already passed the disposed check on another thread would otherwise throw.
         _newOutputSubject.OnCompleted();
-        _newOutputSubject.Dispose();
         return ValueTask.CompletedTask;
     }
 }

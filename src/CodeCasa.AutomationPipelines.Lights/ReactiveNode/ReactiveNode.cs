@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Reactive;
+﻿using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CodeCasa.AutomationPipelines.Lights.Utils;
@@ -18,8 +17,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
     private readonly ILogger<ReactiveNode>? _logger;
     private readonly IEqualityComparer<LightTransition>? _equalityComparer;
     private readonly Subject<Unit> _nodeChangedSubject = new();
-    private readonly ConcurrentQueue<Action> _stateQueue = new();
-    private int _drainingThreadId;
+    private readonly SerializedActionQueue _stateQueue = new();
     private volatile bool _isDisposed;
     private IDisposable? _nodeObservableSubscription;
     private IDisposable? _activeNodeSubscription;
@@ -103,13 +101,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
         });
     }
 
-    /*
-     * All state mutation is serialised through this queue. Unlike a lock, a caller on another thread never waits:
-     * it enqueues and returns, and the thread that is already draining runs the action. Holding a lock while calling
-     * into child nodes deadlocked nested reactive nodes (outer input vs. inner trigger, see 0b4571e for the same
-     * problem in Pipeline). Actions enqueued from within a running action execute inline, which keeps synchronous
-     * emissions during activation ordered exactly as before.
-     */
+    // All state mutation is serialised through the queue; see SerializedActionQueue for why this is not a lock.
     private void EnqueueStateChange(Action action)
     {
         if (_isDisposed)
@@ -117,28 +109,7 @@ public class ReactiveNode : PipelineNode<LightTransition>
             return;
         }
 
-        var currentThreadId = Environment.CurrentManagedThreadId;
-        if (Volatile.Read(ref _drainingThreadId) == currentThreadId)
-        {
-            RunStateChange(action);
-            return;
-        }
-
-        _stateQueue.Enqueue(action);
-        while (!_stateQueue.IsEmpty && Interlocked.CompareExchange(ref _drainingThreadId, currentThreadId, 0) == 0)
-        {
-            try
-            {
-                while (_stateQueue.TryDequeue(out var next))
-                {
-                    RunStateChange(next);
-                }
-            }
-            finally
-            {
-                Volatile.Write(ref _drainingThreadId, 0);
-            }
-        }
+        _stateQueue.Run(() => RunStateChange(action));
     }
 
     private void RunStateChange(Action action)
@@ -221,7 +192,8 @@ public class ReactiveNode : PipelineNode<LightTransition>
         }
 
         _stateQueue.Clear();
-        _nodeChangedSubject.Dispose();
+        // The subject is completed but not disposed: a state change still draining on another thread would otherwise throw.
+        _nodeChangedSubject.OnCompleted();
 
         await base.DisposeAsync();
     }

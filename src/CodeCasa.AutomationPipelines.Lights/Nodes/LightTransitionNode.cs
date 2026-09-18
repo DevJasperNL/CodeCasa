@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CodeCasa.AutomationPipelines.Lights.Extensions;
+using CodeCasa.AutomationPipelines.Lights.Utils;
 using CodeCasa.Lights;
 
 namespace CodeCasa.AutomationPipelines.Lights.Nodes;
@@ -13,13 +14,16 @@ namespace CodeCasa.AutomationPipelines.Lights.Nodes;
 public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<LightTransition>
 {
     private readonly Subject<LightTransition?> _newOutputSubject = new();
+    // Inputs, outputs and scheduled continuations arrive on different threads; see SerializedActionQueue for why this is not a lock.
+    private readonly SerializedActionQueue _stateQueue = new();
     private LightParameters? _inputLightDestinationParameters;
     private DateTime? _inputStartOfTransition;
     private DateTime? _inputEndOfTransition;
     private LightTransition? _output;
     private bool _passThroughNextInput;
     private IDisposable? _scheduledAction;
-    private bool _isDisposed;
+    private int _scheduleGeneration;
+    private volatile bool _isDisposed;
 
     /// <summary>
     /// Gets the source light parameters from the previous input, useful for interpolating transitions.
@@ -38,14 +42,9 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     public LightTransition? Input
     {
         get;
-        set
+        set => RunSerialized(() =>
         {
-            if (_isDisposed)
-            {
-                return;
-            }
-
-            _scheduledAction?.Dispose(); // Always cancel scheduled actions when the input changes.
+            CancelScheduledAction(); // Always cancel scheduled actions when the input changes.
             // We save additional information on the light transition that we can later use to continue the transition if it would be interrupted.
             InputLightSourceParameters = _inputLightDestinationParameters;
             field = value;
@@ -69,7 +68,7 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
             }
 
             InputReceived(field);
-        }
+        });
     }
 
     /// <summary>
@@ -105,30 +104,33 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     public LightTransition? Output
     {
         get => _output;
-        protected set
+        protected set => RunSerialized(() =>
         {
-            if (_isDisposed)
-            {
-                return;
-            }
-
-            _scheduledAction?.Dispose(); // Always cancel scheduled actions when the output is changed directly.
+            CancelScheduledAction(); // Always cancel scheduled actions when the output is changed directly.
             PassThrough = false;
 
             SetOutputInternal(value);
-        }
+        });
     }
 
     /// <summary>
     /// Schedules an interpolated light transition that will animate from source to desired parameters using the input's transition time.
     /// </summary>
+    /// <remarks>
+    /// The remainder of the transition is cancelled by the next input, so a node that keeps overriding the input has to
+    /// schedule again from <see cref="InputReceived"/>.
+    /// </remarks>
     /// <param name="sourceLightParameters">The source light parameters to transition from.</param>
     /// <param name="desiredLightParameters">The desired light parameters to transition to.</param>
     protected void ScheduleInterpolatedLightTransitionUsingInputTransitionTime(LightParameters? sourceLightParameters, LightParameters? desiredLightParameters)
     {
-        PassThrough = false;
-        _scheduledAction = scheduler.ScheduleInterpolatedLightTransition(sourceLightParameters,
-            desiredLightParameters, _inputStartOfTransition, _inputEndOfTransition, SetOutputInternal);
+        RunSerialized(() =>
+        {
+            // The PassThrough setter only cancels when the value changes, which it does not when scheduling twice in a row.
+            CancelScheduledAction();
+            PassThrough = false;
+            ScheduleInterpolated(sourceLightParameters, desiredLightParameters);
+        });
     }
 
     /// <summary>
@@ -138,13 +140,8 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     public bool PassThrough
     {
         get;
-        set
+        set => RunSerialized(() =>
         {
-            if (_isDisposed)
-            {
-                return;
-            }
-
             // Always reset _passThroughNextInput when PassThrough is explicitly called.
             _passThroughNextInput = false;
 
@@ -153,16 +150,14 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
                 return;
             }
 
-            _scheduledAction?.Dispose(); // Always cancel scheduled actions when the pass through value changes.
+            CancelScheduledAction(); // Always cancel scheduled actions when the pass through value changes.
 
             field = value;
             if (field)
             {
-                _scheduledAction = scheduler.ScheduleInterpolatedLightTransition(InputLightSourceParameters,
-                    _inputLightDestinationParameters, _inputStartOfTransition, _inputEndOfTransition,
-                    SetOutputInternal);
+                ScheduleInterpolated(InputLightSourceParameters, _inputLightDestinationParameters);
             }
-        }
+        });
     }
 
     /// <summary>
@@ -172,8 +167,11 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     /// <param name="output">The output light transition to set.</param>
     protected void ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition? output)
     {
-        Output = output;
-        TurnOnPassThroughOnNextInput();
+        RunSerialized(() =>
+        {
+            Output = output;
+            TurnOnPassThroughOnNextInput();
+        });
     }
 
     /// <summary>
@@ -182,17 +180,66 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     /// </summary>
     protected void TurnOnPassThroughOnNextInput()
     {
-        if (PassThrough)
+        RunSerialized(() =>
         {
+            if (PassThrough)
+            {
+                return;
+            }
+
+            _passThroughNextInput = true;
+        });
+    }
+
+    /// <summary>
+    /// Runs <paramref name="action"/> serialised with every other state change of this node, so a node that reacts to
+    /// timers or observables can change several things without an input or a continuation running in between. The action
+    /// is skipped once the node is disposed.
+    /// </summary>
+    private protected void RunSerialized(Action action)
+    {
+        _stateQueue.Run(() =>
+        {
+            if (!_isDisposed)
+            {
+                action();
+            }
+        });
+    }
+
+    private void CancelScheduledAction()
+    {
+        // Disposing does not stop a continuation that already started on the scheduler thread; the generation makes it drop its output.
+        _scheduleGeneration++;
+        _scheduledAction?.Dispose();
+        _scheduledAction = null;
+    }
+
+    private void ScheduleInterpolated(LightParameters? sourceLightParameters, LightParameters? desiredLightParameters)
+    {
+        var generation = _scheduleGeneration;
+        var scheduledAction = scheduler.ScheduleInterpolatedLightTransition(sourceLightParameters,
+            desiredLightParameters, _inputStartOfTransition, _inputEndOfTransition, output => RunSerialized(() =>
+            {
+                // Checked inside the queue: a cancellation on another thread is either fully applied by now or runs after this output.
+                if (generation == _scheduleGeneration)
+                {
+                    SetOutputInternal(output);
+                }
+            }));
+
+        // The first output is emitted synchronously, so a downstream reaction may already have cancelled or replaced this schedule.
+        if (generation != _scheduleGeneration)
+        {
+            scheduledAction?.Dispose();
             return;
         }
-
-        _passThroughNextInput = true;
+        _scheduledAction = scheduledAction;
     }
 
     private void SetOutputInternal(LightTransition? output)
     {
-        // Scheduled continuations may still fire after disposal; a disposed subject would throw on the scheduler thread.
+        // Scheduled continuations may still fire after disposal and must not emit anymore.
         if (_isDisposed)
         {
             return;
@@ -203,7 +250,7 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
     }
 
     /// <inheritdoc />
-    public override string ToString() => GetType().Name;
+    public override string ToString() => Name ?? GetType().Name;
 
     /// <inheritdoc />
     public virtual ValueTask DisposeAsync()
@@ -213,10 +260,13 @@ public abstract class LightTransitionNode(IScheduler scheduler) : IPipelineNode<
             return ValueTask.CompletedTask;
         }
         _isDisposed = true;
-        _scheduledAction?.Dispose();
-        _scheduledAction = null;
-        _newOutputSubject.OnCompleted();
-        _newOutputSubject.Dispose();
+        // Queued behind a state change that is still running on another thread, so completion is always the last thing the subject sees.
+        _stateQueue.Run(() =>
+        {
+            CancelScheduledAction();
+            // The subject is completed but not disposed, so subscribing to a disposed node completes instead of throwing.
+            _newOutputSubject.OnCompleted();
+        });
         return ValueTask.CompletedTask;
     }
 }
