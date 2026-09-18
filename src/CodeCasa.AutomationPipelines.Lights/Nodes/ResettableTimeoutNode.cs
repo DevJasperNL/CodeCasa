@@ -20,8 +20,8 @@ internal class ResettableTimeoutNode : LightTransitionNode
     {
         _childNode = childNode;
         Name = timeoutBehaviour == TimeoutBehaviour.PassThrough
-            ? $"{childNode.Name} (passes through after timeout)"
-            : $"{childNode.Name} (resets after timeout)";
+            ? $"{childNode} (passes through after timeout)"
+            : $"{childNode} (resets after timeout)";
         _timerSubscription.DisposeWith(_disposables);
 
         // The initial output is set synchronously: a reactive node reads Output right after activating this node, and would
