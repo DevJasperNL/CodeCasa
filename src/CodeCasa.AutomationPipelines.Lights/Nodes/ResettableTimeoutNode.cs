@@ -15,10 +15,13 @@ internal class ResettableTimeoutNode : LightTransitionNode
     private bool _isDisposed;
 
     public ResettableTimeoutNode(IPipelineNode<LightTransition> childNode, TimeSpan turnOffTime,
-        IObservable<bool> persistObservable, IScheduler scheduler) : base(scheduler)
+        IObservable<bool> persistObservable, IScheduler scheduler,
+        TimeoutBehaviour timeoutBehaviour = TimeoutBehaviour.TurnOff) : base(scheduler)
     {
         _childNode = childNode;
-        Name = $"{childNode.Name} (resets after timeout)";
+        Name = timeoutBehaviour == TimeoutBehaviour.PassThrough
+            ? $"{childNode.Name} (passes through after timeout)"
+            : $"{childNode.Name} (resets after timeout)";
         _timerSubscription.DisposeWith(_disposables);
 
         // The initial output is set synchronously: a reactive node reads Output right after activating this node, and would
@@ -58,7 +61,20 @@ internal class ResettableTimeoutNode : LightTransitionNode
             }
 
             _timerSubscription.Disposable = Observable.Timer(turnOffTime, scheduler)
-                .Subscribe(_ => ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition.Off()));
+                .Subscribe(_ => OnTimeout());
+        }
+
+        void OnTimeout()
+        {
+            if (timeoutBehaviour == TimeoutBehaviour.TurnOff)
+            {
+                ChangeOutputAndTurnOnPassThroughOnNextInput(LightTransition.Off());
+                return;
+            }
+
+            // Passing through ends the override for good: a later child output or persist change must not claim the light again.
+            _disposables.Dispose();
+            PassInputThrough();
         }
     }
 

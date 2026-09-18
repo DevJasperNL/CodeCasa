@@ -1,3 +1,4 @@
+using CodeCasa.AutomationPipelines.Lights.Extensions;
 using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,74 @@ public sealed class LightPipelineFactoryToggleTests
         trigger.OnNext(1);
 
         Assert.AreEqual(a.Current.Brightness, b.Current.Brightness);
+
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task Toggle_AutoPassThroughNodeTimesOut_LowerLayerTakesOverAndNextPressTurnsOff()
+    {
+        var timeout = TimeSpan.FromMinutes(10);
+        var scheduler = new TestScheduler();
+        scheduler.AdvanceTo(new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc).Ticks);
+        var light = new TestLight("light");
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var trigger = new Subject<int>();
+        var lowerLayer = new BehaviorSubject<bool>(false);
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(light, p => p
+            .When(lowerLayer, new LightParameters { Brightness = 50 })
+            .AddToggle(trigger, c => c.Add(s => s.CreateAutoPassThroughLightNode(new LightParameters { Brightness = 200 }, timeout))));
+        var offCountBeforePress = light.CountApplied(0);
+
+        trigger.OnNext(1);
+        Assert.AreEqual(200, LastApplied(light));
+
+        lowerLayer.OnNext(true);
+        Assert.AreEqual(200, LastApplied(light), "A change of the lower layer must not leak through before the timeout.");
+
+        scheduler.AdvanceBy(timeout.Ticks + 1);
+        Assert.AreEqual(50, LastApplied(light));
+        Assert.AreEqual(offCountBeforePress, light.CountApplied(0), "The override must hand over to the lower layer without turning the light off.");
+
+        // The lower layer keeps the light on, so the toggle decides from the real light state and turns it off.
+        trigger.OnNext(2);
+        Assert.AreEqual(0, LastApplied(light));
+
+        // A new activation gets a fresh node with a full timeout.
+        scheduler.AdvanceBy(TimeSpan.FromSeconds(5).Ticks);
+        trigger.OnNext(3);
+        Assert.AreEqual(200, LastApplied(light));
+        scheduler.AdvanceBy(timeout.Ticks - 10);
+        Assert.AreEqual(200, LastApplied(light));
+        scheduler.AdvanceBy(20);
+        Assert.AreEqual(50, LastApplied(light));
+
+        await pipelines.DisposeAsync();
+    }
+
+    [TestMethod]
+    public async Task On_AutoPassThroughNodeTimesOut_WithoutLowerLayer_LightTurnsOff()
+    {
+        var timeout = TimeSpan.FromMinutes(10);
+        var scheduler = new TestScheduler();
+        scheduler.AdvanceTo(new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc).Ticks);
+        var light = new TestLight("light");
+        await using var sp = LightPipelineTestSetup.CreateServiceProvider(scheduler);
+        var trigger = new Subject<int>();
+        var motion = new BehaviorSubject<bool>(true);
+
+        var pipelines = sp.GetRequiredService<LightPipelineFactory>().SetupLightPipeline(light, p => p
+            .AddReactiveNode(node => node
+                .On(trigger, s => s.CreateAutoPassThroughLightNode(new LightParameters { Brightness = 200 }, timeout, motion))));
+
+        trigger.OnNext(1);
+        scheduler.AdvanceBy(timeout.Ticks * 2);
+        Assert.AreEqual(200, LastApplied(light), "The timeout is held off while the persist observable is true.");
+
+        motion.OnNext(false);
+        scheduler.AdvanceBy(timeout.Ticks + 1);
+        Assert.AreEqual(0, LastApplied(light));
 
         await pipelines.DisposeAsync();
     }
