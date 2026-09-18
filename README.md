@@ -28,6 +28,7 @@ A collection of .NET libraries providing [NetDaemon](https://github.com/net-daem
     - [Basic Light Pipeline Setup](#basic-light-pipeline-setup)
     - [Controlling with Dimmers](#controlling-with-dimmers)
     - [Working with Light Groups](#working-with-light-groups)
+    - [Timed Overrides: Auto-Off and Auto Pass-Through](#timed-overrides-auto-off-and-auto-pass-through)
     - [NetDaemon Integration](#netdaemon-integration)
 - [CodeCasa.Lights.NetDaemon](#codecasalightsnetdaemon)
   - [Overview](#overview-2)
@@ -369,6 +370,38 @@ lightPipelineFactory.SetupLightPipeline(lightEntities.AllBedroomLights, pipeline
 ```
 
 The lights using a group must be exactly the members of that group, and `UseLightGroup` can only be used on the root pipeline of a light. A newer transition for a light within the window replaces the pending one, which is then never sent. When the group call fails, the members are driven individually.
+
+#### Timed Overrides: Auto-Off and Auto Pass-Through
+
+A node that is activated by a button, toggle or cycle can end itself after a timeout. `CreateAutoOffLightNode` and `CreateAutoPassThroughLightNode` both apply light parameters and start a timeout, but they differ in who controls the light once the time is up:
+
+| | `CreateAutoOffLightNode` | `CreateAutoPassThroughLightNode` |
+|---|---|---|
+| When the time is up | Forces the light off. | Ends the override, without turning the light off itself. |
+| Afterwards | The light stays off until the output of the earlier nodes changes. | The earlier nodes take effect at once. The light only turns off when they output nothing. |
+| Use it when | The light has to be off when the time is up, whatever the earlier nodes say. | The node is a temporary override on top of a motion or night-time layer. |
+
+In the pipeline below the button makes the hallway bright for ten minutes. After that the motion layer is back in charge: the light falls back to dimmed while there is still motion, and is off otherwise. With `CreateAutoOffLightNode` the light would turn off after ten minutes and stay off until the motion layer changes, even when someone is still there:
+
+```cs
+lightPipelineFactory.SetupLightPipeline(lightEntities.HallwayLight, pipeline =>
+{
+    pipeline
+        .When(motionDetected, LightParameters.Dimmed)
+        .AddReactiveNode(node => node
+            .On(brightButtonPressed, sp => sp.CreateAutoPassThroughLightNode(
+                LightParameters.Bright, TimeSpan.FromMinutes(10), motionDetected)));
+});
+```
+
+The optional last argument is a persist observable: while it is `true` the timeout is held off, and it restarts when the observable becomes `false`. Until the timeout, changes of the earlier nodes do not reach the light. After it, the node stays out of the way: it ignores the persist observable and never applies its parameters again, and the next activation creates a new node with a full timeout. Both methods have a counterpart that wraps any node instead of light parameters: `TurnOffAfter` and `PassThroughAfter`.
+
+Things to keep in mind:
+
+- An auto-off timeout should be at least as long as the off delay of any motion layer beneath it, or use the motion observable as persist observable. Otherwise the light is forced off while the motion layer still says on, and it stays off for as long as that layer's output does not change, so new motion does not turn it back on.
+- If a baseline beneath the override is always on, for example a night-time scene, auto pass-through falls back to that baseline and never to off. Use `CreateAutoOffLightNode` when "time is up" has to mean off.
+- A timeout that hands control back is a change of the pipeline output. A light that was turned off by hand and is held off by `AddInteractionNode` follows the earlier nodes again at that moment, as it does for any other upstream change.
+- A toggle decides from the actual state of the light. After an auto pass-through override has timed out while an earlier node keeps the light on, the next press of the toggle turns the light off.
 
 ### NetDaemon Integration
 
