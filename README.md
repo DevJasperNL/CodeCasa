@@ -390,7 +390,7 @@ lightPipelineFactory.SetupLightPipeline(lightEntities.HallwayLight, pipeline =>
         .When(motionDetected, LightParameters.Dimmed)
         .AddReactiveNode(node => node
             .On(brightButtonPressed, sp => sp.CreateAutoPassThroughLightNode(
-                LightParameters.Bright, TimeSpan.FromMinutes(10), motionDetected)));
+                LightParameters.Bright, TimeSpan.FromMinutes(10))));
 });
 ```
 

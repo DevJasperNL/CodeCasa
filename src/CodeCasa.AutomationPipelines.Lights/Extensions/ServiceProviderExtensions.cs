@@ -3,6 +3,7 @@ using CodeCasa.AutomationPipelines.Lights.Pipeline;
 using CodeCasa.Lights;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 
 namespace CodeCasa.AutomationPipelines.Lights.Extensions;
 
@@ -70,9 +71,7 @@ public static class ServiceProviderExtensions
         LightParameters lightParameters,
         TimeSpan timeSpan)
     {
-        var scheduler = serviceProvider.GetRequiredService<IScheduler>();
-        var innerNode = new StaticLightTransitionNode(lightParameters.AsTransition(), scheduler);
-        return innerNode.TurnOffAfter(timeSpan, scheduler);
+        return serviceProvider.CreateAutoOffLightNode(lightParameters, timeSpan, Observable.Empty<bool>());
     }
 
     /// <summary>
@@ -89,9 +88,7 @@ public static class ServiceProviderExtensions
         LightParameters lightParameters,
         TimeSpan timeSpan, IObservable<bool> persistObservable)
     {
-        var scheduler = serviceProvider.GetRequiredService<IScheduler>();
-        var innerNode = new StaticLightTransitionNode(lightParameters.AsTransition(), scheduler);
-        return innerNode.TurnOffAfter(timeSpan, persistObservable, scheduler);
+        return serviceProvider.CreateTimeoutLightNode(lightParameters, timeSpan, persistObservable, TimeoutBehaviour.TurnOff);
     }
 
     /// <summary>
@@ -114,9 +111,7 @@ public static class ServiceProviderExtensions
         LightParameters lightParameters,
         TimeSpan timeSpan)
     {
-        var scheduler = serviceProvider.GetRequiredService<IScheduler>();
-        var innerNode = new StaticLightTransitionNode(lightParameters.AsTransition(), scheduler);
-        return innerNode.PassThroughAfter(timeSpan, scheduler);
+        return serviceProvider.CreateAutoPassThroughLightNode(lightParameters, timeSpan, Observable.Empty<bool>());
     }
 
     /// <summary>
@@ -141,8 +136,15 @@ public static class ServiceProviderExtensions
         LightParameters lightParameters,
         TimeSpan timeSpan, IObservable<bool> persistObservable)
     {
+        return serviceProvider.CreateTimeoutLightNode(lightParameters, timeSpan, persistObservable, TimeoutBehaviour.PassThrough);
+    }
+
+    private static IPipelineNode<LightTransition> CreateTimeoutLightNode(this IServiceProvider serviceProvider,
+        LightParameters lightParameters, TimeSpan timeSpan, IObservable<bool> persistObservable,
+        TimeoutBehaviour timeoutBehaviour)
+    {
         var scheduler = serviceProvider.GetRequiredService<IScheduler>();
         var innerNode = new StaticLightTransitionNode(lightParameters.AsTransition(), scheduler);
-        return innerNode.PassThroughAfter(timeSpan, persistObservable, scheduler);
+        return new ResettableTimeoutNode(innerNode, timeSpan, persistObservable, scheduler, timeoutBehaviour);
     }
 }

@@ -21,7 +21,7 @@ public static class LightTransitionNodeExtensions
     public static IPipelineNode<LightTransition> TurnOffAfter(this IPipelineNode<LightTransition> node,
         TimeSpan timeSpan, IScheduler scheduler)
     {
-        return new ResettableTimeoutNode(node, timeSpan, Observable.Empty<bool>(), scheduler);
+        return node.TurnOffAfter(timeSpan, Observable.Empty<bool>(), scheduler);
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public static class LightTransitionNodeExtensions
     public static IPipelineNode<LightTransition> PassThroughAfter(this IPipelineNode<LightTransition> node,
         TimeSpan timeSpan, IScheduler scheduler)
     {
-        return new ResettableTimeoutNode(node, timeSpan, Observable.Empty<bool>(), scheduler, TimeoutBehaviour.PassThrough);
+        return node.PassThroughAfter(timeSpan, Observable.Empty<bool>(), scheduler);
     }
 
     /// <summary>
