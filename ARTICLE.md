@@ -38,6 +38,7 @@ Every HTML comment starting with REVIEW needs a decision or your real content.
     - [The Attic](#the-attic)
     - [The Living Room](#the-living-room)
 - [From Alarm to Notifications](#from-alarm-to-notifications)
+- [Nodes That Know Their Light](#nodes-that-know-their-light)
 - [Seeing Which Layer Won](#seeing-which-layer-won)
 - [Cheat Sheet](#cheat-sheet)
 - [Things to Know Before You Start](#things-to-know-before-you-start)
@@ -97,9 +98,9 @@ None of these features is hard to build on its own. Here is a motion automation 
             entity_id: scene.hallway_bright
 ```
 
-Add a second automation that turns the lights off two minutes after the last motion and you have a working room. Then you add the wall switch, and the first problem shows up. Someone switches the hallway to bright to find something in the cupboard, and two minutes later the motion automation turns the lights off on them. The fix is an `input_boolean.hallway_manual` helper that the switch automation sets and both motion automations check.
+Add a second automation that turns the lights off two minutes after the last motion and you have a working room. But then you add the wall switch, and the first problem shows up. Someone switches the hallway to bright to find something in the cupboard, and two minutes later the motion automation turns the lights off on them. The fix is an `input_boolean.hallway_manual` helper that the switch automation sets and both motion automations check.
 
-Now imagine you want the lights to turn red when the security alarm is triggered. Turning them red is one more automation. The real work is in everything else:
+Now imagine you want the lights to turn red when the security alarm is triggered. Turning them red is one more automation. However, to make it work you now need to update every other automation:
 
 ```yaml
   # inside each of the other automations:
@@ -122,7 +123,7 @@ The underlying issue is that every automation writes to the light directly, and 
 
 ## Thinking in Layers
 
-The model I ended up with is a pipeline per light. A pipeline is an ordered list of nodes, and each node represents one concern: motion, the switch, the alarm. I'll call them layers when talking about behaviour and nodes when talking about code; they are the same thing. A node receives the output of the node before it and then does one of two things. It either sets its own output, or it **passes through** what it received, which is its way of saying "I have no opinion right now".
+The model I ended up with is a pipeline per light. A pipeline is an ordered list of nodes, and each node represents one concern, a layer of behaviour: motion, the switch, the alarm. A node receives the output of the node before it and then does one of two things. It either sets its own output, or it **passes through** what it received, which is its way of saying "I have no opinion right now". What sets this apart from an ordinary pipeline is that a node does not only react to its input. Like a NetDaemon app, every node is an automation of its own: it can watch a sensor, a button or a timer and change its output at any moment. That is why the library calls these automation pipelines.
 
 ```mermaid
 flowchart LR
@@ -156,7 +157,7 @@ Four rooms from the [showcase](https://github.com/DevJasperNL/CodeCasa.Showcase)
 
 A word on the inputs first. NetDaemon generates classes such as `LightEntities`, `SensorEntities` and `SceneEntities` from your Home Assistant instance, so `lightEntities.HallwayLight` *is* `light.hallway_light`. An app is a class marked `[NetDaemonApp]`, and NetDaemon constructs it through dependency injection, which is where every constructor parameter below comes from. Without the bridge, a switch is just a Zigbee2MQTT device publishing button events. In the showcase these are wrapped in small classes that I register alongside the apps: `HallwayWallSwitch` is an `IObservable<Unit>` that emits on every press (`Unit` is Rx's way of saying "something happened, no value attached"), and `OfficeDimmerSwitch` exposes `OnOffPressed`, `ScenePressed`, `Dimming` and `Brightening`.
 
-Wherever the API wants a light state, it accepts one of three things: a `LightParameters` object (brightness 0 to 255, a colour or a colour temperature; `Bright`, `Relax`, `NightLight`, `Concentrate` and `Dimmed` are built-in presets you can overwrite), a Home Assistant scene entity, or a timeline. Internally everything becomes a `LightTransition`, parameters plus a transition time. You only meet that type when writing your own node.
+Wherever the API wants a light state, it accepts one of three things: a `LightParameters` object (brightness 0 to 255, a colour or a colour temperature; `Bright`, `Relax`, `NightLight`, `Concentrate` and `Dimmed` are built-in presets you can overwrite), a Home Assistant scene entity, or a timeline. Internally everything becomes a `LightTransition`, parameters plus a transition time.
 
 ### The Hallway
 
@@ -266,8 +267,33 @@ There is a lot of Hue behaviour in these few lines:
 
 - The two `AddToggle` calls make the wall switch and the **on** button of the dimmer toggle between off and bright.
 - `AddCycle` is the scene button. Where the bridge counts presses, this looks at the **actual state** of the lights on every press to decide which scene comes next, with some tolerance, because a bulb asked for 255 will happily report 254. If the state isn't recognised, the cycle starts at the first scene. `LightParameters.Bright` and friends are built-in scenes, plain parameter sets really; the living room below uses Home Assistant scenes instead.
-- `AddReactiveDimmer` implements hold to dim. It steps the brightness every 400 ms while a button is held, and resets when a new scene is activated. The dimmer itself is a tiny interface with two observables, `Dimming` and `Brightening`, which the switch wrapper implements. Keep holding past the minimum and the lights go out one at a time, in the order you give with `SetLightOrder`, something the bridge never did.
+- `AddReactiveDimmer` implements hold to dim, and does a little more than the bridge did. More on that below.
 - `TurnOffWhenLastPersonToAsleepOrAway` is not from the library. It's a [ten-line extension method](https://github.com/DevJasperNL/CodeCasa.Showcase/blob/main/src/CodeCasa.CustomEntities.Automation/Extensions/LightTransitionReactiveNodeConfiguratorExtensions.cs) in the showcase, built on `AddNodeSource`, the primitive that all of the above is sugar for. Your own concerns slot in next to the built-in ones.
+
+#### Holding the Button
+
+The dimmer itself is a tiny interface with two observables, `Dimming` and `Brightening`, which the switch wrapper implements. While one of them is `true`, the dimmer takes a step every 400 ms, by 51, a fifth of the full brightness range. It starts from whatever the reactive node it belongs to is showing, so you dim the current scene, and it resets as soon as that node changes, so the next scene press shows that scene at its own brightness again.
+
+With a single bulb that is all there is to it. With several bulbs it gets more interesting. Holding the dim button brings all bulbs down together until each reaches the minimum brightness, 2 by default, where it waits for the others. Once all of them are at the minimum, the next step turns one bulb off, the step after that the next one, until the last bulb goes out. Holding the brighten button does the same in reverse: from a dark room, the bulbs come on at the minimum one at a time, in the opposite order, and once all of them are on they rise together to full brightness. Just like the lights going down in a theatre and coming back up when the show is over. You can dim a room to one soft bulb in the corner without reaching for an app.
+
+By default the bulbs go out in the order the group lists them in Home Assistant. To choose your own order, and to change the minimum, the step size or the speed, pass options to the reactive node:
+
+```csharp
+var dimmerOptions = new DimmerOptions { MinBrightness = 10 };
+dimmerOptions.SetLightOrder(
+    lightEntities.OfficeCeilingLight.AsLight(),
+    lightEntities.OfficeWindowLight.AsLight(),
+    lightEntities.OfficeDeskLight.AsLight());  // the desk lamp stays on longest
+
+    .AddReactiveDimmer(officeDimmerSwitch)
+    .SetReactiveDimmerOptions(dimmerOptions)
+```
+
+<!-- REVIEW: the three office entity names are placeholders; use the bulbs from the showcase. -->
+
+The order must list every bulb in the pipeline, or the pipeline throws at startup. If you'd rather have each bulb dim on its own, without the one-at-a-time part, `AddDimmer` on the pipeline does that, and it dims whatever all the layers before it decided instead of a single reactive node.
+
+None of this is something you could have asked the bridge for. Nobody needs their lights to go out one by one, but this is the fun part of owning every step between the button and the bulb: when you have an idea of how a room should behave, all it takes is writing it down. The `UseLightGroup` optimisation from the next section plays along. While all bulbs dim together, one group command per step is enough; as soon as they start going out one by one, each bulb is driven on its own.
 
 #### One Command for the Whole Room
 
@@ -292,6 +318,10 @@ flowchart LR
     window -- yes --> z2m[["light.office_lights_z2m<br/>one command"]]
     window -- no --> bulbs[["bulb 1 · bulb 2 · bulb 3<br/>one command each"]]
 ```
+
+> 💡 **Note:** If you know the output will be the same for every bulb, every time, you can skip all of this and set up the pipeline for the Zigbee2MQTT group itself: `SetupLightPipeline(lightEntities.AtticLightsZ2m, ...)`. The library only splits a light into bulbs when Home Assistant lists its members in an `entity_id` attribute, which a light group has and a Zigbee2MQTT group doesn't. The result is a single pipeline that drives the group entity directly, without the 20 ms wait. You do give up everything that works per bulb: scenes with a colour per bulb (a Home Assistant scene then has to contain the group entity itself), `ForLights`, notifications on only some of the bulbs, the dimmer turning bulbs off one at a time, and re-applying the output to a single bulb that was switched off at the wall, since the group entity usually stays available when one of its bulbs disappears.
+
+<!-- REVIEW: check in Developer Tools > States that your Zigbee2MQTT group entities indeed have no entity_id attribute. -->
 
 One more bridge feature comes for free here. A bulb that is switched off at the wall misses every command sent while it was gone. When it reports available again, the pipeline re-applies its current output, so the bulb joins the room in the state it should be in. This is on by default and can be turned off with `ReapplyOutputWhenAvailable(false)`.
 
@@ -414,6 +444,41 @@ A node sets `Output`, or calls `PassInputThrough()` when it has no opinion. A no
 
 When several notifications are active, the one with the highest priority is shown. When the last one is removed, every pipeline disposes its copy of the node, the notification layer passes through, and the room shows whatever the layers below have worked out in the meantime. If everybody left while the doorbell was blinking, the lights go off. If somebody picked a scene, that scene appears.
 
+## Nodes That Know Their Light
+
+`BlinkNode` is created with a lambda because it takes two colours. A node that only needs services can be added by its type, and the library builds it through dependency injection:
+
+```csharp
+    .AddNode<SlowFadeInNode>()
+```
+
+The node doesn't need a registration of its own. It is constructed with `ActivatorUtilities`, so only its constructor parameters have to resolve. Those come from your own registrations, such as NetDaemon's generated entity classes, and from a scope the factory creates for every bulb. In that scope, three services describe the pipeline the node is part of:
+
+- `ILight`: the bulb this pipeline drives. A group is split into one pipeline per bulb, so each bulb's copy of the node receives its own bulb.
+- The light type you passed in. For a Home Assistant entity that is `NetDaemonLight`.
+- `LightPipelineContext`: the same light, plus the last output the pipeline sent to it and when.
+
+That last output is not the same as the node's input. A node only sees what the layers before it produced; the context holds what actually reached the light, after every layer had its say. `SlowFadeInNode` uses it to fade in slowly whenever the light comes on from off, whichever layer turned it on, so the motion sensor doesn't blind anybody at night:
+
+```csharp
+public class SlowFadeInNode(LightPipelineContext context, IScheduler scheduler) : LightTransitionNode(scheduler)
+{
+    protected override void InputReceived(LightTransition? input)
+    {
+        var lightWasOff = context.State?.Output?.LightParameters.Brightness is null or 0;
+        Output = lightWasOff && input is { LightParameters.Brightness: > 0 }
+            ? input with { TransitionTime = TimeSpan.FromSeconds(10) }
+            : input;
+    }
+}
+```
+
+<!-- REVIEW: SlowFadeInNode is made up for this section, not taken from the showcase. Swap in a real node if you have one. -->
+
+Wherever the API takes a node factory, there is a by-type version too: `When<TNode>(observable)` on the pipeline, `On<T, TNode>(trigger)` in a reactive node, `Add<TNode>()` in a toggle and `WhenTrue<TNode>()` in a switch. In those, a new node is built on every activation, in a scope of its own inside the bulb's scope, so a scoped service lives exactly as long as the node does. The lambda form gets the same scope: `sp.GetRequiredService<ILight>()` works in any node factory. It is how the interaction node finds the bulb it watches and the context it compares against.
+
+Two things to keep in mind. A nested pipeline, such as the one you pass to `AddPipelineWhen`, shares the context of the root pipeline, because the root is what drives the light. And an observable given by type, as in `When<TObservable, TNode>()`, is created once and shared by all bulbs of a room, so it doesn't receive a light of its own.
+
 ## Seeing Which Layer Won
 
 With several layers, "why is this light on?" becomes a fair question. Every pipeline can log each hop between nodes:
@@ -450,6 +515,7 @@ The list from the start of this article, plus a few things that came up along th
 | Temporary override | `CreateAutoPassThroughLightNode`, `CreateAutoOffLightNode` |
 | Doorbell, alarm, anything that takes the lights over | `AddNotifications()` + `LightNotificationContext.Notify(...)` |
 | Your own concern (everyone asleep, nobody home) | `AddNodeSource(...)` in an extension method |
+| Your own node, built by dependency injection | `AddNode<TNode>()`, `When<TNode>(observable)`, `Add<TNode>()` in a toggle |
 | Cap brightness at night | `LimitBrightnessWhen(isNight, 100)` |
 | Some lights in a room behave differently | `ForLights(ids, configure)` inside the pipeline |
 
@@ -462,7 +528,7 @@ This approach isn't for everyone, and I'd rather say so here than in the comment
 
 And a few things to know if you do go ahead:
 
-- **Restarts.** When NetDaemon starts, every pipeline begins at its default, off, and applies it. Layers driven by stateful observables re-evaluate immediately, so a hallway with motion or a room under a timeline comes straight back. Anything that only exists because of a button press, a scene you cycled to or a five-minute override, is gone, and that room goes dark. If you redeploy often, your lights will notice.
+- **Restarts.** When NetDaemon starts, every pipeline begins at its default, off, and applies it. Layers driven by stateful observables re-evaluate immediately, so a hallway with motion or a room under a timeline comes straight back. Anything that only exists because of a button press, a scene you cycled to or a five-minute override, is gone, and that room goes dark.
 - **Scenes** made in the scene editor are read from Home Assistant once and cached. After editing a scene, you restart your apps.
 - **`UseLightGroup`** requires the pipeline's lights to be exactly the members of the group.
 - **Your existing automations** keep working. To a pipeline they look like somebody changing the light by hand, so a manual off sticks and anything else is overwritten on the next upstream change, unless you enable `HoldExternalChanges`.
