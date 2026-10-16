@@ -1,0 +1,66 @@
+...@_style
+
+direction: right
+
+title: "All three bulbs switch to the same scene" {class: title}
+
+p1: Pipeline bulb 1 {
+  direction: right
+  style: {
+    border-radius: 10
+    font-size: 18
+    bold: true
+  }
+  nodes: "layers" {class: rule}
+  group: Group node {class: rule}
+  nodes -> group: bright {class: value}
+}
+
+p2: Pipeline bulb 2 {
+  direction: right
+  style: {
+    border-radius: 10
+    font-size: 18
+    bold: true
+  }
+  nodes: "layers" {class: rule}
+  group: Group node {class: rule}
+  nodes -> group: bright {class: value}
+}
+
+p3: Pipeline bulb 3 {
+  direction: right
+  style: {
+    border-radius: 10
+    font-size: 18
+    bold: true
+  }
+  nodes: "layers" {class: rule}
+  group: Group node {class: rule}
+  nodes -> group: bright {class: value}
+}
+
+window: 20 ms window {
+  class: layer
+  w: "watches: output of every bulb in the group" {class: watches}
+  a: "all identical  →  one command to the group" {class: [rule; active]}
+  b: "they differ  →  one command per bulb" {class: rule}
+}
+
+z2m: "light.office_lights_z2m\none command" {
+  style.double-border: true
+  style.font-size: 16
+  style.bold: true
+}
+
+bulbs: "bulb 1 · bulb 2 · bulb 3\none command each" {
+  class: inactive
+  style.double-border: true
+  style.font-size: 16
+}
+
+p1.group -> window: bright {class: value}
+p2.group -> window: bright {class: value}
+p3.group -> window: bright {class: value}
+window -> z2m: bright {class: value}
+window -> bulbs {class: inactive}

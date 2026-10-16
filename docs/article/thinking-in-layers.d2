@@ -1,0 +1,45 @@
+...@_style
+
+direction: right
+
+title: "Night · someone walks in · no button pressed · no alarm" {class: title}
+
+footer: "order is priority: later layers win  ───────────────▶" {class: footer}
+
+default: "default\noff" {
+  shape: oval
+}
+
+motion: Motion {
+  class: layer
+  w: "watches: motion sensor · sun" {class: watches}
+  a: "motion, night  →  night light" {class: [rule; active]}
+  b: "motion, day  →  bright" {class: rule}
+  c: "no motion  →  pass through" {class: [rule; pass]}
+}
+
+switch: Dimmer switch {
+  class: layer
+  w: "watches: button presses" {class: watches}
+  a: "on pressed  →  bright / off" {class: rule}
+  b: "scene pressed  →  next scene" {class: rule}
+  c: "not touched  →  pass through" {class: [rule; pass; active]}
+}
+
+alarm: Alarm {
+  class: layer
+  w: "watches: alarm panel" {class: watches}
+  a: "triggered  →  red" {class: rule}
+  b: "otherwise  →  pass through" {class: [rule; pass; active]}
+}
+
+light: "light.hallway_light" {
+  style.double-border: true
+  style.font-size: 16
+  style.bold: true
+}
+
+default -> motion: off {class: value}
+motion -> switch: night light {class: value}
+switch -> alarm: night light {class: value}
+alarm -> light: night light {class: value}

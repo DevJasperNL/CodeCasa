@@ -1,0 +1,83 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+    theme-id: 0
+    dark-theme-id: 200
+    pad: 24
+  }
+}
+
+
+
+# Colours are left to the theme so the dark variant works; only the active path is amber, which reads on both.
+classes: {
+  layer: {
+    grid-columns: 1
+    grid-gap: 6
+    style: {
+      border-radius: 10
+      font-size: 20
+      bold: true
+    }
+  }
+  watches: {
+    shape: text
+    style: {
+      italic: true
+      font-size: 14
+      opacity: 0.75
+    }
+  }
+  rule: {
+    label.near: center-left
+    style: {
+      border-radius: 4
+      font-size: 15
+      bold: false
+    }
+  }
+  pass: {
+    style: {
+      stroke-dash: 3
+      opacity: 0.6
+    }
+  }
+  active: {
+    style: {
+      stroke: "#E8A317"
+      stroke-width: 3
+      bold: true
+      opacity: 1
+    }
+  }
+  value: {
+    style: {
+      stroke: "#E8A317"
+      stroke-width: 3
+      font-size: 15
+      bold: true
+    }
+  }
+  title: {
+    near: top-center
+    shape: text
+    style: {
+      font-size: 18
+      italic: true
+    }
+  }
+  footer: {
+    near: bottom-center
+    shape: text
+    style: {
+      font-size: 15
+      opacity: 0.75
+    }
+  }
+  inactive: {
+    style: {
+      stroke-dash: 3
+      opacity: 0.5
+    }
+  }
+}

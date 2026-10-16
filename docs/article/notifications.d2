@@ -1,0 +1,38 @@
+...@_style
+
+direction: right
+
+title: "Evening · relax scene picked earlier · doorbell rings" {class: title}
+
+footer: "raised from other apps, without knowing which lights or pipelines exist" {class: footer}
+
+default: "default\noff" {
+  shape: oval
+}
+
+interaction: Interaction node {
+  class: layer
+  w: "watches: wall switch · the light itself" {class: watches}
+  a: "wall switch  →  ambiance / relax / bright / off" {class: [rule; active]}
+  b: "turned off by hand  →  hold off" {class: rule}
+  c: "otherwise  →  pass through" {class: [rule; pass]}
+}
+
+notifications: Notifications node {
+  class: layer
+  w: "watches: active notifications · highest priority wins" {class: watches}
+  a: "alarm app (100)  →  red" {class: rule}
+  b: "doorbell app (10)  →  blink blue and white" {class: [rule; active]}
+  c: "washing machine app (1)  →  its own node" {class: rule}
+  d: "none active  →  pass through" {class: [rule; pass]}
+}
+
+light: "light.living_room_lights" {
+  style.double-border: true
+  style.font-size: 16
+  style.bold: true
+}
+
+default -> interaction: off {class: value}
+interaction -> notifications: relax {class: value}
+notifications -> light: blue / white {class: value}
