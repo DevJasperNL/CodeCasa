@@ -10,19 +10,19 @@ default: "default\noff" {
 
 motion: Motion {
   class: layer
-  w: "watches: HallwayMotionSensor · night" {class: watches}
-  a: "motion, night  →  night light" {class: rule}
-  b: "motion, day  →  bright" {class: rule}
-  c: "no motion  →  pass through" {class: [rule; pass; active]}
+  w: "watches:\nHallwayMotionSensor · night" {class: watches}
+  a: "motion, night\n→ night light" {class: rule}
+  b: "motion, day\n→ bright" {class: rule}
+  c: "no motion\n→ pass through" {class: [rule; pass; active]}
 }
 
 interaction: Interaction node {
   class: layer
-  w: "watches: wall switch · the light itself" {class: watches}
-  a: "switch, light off  →  bright for 5 min, then pass through" {class: [rule; active]}
-  b: "switch, light on  →  off until motion changes" {class: rule}
-  c: "turned off by hand  →  hold off" {class: rule}
-  d: "otherwise  →  pass through" {class: [rule; pass]}
+  w: "watches:\nwall switch · the light itself" {class: watches}
+  a: "switch, light off\n→ bright for 5 min,\nthen pass through" {class: [rule; active]}
+  b: "switch, light on\n→ off until motion changes" {class: rule}
+  c: "turned off by hand\n→ hold off" {class: rule}
+  d: "otherwise\n→ pass through" {class: [rule; pass]}
 }
 
 light: "light.hallway_light" {

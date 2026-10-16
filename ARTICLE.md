@@ -19,8 +19,8 @@ Front matter for dev.to (markdown editor mode):
             cover_image: <url, 1000x420>
             ---
 Cover:      TODO (the "Thinking in Layers" flowchart exported at 1000x420 would work)
-Diagrams:   D2 sources in docs/article/*.d2 (shared style in _style.d2), rendered with `d2 <name>.d2 <name>.svg`
-            and `.png`. The SVGs follow light/dark mode; upload the PNGs to dev.to (it doesn't take SVG) and the SVGs
+Diagrams:   D2 sources in docs/article/*.d2 (shared style in _style.d2), rendered to .svg and .png
+            with `sh docs/article/render.sh`. The SVGs follow light/dark mode; upload the PNGs to dev.to (it doesn't take SVG) and the SVGs
             to WordPress, then replace the relative image paths with the uploaded URLs.
 Release:    the start-up fix on branch feature/interaction-window is not in 1.27.0 yet; publish after it ships.
 

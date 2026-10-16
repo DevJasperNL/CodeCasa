@@ -12,25 +12,25 @@ default: "default\noff" {
 
 motion: Motion {
   class: layer
-  w: "watches: motion sensor · sun" {class: watches}
-  a: "motion, night  →  night light" {class: [rule; active]}
-  b: "motion, day  →  bright" {class: rule}
-  c: "no motion  →  pass through" {class: [rule; pass]}
+  w: "watches:\nmotion sensor · sun" {class: watches}
+  a: "motion, night\n→ night light" {class: [rule; active]}
+  b: "motion, day\n→ bright" {class: rule}
+  c: "no motion\n→ pass through" {class: [rule; pass]}
 }
 
 switch: Dimmer switch {
   class: layer
-  w: "watches: button presses" {class: watches}
-  a: "on pressed  →  bright / off" {class: rule}
-  b: "scene pressed  →  next scene" {class: rule}
-  c: "not touched  →  pass through" {class: [rule; pass; active]}
+  w: "watches:\nbutton presses" {class: watches}
+  a: "on pressed\n→ bright / off" {class: rule}
+  b: "scene pressed\n→ next scene" {class: rule}
+  c: "not touched\n→ pass through" {class: [rule; pass; active]}
 }
 
 alarm: Alarm {
   class: layer
-  w: "watches: alarm panel" {class: watches}
-  a: "triggered  →  red" {class: rule}
-  b: "otherwise  →  pass through" {class: [rule; pass; active]}
+  w: "watches:\nalarm panel" {class: watches}
+  a: "triggered\n→ red" {class: rule}
+  b: "otherwise\n→ pass through" {class: [rule; pass; active]}
 }
 
 light: "light.hallway_light" {
